@@ -1,0 +1,32 @@
+{
+  "name": "sage",
+  "version": "0.1.0",
+  "description": "Multisig co-signer and security agent built on Squads Protocol (Solana)",
+  "private": true,
+  "scripts": {
+    "test": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/**/*.test.ts' --timeout 120000 --exit",
+    "test:multisig": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/multisig.test.ts' --timeout 120000 --exit",
+    "test:proposal": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/proposal.test.ts' --timeout 120000 --exit",
+    "test:config": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/config.test.ts' --timeout 120000 --exit",
+    "test:reference": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/reference/transfer-flow.ts' --timeout 120000 --exit",
+    "build": "tsc",
+    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.91.8",
+    "@sqds/multisig": "^2.1.3"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.0",
+    "chai": "^4.4.1",
+    "mocha": "^10.3.0",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
