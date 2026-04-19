@@ -8,7 +8,7 @@
     "test:multisig": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/multisig.test.ts' --timeout 120000 --exit",
     "test:proposal": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/proposal.test.ts' --timeout 120000 --exit",
     "test:config": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/config.test.ts' --timeout 120000 --exit",
-    "test:reference": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/reference/transfer-flow.ts' --timeout 120000 --exit",
+    "test:reference": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/reference/transfer-flow.test.ts' --timeout 120000 --exit",
     "build": "tsc",
     "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'"
   },
