@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>Sage — Brand Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --mint: #5BD18E;
+    --mint-300: #7CDFA5;
+    --ink: #0A0D0E;
+    --ink-800: #14181A;
+    --ink-200: #C8CBBE;
+    --ink-300: #8E938A;
+    --serif: "Manrope", -apple-system, system-ui, sans-serif;
+    --sans: "Manrope", -apple-system, system-ui, sans-serif;
+    --mono: "JetBrains Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--ink); color: #fff; font-family: var(--sans); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 1180px; margin: 0 auto; padding: 96px 56px; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--mint-300); display: inline-flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--mint-300); }
+  .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 64px; align-items: center; padding-bottom: 72px; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 64px; }
+  h1 { font-family: var(--serif); font-weight: 700; font-size: 128px; line-height: .95; letter-spacing: -0.05em; margin: 24px 0 20px; }
+  h1 em { font-style: normal; font-weight: 500; color: var(--mint-300); }
+  .lede { font-family: var(--serif); font-style: normal; font-weight: 400; font-size: 22px; line-height: 1.5; color: var(--ink-200); max-width: 42ch; }
+  .mark-frame { display:flex; align-items:center; justify-content:center; padding: 40px; background: linear-gradient(135deg, #06090A, #0E1614 60%, #0A1F14); border: 1px solid rgba(91,209,142,.18); border-radius: 18px; min-height: 360px; }
+  .mark-frame img { display: block; margin: 0 auto; height: 280px; width: auto; }
+  .pv-logos { display: flex; align-items: center; justify-content: center; }
+  .pv-logos img { display: block; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .nav-card {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 22px;
+    padding: 40px;
+    text-decoration: none; color: inherit;
+    display: flex; flex-direction: column; gap: 24px;
+    transition: all .2s ease;
+    position: relative; overflow: hidden;
+  }
+  .nav-card:hover { border-color: rgba(91,209,142,.4); transform: translateY(-2px); }
+  .nav-card .num { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; color: var(--mint-300); text-transform: uppercase; }
+  .nav-card h3 { font-family: var(--serif); font-weight: 600; font-size: 40px; margin: 0; letter-spacing: -0.03em; line-height: 1; }
+  .nav-card h3 em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .nav-card p { font-family: var(--serif); font-style: normal; font-weight: 400; font-size: 17px; color: var(--ink-200); margin: 0; max-width: 38ch; line-height: 1.5; }
+  .nav-card .arrow { font-family: var(--mono); font-size: 13px; color: var(--mint-300); letter-spacing: .1em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 12px; margin-top: auto; }
+  .nav-card .arrow::after { content: "→"; font-size: 16px; }
+  .nav-card ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .nav-card ul li { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-200); padding: 6px 10px; border: 1px solid rgba(255,255,255,.1); border-radius: 999px; }
+
+  .preview { aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.06); }
+  .pv-ds { background: var(--ink); padding: 18px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+  .pv-ds > div { border-radius: 4px; }
+  .pv-logos { background: linear-gradient(135deg, #06090A, #0A1F14); display: flex; align-items: center; justify-content: center; gap: 14px; }
+  .pv-logos img { height: 60%; }
+  .pv-logos .word { font-family: var(--serif); font-weight: 700; font-size: 56px; letter-spacing: -0.05em; color: #fff; }
+  .pv-logos .word em { color: var(--mint-300); font-style: normal; font-weight: 500; }
+
+  .meta { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-300); display: flex; gap: 32px; padding-top: 40px; border-top: 1px dashed rgba(255,255,255,.1); margin-top: 64px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="hero">
+    <div>
+      <span class="eyebrow">Brand Book · 04.2026</span>
+      <h1>Sage<em>.</em></h1>
+      <p class="lede">A personal AI co-signer for your Solana wallet. Quiet enough to disappear. Wise enough to recognize when something's wrong.</p>
+    </div>
+    <div class="mark-frame">
+      <img src="assets/sage-mark-mint.png" alt="Sage mark" />
+    </div>
+  </header>
+
+  <div class="grid-2">
+    <a class="nav-card" href="design-system.html">
+      <span class="num">01 — Foundations</span>
+      <div class="preview pv-ds">
+        <div style="background:#5BD18E; grid-column: span 4; aspect-ratio: 2;"></div>
+        <div style="background:#0A0D0E; border:1px solid rgba(255,255,255,.1); grid-column: span 2; aspect-ratio: 2;"></div>
+        <div style="background:#FBFBF7; grid-column: span 2; aspect-ratio: 2;"></div>
+        <div style="background:#CFF5DF;"></div>
+        <div style="background:#7CDFA5;"></div>
+        <div style="background:#5BD18E;"></div>
+        <div style="background:#3FBE76;"></div>
+        <div style="background:#1F7A48;"></div>
+        <div style="background:#0D3B23;"></div>
+        <div style="background:#F0B33C;"></div>
+        <div style="background:#E5524F;"></div>
+      </div>
+      <h3>Design <em>system.</em></h3>
+      <p>Color, type, spacing, components, voice. The rules every Sage surface follows.</p>
+      <ul>
+        <li>Color</li><li>Type</li><li>Components</li><li>Voice</li>
+      </ul>
+      <span class="arrow">Open system</span>
+    </a>
+
+    <a class="nav-card" href="logo-system.html">
+      <span class="num">02 — Identity</span>
+      <div class="preview pv-logos">
+        <img src="assets/sage-mark-mint.png" alt="" />
+        <span class="word">Sage<em>.</em></span>
+      </div>
+      <h3>Logo <em>system.</em></h3>
+      <p>The mark, the wordmark, six font candidates, five lockups, and the rules of clear space.</p>
+      <ul>
+        <li>Mark</li><li>Wordmark</li><li>Lockups</li><li>Don'ts</li>
+      </ul>
+      <span class="arrow">Open logos</span>
+    </a>
+  </div>
+
+  <div class="meta">
+    <span>Sage · sage.xyz</span>
+    <span>Solana co-signer</span>
+    <span>v0.1 working draft</span>
+  </div>
+</div>
+</body>
+</html>

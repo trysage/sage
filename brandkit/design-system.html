@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>Sage — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Brand */
+    --mint-50:  #EAFBF2;
+    --mint-100: #CFF5DF;
+    --mint-200: #A8ECC4;
+    --mint-300: #7CDFA5;
+    --mint-400: #5BD18E;     /* signature */
+    --mint-500: #3FBE76;
+    --mint-600: #2A9D5E;
+    --mint-700: #1F7A48;
+    --mint-900: #0D3B23;
+
+    /* Ink (neutrals) */
+    --ink-0:   #FBFBF7;     /* parchment paper */
+    --ink-50:  #F2F2EB;
+    --ink-100: #E5E6DD;
+    --ink-200: #C8CBBE;
+    --ink-300: #8E938A;
+    --ink-500: #4A4F49;
+    --ink-700: #1F2421;
+    --ink-800: #14181A;
+    --ink-900: #0A0D0E;     /* deep night */
+    --ink-950: #06090A;
+
+    /* Semantic */
+    --safe:    #5BD18E;
+    --watch:   #F0B33C;
+    --danger:  #E5524F;
+
+    /* Type */
+    --serif: "Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --sans: "Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+    /* Geometry */
+    --r-xs: 4px;
+    --r-sm: 8px;
+    --r-md: 14px;
+    --r-lg: 22px;
+    --r-pill: 999px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--ink-900);
+    color: var(--ink-50);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* —— Page shell —— */
+  .page { max-width: 1280px; margin: 0 auto; padding: 80px 56px 120px; }
+
+  /* —— Hero —— */
+  .hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 72px; align-items: end; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--mint-400); display: inline-flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--mint-400); }
+  .hero h1 { font-family: var(--serif); font-weight: 700; font-size: 132px; line-height: .95; letter-spacing: -0.05em; margin: 28px 0 24px; color: var(--ink-0); }
+  .hero h1 em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .hero p { font-family: var(--serif); font-style: normal; font-weight: 400; font-size: 22px; line-height: 1.45; color: var(--ink-200); max-width: 36ch; }
+  .hero-meta { display: flex; flex-direction: column; gap: 14px; padding-bottom: 14px; }
+  .hero-meta .row { display: flex; justify-content: space-between; gap: 24px; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,.10); font-family: var(--mono); font-size: 12px; }
+  .hero-meta .row span:first-child { color: var(--ink-300); }
+  .hero-meta .row span:last-child { color: var(--ink-50); }
+
+  /* —— Sections —— */
+  .section { padding: 96px 0 0; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 40px; gap: 40px; }
+  .section-head h2 { font-family: var(--serif); font-weight: 600; font-size: 44px; line-height: 1; letter-spacing: -0.03em; margin: 0; color: var(--ink-0); }
+  .section-head h2 em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .section-head .index { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--ink-300); text-transform: uppercase; }
+  .section-head .desc { font-family: var(--serif); font-style: normal; font-weight: 400; font-size: 18px; color: var(--ink-200); max-width: 42ch; }
+
+  /* —— Color —— */
+  .color-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 16px; }
+  .swatch { border-radius: var(--r-md); padding: 24px; min-height: 180px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; }
+  .swatch.large { min-height: 260px; }
+  .swatch .name { font-family: var(--serif); font-weight: 400; font-size: 28px; letter-spacing: -0.01em; }
+  .swatch.large .name { font-size: 42px; }
+  .swatch .meta { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; display: flex; justify-content: space-between; opacity: .8; }
+  .ramp { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-top: 16px; }
+  .ramp .step { aspect-ratio: 1.4; border-radius: var(--r-sm); display: flex; align-items: flex-end; padding: 8px; font-family: var(--mono); font-size: 9px; }
+
+  /* —— Type —— */
+  .type-grid { display: grid; gap: 12px; }
+  .type-row { display: grid; grid-template-columns: 200px 1fr 200px; gap: 32px; align-items: baseline; padding: 28px 0; border-top: 1px solid rgba(255,255,255,.07); }
+  .type-row:first-child { border-top: 1px solid rgba(255,255,255,.18); }
+  .type-row .label { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-300); }
+  .type-row .specs { font-family: var(--mono); font-size: 11px; color: var(--ink-300); text-align: right; }
+  .display-1 { font-family: var(--serif); font-weight: 700; font-size: 96px; line-height: 1; letter-spacing: -0.045em; color: var(--ink-0); }
+  .display-1 em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .display-2 { font-family: var(--serif); font-weight: 400; font-size: 56px; line-height: 1.05; letter-spacing: -0.025em; color: var(--ink-0); }
+  .h-1 { font-family: var(--serif); font-weight: 500; font-size: 36px; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink-0); }
+  .h-2 { font-family: var(--sans); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink-0); }
+  .body { font-family: var(--sans); font-weight: 400; font-size: 16px; line-height: 1.55; color: var(--ink-100); max-width: 60ch; }
+  .body-sm { font-family: var(--sans); font-weight: 400; font-size: 14px; line-height: 1.5; color: var(--ink-200); }
+  .mono-sm { font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: .04em; color: var(--mint-300); }
+  .quote { font-family: var(--serif); font-style: normal; font-weight: 500; font-size: 28px; line-height: 1.35; color: var(--ink-100); letter-spacing: -0.015em; }
+
+  /* —— Components —— */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  .card {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: var(--r-lg);
+    padding: 28px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .card .card-title { font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-300); }
+
+  /* Buttons */
+  .btn-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; border-radius: var(--r-pill); font-family: var(--sans); font-weight: 600; font-size: 14px; border: 1px solid transparent; cursor: pointer; transition: all .15s ease; text-decoration: none; }
+  .btn-primary { background: var(--mint-400); color: var(--ink-900); }
+  .btn-primary:hover { background: var(--mint-300); }
+  .btn-secondary { background: rgba(255,255,255,.06); color: var(--ink-0); border-color: rgba(255,255,255,.1); }
+  .btn-ghost { background: transparent; color: var(--ink-100); border-color: rgba(255,255,255,.18); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: rgba(229,82,79,.4); }
+  .btn-sm { padding: 8px 14px; font-size: 12px; }
+
+  /* Pills / status */
+  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: var(--r-pill); font-family: var(--mono); font-size: 11px; letter-spacing: .06em; font-weight: 500; }
+  .pill.safe { background: rgba(91,209,142,.12); color: var(--mint-300); }
+  .pill.watch { background: rgba(240,179,60,.14); color: var(--watch); }
+  .pill.danger { background: rgba(229,82,79,.14); color: var(--danger); }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+
+  /* Transaction row example */
+  .tx-list { background: var(--ink-800); border-radius: var(--r-lg); border: 1px solid rgba(255,255,255,.06); overflow: hidden; }
+  .tx-row { display: grid; grid-template-columns: 1fr 1.4fr 1fr auto; gap: 24px; padding: 18px 24px; align-items: center; border-bottom: 1px solid rgba(255,255,255,.05); }
+  .tx-row:last-child { border-bottom: none; }
+  .tx-row .who { display: flex; flex-direction: column; gap: 2px; }
+  .tx-row .who .name { font-family: var(--sans); font-weight: 600; font-size: 14px; color: var(--ink-0); }
+  .tx-row .who .addr { font-family: var(--mono); font-size: 11px; color: var(--ink-300); }
+  .tx-row .reason { font-family: var(--serif); font-style: normal; font-weight: 500; font-size: 15px; color: var(--ink-200); }
+  .tx-row .amount { font-family: var(--mono); font-weight: 500; font-size: 14px; color: var(--ink-0); text-align: right; }
+  .tx-row .amount .sub { display: block; font-size: 10px; color: var(--ink-300); margin-top: 2px; }
+
+  /* Geometry display */
+  .geo-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .geo-card { background: var(--ink-800); border: 1px solid rgba(255,255,255,.06); padding: 20px; border-radius: var(--r-md); display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center; }
+  .geo-shape { background: var(--mint-400); width: 72px; height: 72px; }
+  .geo-card .label { font-family: var(--mono); font-size: 11px; color: var(--ink-300); }
+  .geo-card .val { font-family: var(--mono); font-size: 13px; color: var(--ink-0); }
+
+  /* Spacing scale */
+  .space-row { display: flex; align-items: center; gap: 24px; padding: 12px 0; border-top: 1px dashed rgba(255,255,255,.08); }
+  .space-bar { background: var(--mint-400); height: 8px; border-radius: 2px; }
+  .space-row .key { font-family: var(--mono); font-size: 12px; color: var(--ink-200); width: 80px; }
+  .space-row .val { font-family: var(--mono); font-size: 12px; color: var(--ink-300); width: 60px; }
+
+  /* Voice */
+  .voice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .voice-card { background: var(--ink-800); border: 1px solid rgba(255,255,255,.06); padding: 28px; border-radius: var(--r-lg); }
+  .voice-card.do { border-left: 3px solid var(--mint-400); }
+  .voice-card.dont { border-left: 3px solid var(--danger); }
+  .voice-card .head { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 16px; }
+  .voice-card.do .head { color: var(--mint-300); }
+  .voice-card.dont .head { color: var(--danger); }
+  .voice-card .quote { margin: 0 0 14px; font-size: 22px; }
+  .voice-card .note { font-family: var(--sans); font-size: 13px; color: var(--ink-300); }
+
+  /* Iconography */
+  .icon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  .icon-card { background: var(--ink-800); border: 1px solid rgba(255,255,255,.06); border-radius: var(--r-md); aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+  .icon-card svg { stroke: var(--mint-300); stroke-width: 1.5; fill: none; }
+  .icon-card .lbl { font-family: var(--mono); font-size: 10px; color: var(--ink-300); letter-spacing: .04em; }
+
+  /* nav bar */
+  .top-nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,13,14,.85); backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 56px; max-width: 100%;
+  }
+  .top-nav .brand { display: flex; align-items: center; gap: 10px; }
+  .top-nav .brand img { height: 26px; }
+  .top-nav .brand span { font-family: var(--serif); font-weight: 700; font-size: 20px; letter-spacing: -0.04em; }
+  .top-nav .brand span em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .top-nav nav { display: flex; gap: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+  .top-nav nav a { color: var(--ink-300); text-decoration: none; transition: color .15s ease; }
+  .top-nav nav a:hover { color: var(--ink-0); }
+  .top-nav nav a.active { color: var(--mint-300); }
+
+  /* footer */
+  .footer { margin-top: 120px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,.08); display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--ink-300); letter-spacing: .04em; }
+  .footer a { color: var(--mint-300); text-decoration: none; }
+
+  .star {
+    display: inline-block; width: 1em; height: 1em; vertical-align: -0.1em;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 1 L13.5 10.5 L23 12 L13.5 13.5 L12 23 L10.5 13.5 L1 12 L10.5 10.5 Z'/></svg>") center/contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 1 L13.5 10.5 L23 12 L13.5 13.5 L12 23 L10.5 13.5 L1 12 L10.5 10.5 Z'/></svg>") center/contain no-repeat;
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="brand" href="index.html">
+    <img src="assets/sage-mark-mint.png" alt="Sage" />
+    <span>Sage<em>.</em></span>
+  </a>
+  <nav>
+    <a href="index.html">Brand book</a>
+    <a href="design-system.html" class="active">Design system</a>
+    <a href="logo-system.html">Logo system</a>
+    <a href="logo-playground.html">Playground</a>
+    <a href="website.html">Website</a>
+  </nav>
+</nav>
+
+<div class="page">
+
+  <!-- ───── HERO ───── -->
+  <header class="hero">
+    <div>
+      <span class="eyebrow">Brand &amp; Design System · v0.1</span>
+      <h1>Sage<em>.</em></h1>
+      <p>A personal AI co-signer for Solana wallets. Wise enough to recognize you. Strict enough to stop what isn't.</p>
+    </div>
+    <div class="hero-meta">
+      <div class="row"><span>Project</span><span>Sage / sage.xyz</span></div>
+      <div class="row"><span>Chain</span><span>Solana</span></div>
+      <div class="row"><span>Surface</span><span>Wallet · Telegram · Web</span></div>
+      <div class="row"><span>Document</span><span>04 / 2026</span></div>
+      <div class="row"><span>Status</span><span style="color: var(--mint-300);">◆ Working draft</span></div>
+    </div>
+  </header>
+
+  <!-- ───── BRAND VOICE ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">01 — Principles</span>
+        <h2>The voice of a <em>quiet guardian.</em></h2>
+      </div>
+      <p class="desc">Sage isn't a wall. It's the friend who reads the contract before you sign. Calm, decisive, never alarmist.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <span class="card-title">01 / Principle</span>
+        <h3 class="h-1" style="margin:0;">Wisdom over warning.</h3>
+        <p class="body-sm">We explain the pattern, not just the threat. "This wallet is 4 hours old" beats "DANGER".</p>
+      </div>
+      <div class="card">
+        <span class="card-title">02 / Principle</span>
+        <h3 class="h-1" style="margin:0;">Default to passing.</h3>
+        <p class="body-sm">99% of your transactions are fine. The system should feel invisible until it earns your attention.</p>
+      </div>
+      <div class="card">
+        <span class="card-title">03 / Principle</span>
+        <h3 class="h-1" style="margin:0;">Receipts, not magic.</h3>
+        <p class="body-sm">Every decision has a reason. Show the signal, the threshold, the precedent. Always.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── COLOR ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">02 — Color</span>
+        <h2>Mint, ink, and three signals.</h2>
+      </div>
+      <p class="desc">Mint is the breath of safety — the most expensive pixel on the screen. Ink carries everything else. Three semantic colors govern transaction state.</p>
+    </div>
+
+    <!-- Hero swatches -->
+    <div class="color-grid" style="margin-bottom: 32px;">
+      <div class="swatch large" style="background: var(--mint-400); color: var(--ink-900); grid-column: span 2;">
+        <div>
+          <span class="card-title" style="color: rgba(0,0,0,.5);">Primary</span>
+          <div class="name" style="margin-top: 8px;">Sage Mint</div>
+          <div style="font-family: var(--mono); font-size: 11px; opacity: .65; margin-top: 6px;">The signal. The pulse. The "you're safe" tone.</div>
+        </div>
+        <div class="meta"><span>#5BD18E</span><span>oklch(80% .16 152)</span></div>
+      </div>
+      <div class="swatch large" style="background: var(--ink-900); color: var(--ink-0); border: 1px solid rgba(255,255,255,.1);">
+        <div>
+          <span class="card-title" style="color: var(--ink-300);">Surface</span>
+          <div class="name" style="margin-top: 8px;">Deep Ink</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--ink-300); margin-top: 6px;">Default canvas. Holds focus.</div>
+        </div>
+        <div class="meta"><span>#0A0D0E</span><span>oklch(13% .005 180)</span></div>
+      </div>
+      <div class="swatch large" style="background: var(--ink-0); color: var(--ink-900);">
+        <div>
+          <span class="card-title">Paper</span>
+          <div class="name" style="margin-top: 8px;">Parchment</div>
+          <div style="font-family: var(--mono); font-size: 11px; color: var(--ink-500); margin-top: 6px;">Light surfaces, marketing.</div>
+        </div>
+        <div class="meta"><span>#FBFBF7</span><span>oklch(98% .005 100)</span></div>
+      </div>
+    </div>
+
+    <!-- Mint ramp -->
+    <div style="margin-bottom: 24px;">
+      <div style="display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+        <span class="mono-sm">MINT — primary ramp</span>
+        <span class="mono-sm" style="color: var(--ink-300);">50 → 900</span>
+      </div>
+      <div class="ramp">
+        <div class="step" style="background: var(--mint-50); color: var(--mint-900);">50</div>
+        <div class="step" style="background: var(--mint-100); color: var(--mint-900);">100</div>
+        <div class="step" style="background: var(--mint-200); color: var(--mint-900);">200</div>
+        <div class="step" style="background: var(--mint-300); color: var(--mint-900);">300</div>
+        <div class="step" style="background: var(--mint-400); color: var(--mint-900);">400◆</div>
+        <div class="step" style="background: var(--mint-500); color: var(--ink-0);">500</div>
+        <div class="step" style="background: var(--mint-700); color: var(--ink-0);">700</div>
+        <div class="step" style="background: var(--mint-900); color: var(--mint-200);">900</div>
+      </div>
+    </div>
+    <div style="margin-bottom: 40px;">
+      <div style="display:flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+        <span class="mono-sm" style="color: var(--ink-200);">INK — neutral ramp</span>
+        <span class="mono-sm" style="color: var(--ink-300);">0 → 950</span>
+      </div>
+      <div class="ramp">
+        <div class="step" style="background: var(--ink-0); color: var(--ink-900);">0</div>
+        <div class="step" style="background: var(--ink-50); color: var(--ink-900);">50</div>
+        <div class="step" style="background: var(--ink-100); color: var(--ink-900);">100</div>
+        <div class="step" style="background: var(--ink-200); color: var(--ink-900);">200</div>
+        <div class="step" style="background: var(--ink-300); color: var(--ink-0);">300</div>
+        <div class="step" style="background: var(--ink-500); color: var(--ink-0);">500</div>
+        <div class="step" style="background: var(--ink-700); color: var(--ink-50);">700</div>
+        <div class="step" style="background: var(--ink-900); color: var(--ink-50); border: 1px solid rgba(255,255,255,.06);">900◆</div>
+      </div>
+    </div>
+
+    <!-- Semantic -->
+    <div class="grid-3">
+      <div class="swatch" style="background: rgba(91,209,142,.10); border: 1px solid rgba(91,209,142,.4); color: var(--mint-300);">
+        <div>
+          <span class="pill safe"><span class="dot"></span>SAFE · PASS</span>
+          <div class="name" style="margin-top: 16px; color: var(--mint-300);">Pass</div>
+          <p class="body-sm" style="color: var(--ink-200); margin: 6px 0 0;">Matches your pattern. Signs instantly.</p>
+        </div>
+        <div class="meta"><span>#5BD18E</span><span>--safe</span></div>
+      </div>
+      <div class="swatch" style="background: rgba(240,179,60,.08); border: 1px solid rgba(240,179,60,.4); color: var(--watch);">
+        <div>
+          <span class="pill watch"><span class="dot"></span>REVIEW · TG</span>
+          <div class="name" style="margin-top: 16px; color: var(--watch);">Watch</div>
+          <p class="body-sm" style="color: var(--ink-200); margin: 6px 0 0;">Unusual but not hostile. Pings Telegram.</p>
+        </div>
+        <div class="meta"><span>#F0B33C</span><span>--watch</span></div>
+      </div>
+      <div class="swatch" style="background: rgba(229,82,79,.08); border: 1px solid rgba(229,82,79,.4); color: var(--danger);">
+        <div>
+          <span class="pill danger"><span class="dot"></span>BLOCK · HOLD</span>
+          <div class="name" style="margin-top: 16px; color: var(--danger);">Block</div>
+          <p class="body-sm" style="color: var(--ink-200); margin: 6px 0 0;">Known drainer or high-risk pattern.</p>
+        </div>
+        <div class="meta"><span>#E5524F</span><span>--danger</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── TYPOGRAPHY ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">03 — Typography</span>
+        <h2>Manrope &amp; <em>JetBrains</em>.</h2>
+      </div>
+      <p class="desc">A humanist sans speaks for the brand and the UI. A precise mono speaks for the chain. Two fonts. Tight system.</p>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 56px; gap: 24px;">
+      <div class="card" style="padding: 36px;">
+        <span class="card-title">Display · Brand</span>
+        <div style="font-family: var(--serif); font-weight: 700; font-size: 140px; line-height: .9; letter-spacing: -0.05em; color: var(--ink-0);">Aa</div>
+        <div>
+          <div class="h-2" style="font-family: var(--serif); font-weight: 600; margin-bottom: 6px;">Manrope</div>
+          <p class="body-sm">Humanist sans-serif. Open apertures, calm rhythm. Use 600–800 for display, 500 for headings, 400 for body and UI. One font, every screen.</p>
+        </div>
+        <div class="mono-sm" style="color: var(--ink-300);">300 · 400 · 500 · 600 · 700 · 800</div>
+      </div>
+      <div class="card" style="padding: 36px;">
+        <span class="card-title">Mono · System</span>
+        <div style="font-family: var(--mono); font-weight: 500; font-size: 132px; line-height: .9; letter-spacing: -0.03em; color: var(--mint-300);">0x</div>
+        <div>
+          <div class="h-2" style="margin-bottom: 6px;">JetBrains Mono</div>
+          <p class="body-sm">For everything precise: addresses, hashes, amounts, status labels, eyebrows. Tracking +0.04em. Mint for emphasis.</p>
+        </div>
+        <div class="mono-sm" style="color: var(--ink-300);">400 · 500 · 600 · tabular-nums</div>
+      </div>
+    </div>
+
+    <div class="type-grid">
+      <div class="type-row">
+        <span class="label">Display 1</span>
+        <div class="display-1">Sign with <em>wisdom.</em></div>
+        <span class="specs">Manrope 700 · 96 / 92<br>−4.5%</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Display 2</span>
+        <div class="display-2">Your wallet, watched by a friend who's read the contract.</div>
+        <span class="specs">Manrope 600 · 56 / 60<br>−3%</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Heading 1</span>
+        <div class="h-1">Three transactions need your eye today.</div>
+        <span class="specs">Manrope 600 · 36 / 40</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Heading 2</span>
+        <div class="h-2">Recipient never used before</div>
+        <span class="specs">Manrope 600 · 22 / 28</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Body</span>
+        <p class="body" style="margin:0;">Sage learned that on Tuesday afternoons you typically swap 0.5–2 SOL into JUP. This transaction is 4× larger and going to a contract you've never approved. Holding for your review.</p>
+        <span class="specs">Manrope 400 · 16 / 25</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Pull Quote</span>
+        <p class="quote" style="margin:0;">"The best security tool is the one you forget is there — until the moment you need it."</p>
+        <span class="specs">Manrope 500 · 28 / 38</span>
+      </div>
+      <div class="type-row">
+        <span class="label">Mono · Detail</span>
+        <div class="mono-sm">7xKX...gQ4n  ·  0.0042 SOL  ·  +14ms  ·  ◆ PASS</div>
+        <span class="specs">JetBrains 500 · 12 / 16</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── GEOMETRY / SPACING ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">04 — Geometry</span>
+        <h2>Soft corners, generous space.</h2>
+      </div>
+      <p class="desc">Cards round to 14px. Pills go fully circular. Spacing follows a 4-base scale.</p>
+    </div>
+
+    <div class="grid-2" style="gap: 32px;">
+      <div>
+        <div class="mono-sm" style="color: var(--ink-200); margin-bottom: 16px;">RADII</div>
+        <div class="geo-grid">
+          <div class="geo-card">
+            <div class="geo-shape" style="border-radius: 4px;"></div>
+            <span class="label">XS</span>
+            <span class="val">4px</span>
+          </div>
+          <div class="geo-card">
+            <div class="geo-shape" style="border-radius: 8px;"></div>
+            <span class="label">SM</span>
+            <span class="val">8px</span>
+          </div>
+          <div class="geo-card">
+            <div class="geo-shape" style="border-radius: 14px;"></div>
+            <span class="label">MD</span>
+            <span class="val">14px</span>
+          </div>
+          <div class="geo-card">
+            <div class="geo-shape" style="border-radius: 22px;"></div>
+            <span class="label">LG</span>
+            <span class="val">22px</span>
+          </div>
+          <div class="geo-card">
+            <div class="geo-shape" style="border-radius: 999px;"></div>
+            <span class="label">PILL</span>
+            <span class="val">∞</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="mono-sm" style="color: var(--ink-200); margin-bottom: 16px;">SPACING · 4-BASE</div>
+        <div>
+          <div class="space-row" style="border-top: none;"><span class="key">space-1</span><span class="val">4</span><div class="space-bar" style="width: 4px;"></div></div>
+          <div class="space-row"><span class="key">space-2</span><span class="val">8</span><div class="space-bar" style="width: 8px;"></div></div>
+          <div class="space-row"><span class="key">space-3</span><span class="val">12</span><div class="space-bar" style="width: 12px;"></div></div>
+          <div class="space-row"><span class="key">space-4</span><span class="val">16</span><div class="space-bar" style="width: 16px;"></div></div>
+          <div class="space-row"><span class="key">space-6</span><span class="val">24</span><div class="space-bar" style="width: 24px;"></div></div>
+          <div class="space-row"><span class="key">space-8</span><span class="val">32</span><div class="space-bar" style="width: 32px;"></div></div>
+          <div class="space-row"><span class="key">space-12</span><span class="val">48</span><div class="space-bar" style="width: 48px;"></div></div>
+          <div class="space-row"><span class="key">space-16</span><span class="val">64</span><div class="space-bar" style="width: 64px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── COMPONENTS ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">05 — Components</span>
+        <h2>Built to <em>not</em> be noticed.</h2>
+      </div>
+      <p class="desc">Every UI primitive should fade until it has something to say. When it speaks, it speaks in mint.</p>
+    </div>
+
+    <!-- Buttons + pills -->
+    <div class="grid-2" style="margin-bottom: 24px;">
+      <div class="card">
+        <span class="card-title">Buttons</span>
+        <div class="btn-row">
+          <button class="btn btn-primary">Approve transaction</button>
+          <button class="btn btn-secondary">Open in Telegram</button>
+          <button class="btn btn-ghost">Skip</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary btn-sm">Sign · 0.42 SOL</button>
+          <button class="btn btn-secondary btn-sm">Details</button>
+          <button class="btn btn-danger btn-sm">Block forever</button>
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-title">Status pills</span>
+        <div class="btn-row">
+          <span class="pill safe"><span class="dot"></span>SIGNED · 14ms</span>
+          <span class="pill watch"><span class="dot"></span>HELD · awaiting TG</span>
+          <span class="pill danger"><span class="dot"></span>BLOCKED · drainer</span>
+        </div>
+        <div class="btn-row">
+          <span class="pill safe"><span class="dot"></span>PATTERN MATCH 96%</span>
+          <span class="pill watch"><span class="dot"></span>NEW RECIPIENT</span>
+          <span class="pill danger"><span class="dot"></span>HIGH RISK</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live transaction card -->
+    <div class="card" style="margin-bottom: 24px; padding: 0;">
+      <div style="padding: 24px 28px 0; display: flex; justify-content: space-between; align-items: baseline;">
+        <span class="card-title">Activity · last 30 min</span>
+        <span class="mono-sm" style="color: var(--ink-300);">localhost:sage / wallet</span>
+      </div>
+      <div class="tx-list" style="border: none; background: transparent; margin-top: 8px;">
+        <div class="tx-row">
+          <div class="who">
+            <span class="name">Jupiter Aggregator</span>
+            <span class="addr">JUP4...vMSx</span>
+          </div>
+          <div class="reason">Routine swap. Within your weekly band.</div>
+          <span class="pill safe" style="justify-self: end;"><span class="dot"></span>PASS</span>
+          <span class="amount">−0.84 SOL<span class="sub">$148.20 · signed 14ms</span></span>
+        </div>
+        <div class="tx-row">
+          <div class="who">
+            <span class="name">Unknown wallet</span>
+            <span class="addr">7xKX...gQ4n</span>
+          </div>
+          <div class="reason">First-time recipient. 4× your median outbound.</div>
+          <span class="pill watch" style="justify-self: end;"><span class="dot"></span>REVIEW</span>
+          <span class="amount">−4.20 SOL<span class="sub">$740.00 · held 2m</span></span>
+        </div>
+        <div class="tx-row">
+          <div class="who">
+            <span class="name">Suspect contract</span>
+            <span class="addr">DRA1...nrZk</span>
+          </div>
+          <div class="reason">Matches drainer fingerprint shared 6h ago.</div>
+          <span class="pill danger" style="justify-self: end;"><span class="dot"></span>BLOCK</span>
+          <span class="amount">−ALL SOL<span class="sub">prevented</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Iconography -->
+    <div>
+      <div class="mono-sm" style="color: var(--ink-200); margin-bottom: 16px;">ICONOGRAPHY · 1.5px stroke, mint-300</div>
+      <div class="icon-grid">
+        <div class="icon-card">
+          <svg width="40" height="40" viewBox="0 0 24 24"><path d="M12 2 L20 6 V12 C20 17 16 21 12 22 C8 21 4 17 4 12 V6 Z"/></svg>
+          <span class="lbl">shield</span>
+        </div>
+        <div class="icon-card">
+          <svg width="40" height="40" viewBox="0 0 24 24"><path d="M12 2 L13.5 10.5 L22 12 L13.5 13.5 L12 22 L10.5 13.5 L2 12 L10.5 10.5 Z"/></svg>
+          <span class="lbl">spark</span>
+        </div>
+        <div class="icon-card">
+          <svg width="40" height="40" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15 14"/></svg>
+          <span class="lbl">timing</span>
+        </div>
+        <div class="icon-card">
+          <svg width="40" height="40" viewBox="0 0 24 24"><path d="M3 12 L9 12 L11 6 L13 18 L15 12 L21 12"/></svg>
+          <span class="lbl">pattern</span>
+        </div>
+        <div class="icon-card">
+          <svg width="40" height="40" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10 H21 M7 15 H10"/></svg>
+          <span class="lbl">wallet</span>
+        </div>
+        <div class="icon-card">
+          <svg width="40" height="40" viewBox="0 0 24 24"><path d="M21 4 L11 14 M21 4 L14 21 L11 14 L4 11 Z"/></svg>
+          <span class="lbl">telegram</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── VOICE ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">06 — Copy &amp; Voice</span>
+        <h2>How Sage <em>speaks</em>.</h2>
+      </div>
+      <p class="desc">Specific. Calm. Always with a reason. Never yells, never patronizes, never says "FRAUD" in red.</p>
+    </div>
+
+    <div class="voice-grid">
+      <div class="voice-card do">
+        <span class="head">◆ Yes</span>
+        <p class="quote">"This wallet is 4 hours old and just received funds from 3 known drainers. I'm holding this until you check Telegram."</p>
+        <p class="note">Specific signal · concrete action · calm tone</p>
+      </div>
+      <div class="voice-card dont">
+        <span class="head">✕ No</span>
+        <p class="quote">"⚠️ HIGH RISK TRANSACTION DETECTED! Do you want to proceed anyway?"</p>
+        <p class="note">Vague, alarmist, asks the user to make the decision the agent should already have made.</p>
+      </div>
+      <div class="voice-card do">
+        <span class="head">◆ Yes</span>
+        <p class="quote">"Looks like your usual Tuesday Jupiter routine. Signed in 14ms — nothing for you to do."</p>
+        <p class="note">Acknowledges pattern · invisible by default · earns trust silently.</p>
+      </div>
+      <div class="voice-card dont">
+        <span class="head">✕ No</span>
+        <p class="quote">"Transaction successful. ✅"</p>
+        <p class="note">Empty. Tells you what happened, not why it was safe.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>Sage · personal AI co-signer · Solana</span>
+    <span>Design system v0.1 · 04.2026</span>
+    <span><a href="index.html">← Brand book</a> · <a href="logo-system.html">Logo system →</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

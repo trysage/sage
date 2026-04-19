@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>Sage — Logo System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Cinzel:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Brand */
+    --mint-50:  #EAFBF2;
+    --mint-100: #CFF5DF;
+    --mint-200: #A8ECC4;
+    --mint-300: #7CDFA5;
+    --mint-400: #5BD18E;     /* signature */
+    --mint-500: #3FBE76;
+    --mint-600: #2A9D5E;
+    --mint-700: #1F7A48;
+    --mint-900: #0D3B23;
+
+    /* Ink (neutrals) */
+    --ink-0:   #FBFBF7;
+    --ink-50:  #F2F2EB;
+    --ink-100: #E5E6DD;
+    --ink-200: #C8CBBE;
+    --ink-300: #8E938A;
+    --ink-500: #4A4F49;
+    --ink-700: #1F2421;
+    --ink-800: #14181A;
+    --ink-900: #0A0D0E;
+    --ink-950: #06090A;
+
+    --serif: "Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --sans:  "Manrope", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --mono:  "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+    --r-xs: 4px;
+    --r-sm: 8px;
+    --r-md: 14px;
+    --r-lg: 22px;
+    --r-pill: 999px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--ink-900);
+    color: var(--ink-50);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* —— Top nav —— */
+  .top-nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 56px;
+    height: 56px;
+    background: rgba(10,13,14,.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .top-nav .brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--ink-0);
+    font-family: var(--serif); font-weight: 700; font-size: 20px; letter-spacing: -0.04em;
+  }
+  .top-nav .brand img { height: 24px; width: auto; }
+  .top-nav .brand em { font-style: normal; color: var(--mint-300); }
+  .top-nav nav { display: flex; gap: 4px; }
+  .top-nav nav a {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .10em; text-transform: uppercase;
+    color: var(--ink-300); text-decoration: none;
+    padding: 6px 14px; border-radius: var(--r-pill);
+    transition: color .15s, background .15s;
+  }
+  .top-nav nav a:hover { color: var(--ink-0); }
+  .top-nav nav a.active { color: var(--mint-300); background: rgba(91,209,142,.10); }
+
+  /* —— Page shell —— */
+  .page { max-width: 1280px; margin: 0 auto; padding: 80px 56px 120px; }
+
+  /* —— Hero —— */
+  .hero { padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 0; }
+  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--mint-400); display: inline-flex; align-items: center; gap: 10px; }
+  .eyebrow::before { content: ""; width: 24px; height: 1px; background: var(--mint-400); }
+  .hero h1 { font-family: var(--serif); font-weight: 700; font-size: 96px; line-height: .95; letter-spacing: -0.045em; margin: 28px 0 20px; color: var(--ink-0); }
+  .hero h1 em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .hero p { font-family: var(--serif); font-style: normal; font-weight: 400; font-size: 20px; line-height: 1.5; color: var(--ink-200); max-width: 52ch; }
+
+  /* —— Sections —— */
+  .section { padding: 96px 0 0; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 40px; gap: 40px; }
+  .section-head h2 { font-family: var(--serif); font-weight: 600; font-size: 44px; line-height: 1; letter-spacing: -0.03em; margin: 0; color: var(--ink-0); }
+  .section-head h2 em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .section-head .index { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; color: var(--ink-300); text-transform: uppercase; }
+  .section-head .desc { font-family: var(--serif); font-style: normal; font-weight: 400; font-size: 18px; color: var(--ink-200); max-width: 40ch; text-align: right; }
+
+  /* —— Grids —— */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* —— Cards —— */
+  .card {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: var(--r-lg);
+    padding: 32px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .card-title { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-300); }
+  .h-1 { font-family: var(--serif); font-weight: 500; font-size: 36px; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink-0); }
+  .h-2 { font-family: var(--sans); font-weight: 600; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; color: var(--ink-0); }
+  .body-sm { font-family: var(--sans); font-weight: 400; font-size: 14px; line-height: 1.5; color: var(--ink-200); }
+  .mono-sm { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .04em; color: var(--mint-300); }
+
+  /* —— Mark display cards (Section 01) —— */
+  .mark-card {
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.07);
+    display: flex; flex-direction: column;
+  }
+  .mark-card .stage {
+    flex: 1; min-height: 260px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px;
+  }
+  .mark-card.deep .stage  { background: linear-gradient(135deg, var(--ink-950) 0%, #0E1614 60%, #0A1F14 100%); }
+  .mark-card.paper .stage { background: var(--ink-0); }
+  .mark-card.mint .stage  { background: linear-gradient(135deg, var(--mint-400) 0%, var(--mint-500) 100%); }
+  .mark-card .stage img   { height: 120px; width: auto; display: block; }
+  .mark-card .meta {
+    padding: 20px 24px;
+    background: var(--ink-800);
+    border-top: 1px solid rgba(255,255,255,.07);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .mark-card .meta .label { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-200); }
+  .mark-card .meta .spec  { font-family: var(--mono); font-size: 11px; color: var(--ink-300); }
+
+  /* —— Wordmark font candidates (Section 02) —— */
+  .font-card {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: var(--r-lg);
+    padding: 32px;
+    display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
+    min-height: 220px;
+    position: relative;
+  }
+  .font-card.chosen { border-color: rgba(91,209,142,.4); background: rgba(91,209,142,.05); }
+  .font-card .chosen-badge {
+    position: absolute; top: 16px; right: 16px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--mint-400); background: rgba(91,209,142,.15); border: 1px solid rgba(91,209,142,.35);
+    padding: 4px 10px; border-radius: var(--r-pill);
+  }
+  .font-card .wordmark-display { line-height: .95; letter-spacing: -0.04em; color: var(--ink-0); }
+  .font-card .wordmark-display em { font-style: normal; }
+  .font-card.f-fraunces   .wordmark-display { font-family: "Fraunces", serif; font-weight: 400; font-size: 64px; }
+  .font-card.f-fraunces   .wordmark-display em { color: var(--mint-300); font-style: italic; font-weight: 300; }
+  .font-card.f-cormorant  .wordmark-display { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 72px; letter-spacing: -0.02em; }
+  .font-card.f-cormorant  .wordmark-display em { color: var(--mint-300); font-weight: 400; }
+  .font-card.f-cinzel     .wordmark-display { font-family: "Cinzel", serif; font-weight: 400; font-size: 48px; letter-spacing: .08em; text-transform: uppercase; }
+  .font-card.f-cinzel     .wordmark-display em { color: var(--mint-300); }
+  .font-card.f-space      .wordmark-display { font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 64px; }
+  .font-card.f-space      .wordmark-display em { color: var(--mint-300); }
+  .font-card.f-manrope    .wordmark-display { font-family: "Manrope", sans-serif; font-weight: 700; font-size: 64px; }
+  .font-card.f-manrope    .wordmark-display em { color: var(--mint-300); font-weight: 500; }
+  .font-card.f-jetbrains  .wordmark-display { font-family: "JetBrains Mono", monospace; font-weight: 500; font-size: 52px; letter-spacing: -0.02em; }
+  .font-card.f-jetbrains  .wordmark-display em { color: var(--mint-300); }
+  .font-card .font-meta { display: flex; justify-content: space-between; align-items: center; }
+  .font-card .font-name { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-200); }
+  .font-card .font-note { font-family: var(--sans); font-size: 13px; color: var(--ink-300); }
+
+  /* —— Recommendation (Section 03) —— */
+  .recommendation {
+    background: rgba(91,209,142,.06);
+    border: 1px solid rgba(91,209,142,.22);
+    border-radius: var(--r-lg);
+    padding: 48px;
+    display: grid; grid-template-columns: 1fr auto; gap: 56px; align-items: center;
+  }
+  .recommendation h3 { font-family: var(--serif); font-weight: 600; font-size: 32px; letter-spacing: -0.025em; margin: 0 0 16px; color: var(--ink-0); }
+  .recommendation h3 em { font-style: normal; color: var(--mint-300); }
+  .recommendation p { font-family: var(--sans); font-size: 16px; line-height: 1.6; color: var(--ink-200); margin: 0; max-width: 52ch; }
+  .recommendation ul { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .recommendation ul li {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--mint-300); background: rgba(91,209,142,.10);
+    border: 1px solid rgba(91,209,142,.25); border-radius: var(--r-pill);
+    padding: 5px 12px;
+  }
+  .pick {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 20px;
+    background: linear-gradient(135deg, var(--ink-950), #0A1F14);
+    border: 1px solid rgba(91,209,142,.18);
+    border-radius: var(--r-lg);
+    padding: 36px 48px;
+  }
+  .pick img { height: 72px; width: auto; }
+  .pick .wm { font-family: "Manrope", sans-serif; font-weight: 700; font-size: 52px; letter-spacing: -0.04em; color: var(--ink-0); }
+  .pick .wm em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+
+  /* —— Lockups (Section 04) —— */
+  .lockup-card {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .lockup-card .stage {
+    flex: 1; min-height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 36px;
+    background: linear-gradient(135deg, var(--ink-950), #0E1614);
+    gap: 20px;
+  }
+  .lockup-card .stage.light { background: var(--ink-0); }
+  .lockup-card .stage.mint-bg { background: linear-gradient(135deg, var(--mint-400), var(--mint-500)); }
+  .lockup-card .stage img { height: 56px; width: auto; }
+  .lockup-card .stage .wm {
+    font-family: "Manrope", sans-serif; font-weight: 700;
+    letter-spacing: -0.04em; color: var(--ink-0); line-height: 1;
+  }
+  .lockup-card .stage .wm em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .lockup-card .stage.light .wm { color: var(--ink-900); }
+  .lockup-card .stage.light .wm em { color: var(--mint-500); }
+  .lockup-card .stage.mint-bg .wm { color: #fff; }
+  .lockup-card .stage.mint-bg .wm em { color: rgba(255,255,255,.7); }
+  .lockup-card .stage.stacked { flex-direction: column; gap: 12px; }
+  .lockup-card .stage.mark-only img { height: 80px; }
+  .lockup-card .meta {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,.07);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .lockup-card .meta .name { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-200); }
+  .lockup-card .meta .usage { font-family: var(--sans); font-size: 12px; color: var(--ink-300); }
+
+  /* —— Construction (Section 05) —— */
+  .construction-wrap {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .construction-stage {
+    min-height: 360px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, var(--ink-950), #0E1614);
+    position: relative;
+  }
+  .construction-inner {
+    position: relative;
+    display: inline-flex; align-items: center; gap: 24px;
+  }
+  .construction-inner img { height: 96px; width: auto; }
+  .construction-wm {
+    font-family: "Manrope", sans-serif; font-weight: 700; font-size: 72px;
+    letter-spacing: -0.04em; color: var(--ink-0); line-height: 1;
+  }
+  .construction-wm em { font-style: normal; color: var(--mint-300); font-weight: 500; }
+  .grid-line-h {
+    position: absolute; left: -40px; right: -40px; height: 1px;
+    background: rgba(91,209,142,.35); pointer-events: none;
+  }
+  .grid-line-v {
+    position: absolute; top: -40px; bottom: -40px; width: 1px;
+    background: rgba(91,209,142,.35); pointer-events: none;
+  }
+  .clear-bracket {
+    position: absolute; border: 1px dashed rgba(91,209,142,.5);
+    border-radius: 2px; pointer-events: none;
+  }
+  .construction-label {
+    position: absolute; font-family: var(--mono); font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--mint-300);
+  }
+  .construction-footer {
+    padding: 20px 32px;
+    border-top: 1px solid rgba(255,255,255,.07);
+    display: flex; gap: 40px; align-items: center;
+    background: rgba(0,0,0,.2);
+  }
+  .construction-footer span { font-family: var(--mono); font-size: 11px; color: var(--ink-300); letter-spacing: .06em; }
+  .construction-footer strong { color: var(--ink-0); font-weight: 500; }
+
+  .size-strip {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+  }
+  .size-card {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: var(--r-md);
+    padding: 20px 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px;
+    min-height: 100px;
+  }
+  .size-card img { width: auto; display: block; }
+  .size-card .size-label { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-300); }
+  .size-card.too-small { border-color: rgba(229,82,79,.35); opacity: .55; }
+  .size-card.too-small .size-label { color: #E5524F; }
+
+  /* —— Don'ts (Section 06) —— */
+  .donts-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  .dont-card {
+    background: var(--ink-800);
+    border: 1px solid rgba(229,82,79,.25);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+  .dont-card .dont-stage {
+    min-height: 160px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px;
+    background: linear-gradient(135deg, var(--ink-950), #180E0E);
+    position: relative;
+  }
+  .dont-card .dont-stage img { height: 72px; width: auto; }
+  .dont-card .dont-badge {
+    position: absolute; top: 12px; left: 12px;
+    font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+    color: #E5524F; background: rgba(229,82,79,.15); border: 1px solid rgba(229,82,79,.35);
+    padding: 3px 8px; border-radius: var(--r-pill);
+  }
+  .dont-card .dont-footer { padding: 16px 20px; }
+  .dont-card .dont-footer .title { font-family: var(--sans); font-weight: 600; font-size: 14px; color: var(--ink-0); margin-bottom: 4px; }
+  .dont-card .dont-footer p { font-family: var(--sans); font-size: 13px; color: var(--ink-300); margin: 0; line-height: 1.45; }
+
+  /* —— Footer —— */
+  .footer { margin-top: 120px; padding-top: 40px; border-top: 1px solid rgba(255,255,255,.08); display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--ink-300); letter-spacing: .04em; }
+  .footer a { color: var(--mint-300); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a class="brand" href="index.html">
+    <img src="assets/sage-mark-mint.png" alt="Sage" />
+    <span>Sage<em>.</em></span>
+  </a>
+  <nav>
+    <a href="index.html">Brand book</a>
+    <a href="design-system.html">Design system</a>
+    <a href="logo-system.html" class="active">Logo system</a>
+    <a href="logo-playground.html">Playground</a>
+    <a href="website.html">Website</a>
+  </nav>
+</nav>
+
+<div class="page">
+
+  <!-- ───── HERO ───── -->
+  <header class="hero">
+    <span class="eyebrow">Identity · Logo System · v0.1</span>
+    <h1>The mark of <em>Sage.</em></h1>
+    <p>A quiet symbol for a quiet guardian. One mark, six uses, zero compromises. Here is where every pixel is decided.</p>
+  </header>
+
+  <!-- ───── 01 — THE MARK ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">01 — The Mark</span>
+        <h2>Three <em>contexts.</em></h2>
+      </div>
+      <p class="desc">The mark in all approved background contexts. Never use other combinations.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="mark-card deep">
+        <div class="stage">
+          <img src="assets/sage-mark-mint.png" alt="Sage mark on deep" />
+        </div>
+        <div class="meta">
+          <span class="label">Deep · primary</span>
+          <span class="spec">Mint on #06090A</span>
+        </div>
+      </div>
+      <div class="mark-card paper">
+        <div class="stage">
+          <img src="assets/sage-mark-dark.png" alt="Sage mark on paper" onerror="this.style.filter='invert(1)'" />
+        </div>
+        <div class="meta">
+          <span class="label">Paper · print</span>
+          <span class="spec">Ink on #FBFBF7</span>
+        </div>
+      </div>
+      <div class="mark-card mint">
+        <div class="stage">
+          <img src="assets/sage-mark-white.png" alt="Sage mark on mint" onerror="this.style.filter='brightness(10)'" />
+        </div>
+        <div class="meta">
+          <span class="label">Mint · accent</span>
+          <span class="spec">White on #5BD18E</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 02 — WORDMARK CANDIDATES ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">02 — Wordmark</span>
+        <h2>Six <em>contenders.</em></h2>
+      </div>
+      <p class="desc">Each font carries a different personality. One was chosen. The others are archived.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="font-card f-fraunces">
+        <div>
+          <div class="card-title">Option A · Fraunces</div>
+          <div class="wordmark-display">Sage<em>.</em></div>
+        </div>
+        <div class="font-meta">
+          <span class="font-name">Fraunces · Variable</span>
+          <span class="font-note">Optical size serif — literary, aged</span>
+        </div>
+      </div>
+
+      <div class="font-card f-cormorant">
+        <div>
+          <div class="card-title">Option B · Cormorant Garamond</div>
+          <div class="wordmark-display">Sage<em>.</em></div>
+        </div>
+        <div class="font-meta">
+          <span class="font-name">Cormorant · 500</span>
+          <span class="font-note">Elegant display serif — formal, editorial</span>
+        </div>
+      </div>
+
+      <div class="font-card f-cinzel">
+        <div>
+          <div class="card-title">Option C · Cinzel</div>
+          <div class="wordmark-display">SAGE<em>.</em></div>
+        </div>
+        <div class="font-meta">
+          <span class="font-name">Cinzel · 400</span>
+          <span class="font-note">Roman-inspired caps — classical, monumental</span>
+        </div>
+      </div>
+
+      <div class="font-card f-space">
+        <div>
+          <div class="card-title">Option D · Space Grotesk</div>
+          <div class="wordmark-display">Sage<em>.</em></div>
+        </div>
+        <div class="font-meta">
+          <span class="font-name">Space Grotesk · 600</span>
+          <span class="font-note">Geometric grotesque — technical, modern</span>
+        </div>
+      </div>
+
+      <div class="font-card f-manrope chosen">
+        <span class="chosen-badge">★ chosen</span>
+        <div>
+          <div class="card-title">Option E · Manrope</div>
+          <div class="wordmark-display">Sage<em>.</em></div>
+        </div>
+        <div class="font-meta">
+          <span class="font-name">Manrope · 700</span>
+          <span class="font-note">Humanist sans — open, calm, precise</span>
+        </div>
+      </div>
+
+      <div class="font-card f-jetbrains">
+        <div>
+          <div class="card-title">Option F · JetBrains Mono</div>
+          <div class="wordmark-display">Sage<em>.</em></div>
+        </div>
+        <div class="font-meta">
+          <span class="font-name">JetBrains Mono · 500</span>
+          <span class="font-note">Monospaced — developer-forward, technical</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 03 — WHY MANROPE ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">03 — Rationale</span>
+        <h2>Why <em>Manrope.</em></h2>
+      </div>
+    </div>
+
+    <div class="recommendation">
+      <div>
+        <h3>Humanist. Calm. <em>Trustworthy.</em></h3>
+        <p>Manrope is the only candidate that reads as a person rather than a product. Its open apertures and gentle geometry match Sage's personality — an advisor who's read the contract, not an alarm system that shouts warnings. It renders cleanly at every size from a 16px status label to a 128px hero lockup, and its 300–800 weight range covers every Sage surface with one typeface.</p>
+        <ul>
+          <li>Open apertures</li>
+          <li>300–800 weight axis</li>
+          <li>Humanist x-height</li>
+          <li>Clean at 12px</li>
+          <li>Geometric calm</li>
+          <li>Variable font</li>
+        </ul>
+      </div>
+      <div class="pick">
+        <img src="assets/sage-mark-mint.png" alt="Sage mark" />
+        <div class="wm">Sage<em>.</em></div>
+        <span style="font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-300);">Manrope 700 · −4%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 04 — OFFICIAL LOCKUPS ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">04 — Lockups</span>
+        <h2>Five <em>official forms.</em></h2>
+      </div>
+      <p class="desc">Use only these configurations. Never improvise a new arrangement.</p>
+    </div>
+
+    <div class="grid-2" style="margin-bottom: 20px;">
+      <div class="lockup-card">
+        <div class="stage">
+          <img src="assets/sage-mark-mint.png" alt="" />
+          <div class="wm" style="font-size: 48px;">Sage<em>.</em></div>
+        </div>
+        <div class="meta">
+          <span class="name">Horizontal · Dark</span>
+          <span class="usage">Primary — nav, headers, hero</span>
+        </div>
+      </div>
+      <div class="lockup-card">
+        <div class="stage light">
+          <img src="assets/sage-mark-mint.png" alt="" style="filter: brightness(0) saturate(100%) invert(57%) sepia(66%) saturate(405%) hue-rotate(100deg) brightness(94%) contrast(91%);" />
+          <div class="wm" style="font-size: 48px; color: var(--ink-900);">Sage<span style="color: var(--mint-500);">.</span></div>
+        </div>
+        <div class="meta">
+          <span class="name">Horizontal · Light</span>
+          <span class="usage">Print, light surfaces</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="lockup-card">
+        <div class="stage stacked">
+          <img src="assets/sage-mark-mint.png" alt="" style="height: 72px;" />
+          <div class="wm" style="font-size: 40px;">Sage<em>.</em></div>
+        </div>
+        <div class="meta">
+          <span class="name">Stacked · Dark</span>
+          <span class="usage">Square contexts, app icons</span>
+        </div>
+      </div>
+      <div class="lockup-card">
+        <div class="stage mark-only">
+          <img src="assets/sage-mark-mint.png" alt="" />
+        </div>
+        <div class="meta">
+          <span class="name">Mark only</span>
+          <span class="usage">Favicon, 32px and below</span>
+        </div>
+      </div>
+      <div class="lockup-card">
+        <div class="stage mint-bg">
+          <img src="assets/sage-mark-mint.png" alt="" style="filter: brightness(0) invert(1); height: 52px;" />
+          <div class="wm" style="font-size: 40px; color: #fff;">Sage<span style="color: rgba(255,255,255,.7);">.</span></div>
+        </div>
+        <div class="meta">
+          <span class="name">Horizontal · Mint</span>
+          <span class="usage">CTAs, accent blocks only</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 05 — CONSTRUCTION ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">05 — Construction</span>
+        <h2>Clear space &amp; <em>minimums.</em></h2>
+      </div>
+      <p class="desc">The mark needs breathing room. Never crowd it.</p>
+    </div>
+
+    <div class="construction-wrap">
+      <div class="construction-stage">
+        <div class="construction-inner" style="padding: 32px;">
+          <!-- Baseline grid lines -->
+          <div class="grid-line-h" style="top: 50%;"></div>
+          <!-- Clear space bracket -->
+          <div class="clear-bracket" style="top: 0; left: 0; right: 0; bottom: 0;"></div>
+          <!-- Clear space label -->
+          <div class="construction-label" style="top: -28px; left: 50%; transform: translateX(-50%);">x = cap height</div>
+          <div class="construction-label" style="bottom: -28px; left: 50%; transform: translateX(-50%);">min clear space = 1x</div>
+          <img src="assets/sage-mark-mint.png" style="height: 96px; width: auto;" alt="Sage mark" />
+          <div style="font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 72px; letter-spacing: -0.04em; color: var(--ink-0); line-height: 1;">Sage<span style="color: var(--mint-300); font-weight: 500;">.</span></div>
+        </div>
+      </div>
+      <div class="construction-footer">
+        <span>Clear space: <strong>1× cap height on all sides</strong></span>
+        <span>Alignment: <strong>optical baseline</strong></span>
+        <span>Mark–word gap: <strong>0.3× mark height</strong></span>
+      </div>
+    </div>
+
+    <div class="size-strip">
+      <div class="size-card">
+        <img src="assets/sage-mark-mint.png" style="height: 96px;" alt="" />
+        <span class="size-label">96px · Web hero</span>
+      </div>
+      <div class="size-card">
+        <img src="assets/sage-mark-mint.png" style="height: 56px;" alt="" />
+        <span class="size-label">56px · Nav</span>
+      </div>
+      <div class="size-card">
+        <img src="assets/sage-mark-mint.png" style="height: 32px;" alt="" />
+        <span class="size-label">32px · Inline</span>
+      </div>
+      <div class="size-card">
+        <img src="assets/sage-mark-mint.png" style="height: 20px;" alt="" />
+        <span class="size-label">20px · Min digital</span>
+      </div>
+      <div class="size-card too-small">
+        <img src="assets/sage-mark-mint.png" style="height: 12px;" alt="" />
+        <span class="size-label">12px · Too small</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───── 06 — DON'TS ───── -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="index">06 — Don'ts</span>
+        <h2>What <em>breaks</em> the mark.</h2>
+      </div>
+      <p class="desc">Four things that are never acceptable, regardless of context.</p>
+    </div>
+
+    <div class="donts-grid">
+      <div class="dont-card">
+        <div class="dont-stage">
+          <span class="dont-badge">✕ Never</span>
+          <img src="assets/sage-mark-mint.png" alt="skew example" style="transform: skewX(-15deg) scaleY(.8); opacity: .7;" />
+        </div>
+        <div class="dont-footer">
+          <div class="title">Distort or skew</div>
+          <p>No stretching, squashing, or perspective transforms. The mark has fixed proportions.</p>
+        </div>
+      </div>
+
+      <div class="dont-card">
+        <div class="dont-stage">
+          <span class="dont-badge">✕ Never</span>
+          <img src="assets/sage-mark-mint.png" alt="recolor example" style="filter: hue-rotate(200deg) saturate(1.5);" />
+        </div>
+        <div class="dont-footer">
+          <div class="title">Recolor the mark</div>
+          <p>Only Mint, Ink, or White. No gradients, brand-adjacent colors, or tints applied to the mark itself.</p>
+        </div>
+      </div>
+
+      <div class="dont-card">
+        <div class="dont-stage">
+          <span class="dont-badge">✕ Never</span>
+          <img src="assets/sage-mark-mint.png" alt="effects example" style="filter: drop-shadow(0 0 12px #5BD18E) drop-shadow(0 0 24px #5BD18E); opacity: .8;" />
+        </div>
+        <div class="dont-footer">
+          <div class="title">Add effects</div>
+          <p>No drop shadows, glows, outlines, blurs, or texture overlays on the mark or wordmark.</p>
+        </div>
+      </div>
+
+      <div class="dont-card">
+        <div class="dont-stage" style="background: linear-gradient(135deg, #1A2E22, #2A4035);">
+          <span class="dont-badge">✕ Never</span>
+          <img src="assets/sage-mark-mint.png" alt="low contrast example" style="opacity: .28;" />
+        </div>
+        <div class="dont-footer">
+          <div class="title">Low-contrast background</div>
+          <p>Never place a Mint mark on a green or dark-green surface. Contrast must exceed 4.5:1.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>Sage · personal AI co-signer · Solana</span>
+    <span>Logo system v0.1 · 04.2026</span>
+    <span><a href="design-system.html">← Design system</a> · <a href="logo-playground.html">Playground →</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

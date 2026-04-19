@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=1440" />
+<title>Sage — Logo Playground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Cormorant+Garamond:wght@400;500;600&family=Cinzel:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink:     #0B0E0D;
+    --ink-900: #0F1413;
+    --ink-800: #141A18;
+    --ink-700: #1B2421;
+    --ink-200: #B8BDB4;
+    --ink-300: #8E938A;
+
+    --mint:     #5BD18E;
+    --mint-100: #D8F5E2;
+    --mint-200: #B2EBC4;
+    --mint-300: #94FFC2;
+    --mint-400: #5BD18E;
+    --mint-700: #1F6C42;
+    --mint-900: #0E2D1C;
+
+    --paper: #FBFBF7;
+    --danger: #E5524F;
+
+    --serif: "Manrope", system-ui, sans-serif;
+    --sans:  "Manrope", system-ui, sans-serif;
+    --mono:  "JetBrains Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--ink);
+    color: #fff;
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* —— layout: sidebar + canvas —— */
+  .app {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: 100vh;
+  }
+
+  /* —— sidebar (controls) —— */
+  .sidebar {
+    background: var(--ink-900);
+    border-right: 1px solid rgba(255,255,255,.06);
+    padding: 28px 24px 36px;
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  }
+  .sidebar-head { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; padding-bottom: 22px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .sidebar-head img { height: 28px; }
+  .sidebar-head .title { font-family: var(--serif); font-weight: 700; font-size: 17px; letter-spacing: -0.025em; }
+  .sidebar-head .title em { color: var(--mint-300); font-style: normal; font-weight: 500; }
+  .sidebar-head .sub { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--mint-300); margin-top: 2px; }
+
+  .group { margin-bottom: 26px; }
+  .group-label { font-family: var(--mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-300); display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .group-label .v { color: var(--mint-300); letter-spacing: .12em; text-transform: none; font-size: 11px; }
+
+  /* segmented control */
+  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; background: var(--ink-800); border-radius: 10px; border: 1px solid rgba(255,255,255,.05); }
+  .seg button {
+    background: transparent; color: var(--ink-200); border: 0; padding: 8px 6px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    border-radius: 7px; cursor: pointer; transition: all .15s ease;
+  }
+  .seg button:hover { color: #fff; }
+  .seg button.on { background: var(--mint-300); color: var(--ink); font-weight: 600; }
+
+  /* tile grid (font / lockup picker) */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .tile {
+    background: var(--ink-800); border: 1px solid rgba(255,255,255,.05);
+    border-radius: 10px; padding: 12px 10px; cursor: pointer;
+    display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+    transition: all .15s ease;
+    text-align: left;
+  }
+  .tile:hover { border-color: rgba(148,255,194,.3); }
+  .tile.on { border-color: var(--mint-300); background: rgba(148,255,194,.06); }
+  .tile .preview { font-size: 22px; line-height: 1; color: #fff; letter-spacing: -0.04em; }
+  .tile .preview em { color: var(--mint-300); font-style: normal; font-weight: 500; }
+  .tile .name { font-family: var(--mono); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-300); }
+  .tile.on .name { color: var(--mint-300); }
+
+  /* slider */
+  .slider-wrap { display: flex; align-items: center; gap: 10px; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 3px;
+    background: rgba(255,255,255,.1); border-radius: 2px; outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--mint-300); cursor: pointer; border: 0;
+    box-shadow: 0 0 0 4px rgba(148,255,194,.15);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--mint-300); cursor: pointer; border: 0;
+  }
+
+  /* swatch row */
+  .swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sw { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform .15s ease; }
+  .sw:hover { transform: scale(1.1); }
+  .sw.on { border-color: var(--mint-300); box-shadow: 0 0 0 1px var(--ink); }
+
+  /* color hex display */
+  .hex { font-family: var(--mono); font-size: 10px; color: var(--ink-300); letter-spacing: .08em; }
+
+  /* —— canvas (right pane) —— */
+  .canvas {
+    padding: 36px 48px 80px;
+    overflow-x: hidden;
+  }
+  .canvas-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .canvas-head h1 {
+    font-family: var(--serif); font-weight: 700; font-size: 32px; letter-spacing: -0.035em;
+    margin: 0;
+  }
+  .canvas-head h1 em { color: var(--mint-300); font-style: normal; font-weight: 500; }
+  .canvas-head .meta { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-300); display: flex; gap: 24px; align-items: center; }
+  .canvas-head .meta .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint-300); display: inline-block; margin-right: 8px; box-shadow: 0 0 8px var(--mint-300); }
+
+  /* the stage where the logo renders large */
+  .stage {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 18px;
+    padding: 0;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+    min-height: 480px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stage[data-bg="ink"]     { background: var(--ink); }
+  .stage[data-bg="ink-800"] { background: var(--ink-800); }
+  .stage[data-bg="paper"]   { background: var(--paper); border-color: rgba(0,0,0,.06); }
+  .stage[data-bg="mint"]    { background: var(--mint-300); border-color: var(--mint-300); }
+  .stage[data-bg="grad"]    { background: linear-gradient(135deg, #06090A, #0E1614 60%, #0A1F14); }
+  .stage[data-bg="grid"]    {
+    background:
+      linear-gradient(rgba(148,255,194,.04) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, rgba(148,255,194,.04) 1px, transparent 1px) 0 0/40px 40px,
+      var(--ink);
+  }
+
+  .stage-grid-overlay {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(rgba(148,255,194,.06) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, rgba(148,255,194,.06) 1px, transparent 1px) 0 0/40px 40px;
+    pointer-events: none; opacity: 0;
+    transition: opacity .2s ease;
+  }
+  .stage.show-grid .stage-grid-overlay { opacity: 1; }
+
+  .stage-meta {
+    position: absolute; bottom: 14px; left: 18px; right: 18px;
+    display: flex; justify-content: space-between; pointer-events: none;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(255,255,255,.35);
+  }
+  .stage[data-bg="paper"] .stage-meta { color: rgba(0,0,0,.4); }
+  .stage[data-bg="mint"] .stage-meta { color: rgba(0,0,0,.55); }
+
+  /* —— export bar —— */
+  .export-bar {
+    margin-top: 16px;
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 18px;
+    padding: 22px 24px;
+  }
+  .export-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; gap: 16px; }
+  .export-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--mint-300); }
+  .export-hint { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-300); }
+  .export-buttons { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  .ex-btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #fff;
+    font-family: var(--sans);
+    cursor: pointer;
+    text-align: left;
+    transition: all .15s ease;
+  }
+  .ex-btn:hover { background: rgba(91,209,142,.08); border-color: rgba(91,209,142,.35); }
+  .ex-btn.busy { opacity: .5; pointer-events: none; }
+  .ex-btn.done { background: rgba(91,209,142,.18); border-color: var(--mint-300); }
+  .ex-name { font-weight: 600; font-size: 13px; letter-spacing: -0.01em; }
+  .ex-sub { font-family: var(--mono); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-300); }
+  .ex-btn.done .ex-sub { color: var(--mint-300); }
+
+  /* —— the actual logo render —— */
+  .logo-render {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    transition: gap .2s ease;
+  }
+  .logo-render[data-direction="stacked"] {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .logo-render[data-direction="mark-only"] .word { display: none; }
+  .logo-render[data-direction="word-only"] .mark { display: none; }
+  .logo-render[data-direction="badge"] {
+    flex-direction: column; gap: 0; padding: 36px;
+    border: 2px solid var(--mint-300); border-radius: 24px;
+    aspect-ratio: 1; min-width: 280px; justify-content: center;
+  }
+
+  .logo-render .mark img {
+    height: var(--mark-size, 140px);
+    transition: height .2s ease;
+    filter: var(--mark-filter, none);
+  }
+
+  .word {
+    color: var(--word-color, #fff);
+    font-size: var(--word-size, 92px);
+    font-weight: var(--word-weight, 700);
+    letter-spacing: var(--word-tracking, -0.05em);
+    line-height: 1;
+    transition: all .15s ease;
+    white-space: nowrap;
+  }
+  .word .terminal {
+    color: var(--terminal-color, var(--mint-300));
+    font-weight: var(--terminal-weight, 500);
+  }
+
+  /* font variants */
+  .word[data-font="manrope"]   { font-family: "Manrope", sans-serif; }
+  .word[data-font="fraunces"]  { font-family: "Fraunces", serif; font-variation-settings: "opsz" 144; }
+  .word[data-font="cormorant"] { font-family: "Cormorant Garamond", serif; }
+  .word[data-font="cinzel"]    { font-family: "Cinzel", serif; text-transform: uppercase; letter-spacing: 0.04em; }
+  .word[data-font="grotesk"]   { font-family: "Space Grotesk", sans-serif; }
+  .word[data-font="mono"]      { font-family: "JetBrains Mono", monospace; letter-spacing: -0.03em; }
+  .word[data-font="tight"]     { font-family: "Inter Tight", sans-serif; }
+
+  /* —— concepts grid below stage —— */
+  .concepts-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin: 48px 0 18px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,.06);
+  }
+  .concepts-head h2 { font-family: var(--serif); font-weight: 600; font-size: 22px; letter-spacing: -0.03em; margin: 0; }
+  .concepts-head .index { font-family: var(--mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-300); }
+
+  .concepts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .concept {
+    background: var(--ink-800);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 14px;
+    padding: 32px 24px 22px;
+    min-height: 200px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    cursor: pointer;
+    transition: all .15s ease;
+    position: relative;
+  }
+  .concept:hover { border-color: rgba(148,255,194,.4); transform: translateY(-2px); }
+  .concept.paper { background: var(--paper); border-color: rgba(0,0,0,.06); }
+  .concept.paper .label { color: rgba(0,0,0,.45); }
+  .concept.mint { background: var(--mint-300); border-color: var(--mint-300); }
+  .concept.mint .label { color: rgba(0,0,0,.55); }
+  .concept.outline { background: transparent; border: 1px solid rgba(255,255,255,.15); }
+
+  .concept .render { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .concept .render.stack { flex-direction: column; gap: 8px; }
+  .concept .render img { height: 56px; }
+  .concept .render .w { font-family: var(--serif); font-weight: 700; font-size: 36px; letter-spacing: -0.05em; color: #fff; }
+  .concept .render .w em { color: var(--mint-300); font-style: normal; font-weight: 500; }
+  .concept.paper .render .w { color: var(--ink); }
+  .concept.paper .render .w em { color: var(--mint-700); }
+  .concept.mint .render .w { color: var(--ink); }
+  .concept.mint .render .w em { color: var(--mint-900); }
+  .concept .label {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-300);
+    display: flex; justify-content: space-between;
+  }
+
+  /* favicon strip */
+  .favicons {
+    display: flex; gap: 16px; align-items: center; padding: 28px;
+    background: var(--ink-800); border: 1px solid rgba(255,255,255,.06);
+    border-radius: 14px; margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .fav {
+    background: var(--ink); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid rgba(255,255,255,.06);
+    flex-shrink: 0;
+  }
+  .fav.s16 { width: 16px; height: 16px; }
+  .fav.s24 { width: 24px; height: 24px; }
+  .fav.s32 { width: 32px; height: 32px; }
+  .fav.s48 { width: 48px; height: 48px; }
+  .fav.s64 { width: 64px; height: 64px; }
+  .fav.s96 { width: 96px; height: 96px; border-radius: 14px; }
+  .fav img { width: 70%; height: 70%; object-fit: contain; }
+  .fav .lbl { font-family: var(--mono); font-size: 8px; color: var(--ink-300); }
+  .fav-meta { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-300); margin-left: auto; }
+
+  /* color picker custom button */
+  .custom-color {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--ink-800); border: 1px solid rgba(255,255,255,.05);
+    border-radius: 8px; padding: 6px 8px; cursor: pointer;
+    margin-top: 8px; width: 100%;
+  }
+  .custom-color input { background: transparent; border: 0; color: #fff; font-family: var(--mono); font-size: 11px; width: 100%; outline: none; }
+  .custom-color::before { content: ""; width: 16px; height: 16px; border-radius: 50%; background: var(--bg, #fff); border: 1px solid rgba(255,255,255,.15); flex-shrink: 0; }
+
+  /* footer */
+  footer {
+    margin-top: 60px;
+    padding-top: 28px;
+    border-top: 1px solid rgba(255,255,255,.06);
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 10px;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-300);
+  }
+  footer a { color: var(--mint-300); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <img src="assets/sage-mark-mint.png" alt="Sage mark" />
+      <div>
+        <div class="title">Logo<em>.</em>Lab</div>
+        <div class="sub">Playground · v0.1</div>
+      </div>
+    </div>
+
+    <!-- Lockup direction -->
+    <div class="group">
+      <div class="group-label">Lockup <span class="v" id="lockup-v">Horizontal</span></div>
+      <div class="seg" id="lockup-seg">
+        <button data-v="horizontal" class="on">Horiz</button>
+        <button data-v="stacked">Stack</button>
+        <button data-v="mark-only">Mark</button>
+        <button data-v="word-only">Word</button>
+        <button data-v="badge">Badge</button>
+      </div>
+    </div>
+
+    <!-- Wordmark font -->
+    <div class="group">
+      <div class="group-label">Wordmark font</div>
+      <div class="tiles" id="font-tiles">
+        <button class="tile on" data-font="manrope">
+          <span class="preview" style="font-family: Manrope; font-weight: 700;">Sage<em>.</em></span>
+          <span class="name">Manrope · chosen</span>
+        </button>
+        <button class="tile" data-font="fraunces">
+          <span class="preview" style="font-family: Fraunces; font-weight: 400;">Sage<em>.</em></span>
+          <span class="name">Fraunces</span>
+        </button>
+        <button class="tile" data-font="cormorant">
+          <span class="preview" style="font-family: Cormorant Garamond; font-weight: 500;">Sage<em>.</em></span>
+          <span class="name">Cormorant</span>
+        </button>
+        <button class="tile" data-font="cinzel">
+          <span class="preview" style="font-family: Cinzel; font-weight: 500; text-transform: uppercase; font-size: 16px; letter-spacing: .04em;">SAGE</span>
+          <span class="name">Cinzel</span>
+        </button>
+        <button class="tile" data-font="grotesk">
+          <span class="preview" style="font-family: Space Grotesk; font-weight: 500;">Sage<em>.</em></span>
+          <span class="name">Grotesk</span>
+        </button>
+        <button class="tile" data-font="mono">
+          <span class="preview" style="font-family: JetBrains Mono; font-weight: 600; font-size: 18px;">sage<em>_</em></span>
+          <span class="name">Mono</span>
+        </button>
+        <button class="tile" data-font="tight">
+          <span class="preview" style="font-family: Inter Tight; font-weight: 700;">Sage<em>.</em></span>
+          <span class="name">Inter Tight</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Word size -->
+    <div class="group">
+      <div class="group-label">Word size <span class="v" id="word-size-v">92px</span></div>
+      <div class="slider-wrap">
+        <input type="range" id="word-size" min="32" max="180" step="2" value="92" />
+      </div>
+    </div>
+
+    <!-- Word weight -->
+    <div class="group">
+      <div class="group-label">Word weight <span class="v" id="word-weight-v">700</span></div>
+      <div class="slider-wrap">
+        <input type="range" id="word-weight" min="300" max="800" step="100" value="700" />
+      </div>
+    </div>
+
+    <!-- Letter tracking -->
+    <div class="group">
+      <div class="group-label">Tracking <span class="v" id="tracking-v">−5%</span></div>
+      <div class="slider-wrap">
+        <input type="range" id="tracking" min="-8" max="6" step="0.5" value="-5" />
+      </div>
+    </div>
+
+    <!-- Mark size -->
+    <div class="group">
+      <div class="group-label">Mark size <span class="v" id="mark-size-v">140px</span></div>
+      <div class="slider-wrap">
+        <input type="range" id="mark-size" min="40" max="280" step="4" value="140" />
+      </div>
+    </div>
+
+    <!-- Mark color -->
+    <div class="group">
+      <div class="group-label">Mark color</div>
+      <div class="seg" id="mark-color-seg">
+        <button data-v="mint" class="on">Mint</button>
+        <button data-v="white">White</button>
+        <button data-v="ink">Ink</button>
+      </div>
+    </div>
+
+    <!-- Word color -->
+    <div class="group">
+      <div class="group-label">Word color</div>
+      <div class="swatches" id="word-color-sw">
+        <button class="sw on" data-c="#ffffff" style="background:#ffffff"></button>
+        <button class="sw" data-c="#0B0E0D" style="background:#0B0E0D; border-color: rgba(255,255,255,.15);"></button>
+        <button class="sw" data-c="#94FFC2" style="background:#94FFC2"></button>
+        <button class="sw" data-c="#5BD18E" style="background:#5BD18E"></button>
+        <button class="sw" data-c="#1F6C42" style="background:#1F6C42"></button>
+        <button class="sw" data-c="#FBFBF7" style="background:#FBFBF7"></button>
+      </div>
+    </div>
+
+    <!-- Terminal punctuation color -->
+    <div class="group">
+      <div class="group-label">Period color</div>
+      <div class="swatches" id="term-color-sw">
+        <button class="sw on" data-c="#94FFC2" style="background:#94FFC2"></button>
+        <button class="sw" data-c="#5BD18E" style="background:#5BD18E"></button>
+        <button class="sw" data-c="#ffffff" style="background:#ffffff"></button>
+        <button class="sw" data-c="#0B0E0D" style="background:#0B0E0D; border-color: rgba(255,255,255,.15);"></button>
+        <button class="sw" data-c="#E5524F" style="background:#E5524F"></button>
+        <button class="sw" data-c="inherit" style="background: linear-gradient(135deg, #fff 50%, #94FFC2 50%);"></button>
+      </div>
+    </div>
+
+    <!-- Background -->
+    <div class="group">
+      <div class="group-label">Background</div>
+      <div class="seg" id="bg-seg">
+        <button data-v="ink-800" class="on">Card</button>
+        <button data-v="ink">Ink</button>
+        <button data-v="grad">Grad</button>
+        <button data-v="paper">Paper</button>
+        <button data-v="mint">Mint</button>
+        <button data-v="grid">Grid</button>
+      </div>
+    </div>
+
+    <!-- Show grid -->
+    <div class="group">
+      <div class="group-label">Construction grid</div>
+      <div class="seg" id="grid-seg">
+        <button data-v="off" class="on">Off</button>
+        <button data-v="on">On</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── CANVAS ─── -->
+  <main class="canvas">
+
+    <div class="canvas-head">
+      <h1>Logo <em>playground.</em></h1>
+      <div class="meta">
+        <span><span class="dot"></span>Live</span>
+        <span>Adjust · drag · audition</span>
+      </div>
+    </div>
+
+    <!-- The hero stage -->
+    <div class="stage" id="stage" data-bg="ink-800">
+      <div class="stage-grid-overlay"></div>
+      <div class="logo-render" id="render" data-direction="horizontal">
+        <span class="mark"><img id="mark-img" src="assets/sage-mark-mint.png" alt="" /></span>
+        <span class="word" id="word" data-font="manrope">Sage<span class="terminal">.</span></span>
+      </div>
+      <div class="stage-meta">
+        <span id="stage-spec">Manrope · 700 · 92 / −5%</span>
+        <span id="stage-bg-label">Card · ink-800</span>
+      </div>
+    </div>
+
+    <!-- Export bar -->
+    <div class="export-bar">
+      <div class="export-head">
+        <span class="export-eyebrow">Export</span>
+        <span class="export-hint">downloads your current stage exactly as you see it</span>
+      </div>
+      <div class="export-buttons">
+        <button class="ex-btn" data-ex="png-1x"><span class="ex-name">PNG</span><span class="ex-sub">@1× · transparent</span></button>
+        <button class="ex-btn" data-ex="png-2x"><span class="ex-name">PNG</span><span class="ex-sub">@2× · transparent</span></button>
+        <button class="ex-btn" data-ex="png-bg"><span class="ex-name">PNG</span><span class="ex-sub">w/ background</span></button>
+        <button class="ex-btn" data-ex="svg"><span class="ex-name">SVG</span><span class="ex-sub">vector · editable</span></button>
+        <button class="ex-btn" data-ex="mark-png"><span class="ex-name">Mark only</span><span class="ex-sub">PNG · 1024px</span></button>
+        <button class="ex-btn" data-ex="favicons"><span class="ex-name">Favicons</span><span class="ex-sub">16/32/48/96 zip</span></button>
+      </div>
+    </div>
+
+    <!-- Concepts grid -->
+    <div class="concepts-head">
+      <h2>Six versions, side by side.</h2>
+      <span class="index">Click to load any into the stage</span>
+    </div>
+
+    <div class="concepts" id="concepts">
+      <div class="concept" data-preset="primary">
+        <div class="render">
+          <img src="assets/sage-mark-mint.png" alt="" />
+          <span class="w" data-font="manrope">Sage<em>.</em></span>
+        </div>
+        <div class="label"><span>01 · Primary horizontal</span><span>Manrope</span></div>
+      </div>
+
+      <div class="concept" data-preset="stacked">
+        <div class="render stack">
+          <img src="assets/sage-mark-mint.png" alt="" />
+          <span class="w" data-font="manrope">Sage<em>.</em></span>
+        </div>
+        <div class="label"><span>02 · Stacked</span><span>Manrope</span></div>
+      </div>
+
+      <div class="concept paper" data-preset="paper">
+        <div class="render">
+          <img src="assets/sage-mark-dark.png" alt="" />
+          <span class="w" data-font="manrope">Sage<em>.</em></span>
+        </div>
+        <div class="label"><span>03 · Paper · 1-color</span><span>Manrope</span></div>
+      </div>
+
+      <div class="concept mint" data-preset="mint">
+        <div class="render">
+          <img src="assets/sage-mark-white.png" alt="" />
+          <span class="w" data-font="manrope">Sage<em>.</em></span>
+        </div>
+        <div class="label"><span>04 · Mint reverse</span><span>White mark</span></div>
+      </div>
+
+      <div class="concept" data-preset="serif">
+        <div class="render">
+          <img src="assets/sage-mark-mint.png" alt="" />
+          <span class="w" data-font="fraunces" style="font-family: Fraunces; font-weight: 400; font-variation-settings: 'opsz' 144;">Sage<em style="font-style: italic; font-weight: 300;">.</em></span>
+        </div>
+        <div class="label"><span>05 · Editorial serif</span><span>Fraunces</span></div>
+      </div>
+
+      <div class="concept outline" data-preset="mono">
+        <div class="render">
+          <img src="assets/sage-mark-mint.png" alt="" />
+          <span class="w" style="font-family: JetBrains Mono; font-weight: 600; font-size: 28px; letter-spacing: -0.03em;">sage<em>_</em></span>
+        </div>
+        <div class="label"><span>06 · Terminal · crypto-native</span><span>JB Mono</span></div>
+      </div>
+    </div>
+
+    <!-- Favicon scale strip -->
+    <div class="concepts-head">
+      <h2>Mark at every scale.</h2>
+      <span class="index">16px → 96px favicons</span>
+    </div>
+    <div class="favicons">
+      <div class="fav s16"><img src="assets/sage-mark-mint.png" alt="" /></div>
+      <div class="fav s24"><img src="assets/sage-mark-mint.png" alt="" /></div>
+      <div class="fav s32"><img src="assets/sage-mark-mint.png" alt="" /></div>
+      <div class="fav s48"><img src="assets/sage-mark-mint.png" alt="" /></div>
+      <div class="fav s64"><img src="assets/sage-mark-mint.png" alt="" /></div>
+      <div class="fav s96"><img src="assets/sage-mark-mint.png" alt="" /></div>
+      <span class="fav-meta">16 · 24 · 32 · 48 · 64 · 96</span>
+    </div>
+
+    <footer>
+      <span>Sage · logo lab · v0.1</span>
+      <span><a href="logo-system.html">→ Logo system</a> · <a href="design-system.html">design system</a> · <a href="index.html">brand book</a></span>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  const stage = document.getElementById('stage');
+  const render = document.getElementById('render');
+  const word = document.getElementById('word');
+  const markImg = document.getElementById('mark-img');
+  const stageSpec = document.getElementById('stage-spec');
+  const stageBgLabel = document.getElementById('stage-bg-label');
+
+  const fontLabels = {
+    manrope: "Manrope · 700",
+    fraunces: "Fraunces · 400",
+    cormorant: "Cormorant · 500",
+    cinzel: "Cinzel · 500",
+    grotesk: "Space Grotesk · 500",
+    mono: "JB Mono · 600",
+    tight: "Inter Tight · 700",
+  };
+  const bgLabels = {
+    'ink-800': "Card · ink-800",
+    'ink': "Ink · primary",
+    'grad': "Gradient · forest",
+    'paper': "Paper · print",
+    'mint': "Mint · reverse",
+    'grid': "Grid · construction",
+  };
+
+  // —— Lockup direction
+  const lockupSeg = document.getElementById('lockup-seg');
+  const lockupV = document.getElementById('lockup-v');
+  lockupSeg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...lockupSeg.children].forEach(c => c.classList.remove('on'));
+    b.classList.add('on');
+    const v = b.dataset.v;
+    render.dataset.direction = v;
+    lockupV.textContent = b.textContent;
+  });
+
+  // —— Font picker
+  const fontTiles = document.getElementById('font-tiles');
+  fontTiles.addEventListener('click', e => {
+    const b = e.target.closest('.tile'); if (!b) return;
+    [...fontTiles.children].forEach(c => c.classList.remove('on'));
+    b.classList.add('on');
+    const v = b.dataset.font;
+    word.dataset.font = v;
+    if (v === 'mono') word.innerHTML = 'sage<span class="terminal">_</span>';
+    else word.innerHTML = 'Sage<span class="terminal">.</span>';
+    updateSpec();
+  });
+
+  // —— Word size slider
+  const wordSize = document.getElementById('word-size');
+  const wordSizeV = document.getElementById('word-size-v');
+  wordSize.addEventListener('input', () => {
+    word.style.setProperty('--word-size', wordSize.value + 'px');
+    wordSizeV.textContent = wordSize.value + 'px';
+    updateSpec();
+  });
+
+  // —— Word weight slider
+  const wordWeight = document.getElementById('word-weight');
+  const wordWeightV = document.getElementById('word-weight-v');
+  wordWeight.addEventListener('input', () => {
+    word.style.setProperty('--word-weight', wordWeight.value);
+    wordWeightV.textContent = wordWeight.value;
+    updateSpec();
+  });
+
+  // —— Tracking slider
+  const tracking = document.getElementById('tracking');
+  const trackingV = document.getElementById('tracking-v');
+  tracking.addEventListener('input', () => {
+    word.style.setProperty('--word-tracking', tracking.value/100 + 'em');
+    trackingV.textContent = (tracking.value > 0 ? '+' : '−') + Math.abs(tracking.value) + '%';
+    updateSpec();
+  });
+
+  // —— Mark size slider
+  const markSize = document.getElementById('mark-size');
+  const markSizeV = document.getElementById('mark-size-v');
+  markSize.addEventListener('input', () => {
+    render.style.setProperty('--mark-size', markSize.value + 'px');
+    markSizeV.textContent = markSize.value + 'px';
+  });
+
+  // —— Mark color
+  const markColorSeg = document.getElementById('mark-color-seg');
+  markColorSeg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...markColorSeg.children].forEach(c => c.classList.remove('on'));
+    b.classList.add('on');
+    const v = b.dataset.v;
+    if (v === 'mint')  markImg.src = 'assets/sage-mark-mint.png';
+    if (v === 'white') markImg.src = 'assets/sage-mark-white.png';
+    if (v === 'ink')   markImg.src = 'assets/sage-mark-dark.png';
+  });
+
+  // —— Word color swatches
+  const wordColorSw = document.getElementById('word-color-sw');
+  wordColorSw.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...wordColorSw.children].forEach(c => c.classList.remove('on'));
+    b.classList.add('on');
+    word.style.setProperty('--word-color', b.dataset.c);
+  });
+
+  // —— Terminal color
+  const termColorSw = document.getElementById('term-color-sw');
+  termColorSw.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...termColorSw.children].forEach(c => c.classList.remove('on'));
+    b.classList.add('on');
+    word.style.setProperty('--terminal-color', b.dataset.c);
+  });
+
+  // —— Background
+  const bgSeg = document.getElementById('bg-seg');
+  bgSeg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...bgSeg.children].forEach(c => c.classList.remove('on'));
+    b.classList.add('on');
+    const v = b.dataset.v;
+    stage.dataset.bg = v;
+    stageBgLabel.textContent = bgLabels[v];
+  });
+
+  // —— Construction grid toggle
+  const gridSeg = document.getElementById('grid-seg');
+  gridSeg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...gridSeg.children].forEach(c => c.classList.remove('on'));
+    b.classList.add('on');
+    stage.classList.toggle('show-grid', b.dataset.v === 'on');
+  });
+
+  function updateSpec() {
+    const f = word.dataset.font;
+    stageSpec.textContent = `${fontLabels[f]} · ${wordSize.value}px / ${tracking.value > 0 ? '+' : '−'}${Math.abs(tracking.value)}%`;
+  }
+
+  // —— Concept presets — click any card to load it into the stage
+  const concepts = document.getElementById('concepts');
+  const PRESETS = {
+    primary:  { font: 'manrope', size: 92, weight: 700, tracking: -5, mark: 'mint',  bg: 'ink-800', wordColor: '#ffffff', termColor: '#94FFC2', dir: 'horizontal' },
+    stacked:  { font: 'manrope', size: 80, weight: 700, tracking: -5, mark: 'mint',  bg: 'ink',     wordColor: '#ffffff', termColor: '#94FFC2', dir: 'stacked' },
+    paper:    { font: 'manrope', size: 92, weight: 700, tracking: -5, mark: 'ink',   bg: 'paper',   wordColor: '#0B0E0D', termColor: '#1F6C42', dir: 'horizontal' },
+    mint:     { font: 'manrope', size: 92, weight: 700, tracking: -5, mark: 'white', bg: 'mint',    wordColor: '#0B0E0D', termColor: '#0E2D1C', dir: 'horizontal' },
+    serif:    { font: 'fraunces',size: 96, weight: 400, tracking: -4.5, mark: 'mint', bg: 'ink-800', wordColor: '#FBFBF7', termColor: '#94FFC2', dir: 'horizontal' },
+    mono:     { font: 'mono',    size: 64, weight: 600, tracking: -3, mark: 'mint',  bg: 'grid',    wordColor: '#94FFC2', termColor: '#5BD18E', dir: 'horizontal' },
+  };
+
+  concepts.addEventListener('click', e => {
+    const c = e.target.closest('.concept'); if (!c) return;
+    const p = PRESETS[c.dataset.preset]; if (!p) return;
+    fontTiles.querySelector(`[data-font="${p.font}"]`)?.click();
+    wordSize.value = p.size; wordSize.dispatchEvent(new Event('input'));
+    wordWeight.value = p.weight; wordWeight.dispatchEvent(new Event('input'));
+    tracking.value = p.tracking; tracking.dispatchEvent(new Event('input'));
+    markColorSeg.querySelector(`[data-v="${p.mark}"]`)?.click();
+    bgSeg.querySelector(`[data-v="${p.bg}"]`)?.click();
+    word.style.setProperty('--word-color', p.wordColor);
+    word.style.setProperty('--terminal-color', p.termColor);
+    [...wordColorSw.children].forEach(s => s.classList.toggle('on', s.dataset.c === p.wordColor));
+    [...termColorSw.children].forEach(s => s.classList.toggle('on', s.dataset.c === p.termColor));
+    lockupSeg.querySelector(`[data-v="${p.dir}"]`)?.click();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ─────────── EXPORT ───────────
+  const FONT_FAMILIES = {
+    manrope: '"Manrope", sans-serif',
+    fraunces: '"Fraunces", serif',
+    cormorant: '"Cormorant Garamond", serif',
+    cinzel: '"Cinzel", serif',
+    grotesk: '"Space Grotesk", sans-serif',
+    mono: '"JetBrains Mono", monospace',
+    tight: '"Inter Tight", sans-serif',
+  };
+  const FONT_LETTER_SP = {
+    manrope: -0.05, fraunces: -0.045, cormorant: -0.04, cinzel: 0.02,
+    grotesk: -0.04, mono: -0.03, tight: -0.05,
+  };
+  const FONT_TERMINAL_STYLE = { fraunces: { italic: true, weight: 300 } };
+  const BG_FILLS = {
+    'ink-800': { type: 'solid', color: '#13191A' },
+    'ink':     { type: 'solid', color: '#0B0E0D' },
+    'paper':   { type: 'solid', color: '#FBFBF7' },
+    'mint':    { type: 'solid', color: '#5BD18E' },
+    'grad':    { type: 'gradient', stops: [['#06090A', 0], ['#0E1614', 0.6], ['#0A1F14', 1]] },
+    'grid':    { type: 'solid', color: '#0B0E0D' },
+  };
+  const MARK_SRC = {
+    mint:  'assets/sage-mark-mint.png',
+    white: 'assets/sage-mark-white.png',
+    ink:   'assets/sage-mark-dark.png',
+  };
+
+  function getState() {
+    const dir = render.dataset.direction;
+    const fontKey = word.dataset.font;
+    const size = parseInt(wordSize.value, 10);
+    const weight = parseInt(wordWeight.value, 10);
+    const trackingPct = parseFloat(tracking.value);
+    const markPx = parseInt(markSize.value, 10);
+    const wordColor = (getComputedStyle(word).getPropertyValue('--word-color') || '#fff').trim() || '#fff';
+    const termColor = (getComputedStyle(word).getPropertyValue('--terminal-color') || '#94FFC2').trim() || '#94FFC2';
+    const markChoice = [...markColorSeg.children].find(c => c.classList.contains('on'))?.dataset.v || 'mint';
+    const bgChoice = [...bgSeg.children].find(c => c.classList.contains('on'))?.dataset.v || 'ink-800';
+    return { dir, fontKey, size, weight, trackingPct, markPx, wordColor, termColor, markChoice, bgChoice };
+  }
+  function loadImage(src) {
+    return new Promise((res, rej) => { const i = new Image(); i.crossOrigin='anonymous'; i.onload=()=>res(i); i.onerror=rej; i.src=src; });
+  }
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+  async function imgToDataUrl(src) {
+    const r = await fetch(src); const b = await r.blob();
+    return new Promise(res => { const fr = new FileReader(); fr.onload = ()=>res(fr.result); fr.readAsDataURL(b); });
+  }
+
+  async function renderLockup({ scale = 1, includeBg = false } = {}) {
+    const s = getState();
+    const markImg = await loadImage(MARK_SRC[s.markChoice]);
+    const fam = FONT_FAMILIES[s.fontKey];
+    const ts = FONT_TERMINAL_STYLE[s.fontKey] || {};
+    const isMono = s.fontKey === 'mono';
+    const wText = isMono ? 'sage' : 'Sage';
+    const tText = isMono ? '_' : '.';
+    const ls = (FONT_LETTER_SP[s.fontKey] + s.trackingPct/100) * s.size;
+    const tmp = document.createElement('canvas').getContext('2d');
+    tmp.font = `${s.weight} ${s.size}px ${fam}`;
+    let wW = 0; for (const ch of wText) wW += tmp.measureText(ch).width + ls;
+    tmp.font = `${ts.italic?'italic ':''}${ts.weight||s.weight} ${s.size}px ${fam}`;
+    const tW = tmp.measureText(tText).width;
+    const totalW = wW + tW;
+    const tH = s.size, asc = s.size * 0.78;
+    const mH = s.markPx, mW = markImg.width * (mH / markImg.height);
+    const pad = Math.max(s.size * 0.6, 80);
+    const gap = 14, sgap = 12;
+
+    let cw, ch, mx, my, tx, ty;
+    if (s.dir === 'horizontal') {
+      const ch0 = Math.max(mH, tH); cw = pad*2 + mW + gap + totalW; ch = pad*2 + ch0;
+      mx = pad; my = pad + (ch0 - mH)/2; tx = pad + mW + gap; ty = pad + (ch0 - tH)/2 + asc;
+    } else if (s.dir === 'stacked') {
+      cw = pad*2 + Math.max(mW, totalW); ch = pad*2 + mH + sgap + tH;
+      mx = (cw - mW)/2; my = pad; tx = (cw - totalW)/2; ty = pad + mH + sgap + asc;
+    } else if (s.dir === 'mark-only') {
+      cw = pad*2 + mW; ch = pad*2 + mH; mx = pad; my = pad; tx = ty = -9999;
+    } else if (s.dir === 'word-only') {
+      cw = pad*2 + totalW; ch = pad*2 + tH; mx = my = -9999; tx = pad; ty = pad + asc;
+    } else {
+      cw = pad*2 + Math.max(mW, totalW) + 80; ch = pad*2 + mH + 18 + tH + 80;
+      mx = (cw - mW)/2; my = pad + 40; tx = (cw - totalW)/2; ty = my + mH + 18 + asc;
+    }
+    const out = document.createElement('canvas');
+    out.width = Math.ceil(cw*scale); out.height = Math.ceil(ch*scale);
+    const cx = out.getContext('2d'); cx.scale(scale, scale);
+    if (includeBg) {
+      const bg = BG_FILLS[s.bgChoice];
+      if (bg.type === 'solid') { cx.fillStyle = bg.color; cx.fillRect(0,0,cw,ch); }
+      else { const g = cx.createLinearGradient(0,0,cw,ch); for (const [c,p] of bg.stops) g.addColorStop(p,c); cx.fillStyle = g; cx.fillRect(0,0,cw,ch); }
+    }
+    if (mx >= 0) cx.drawImage(markImg, mx, my, mW, mH);
+    if (tx >= 0) {
+      cx.textBaseline = 'alphabetic';
+      cx.fillStyle = s.wordColor; cx.font = `${s.weight} ${s.size}px ${fam}`;
+      let cur = tx;
+      for (const c of wText) { cx.fillText(c, cur, ty); cur += cx.measureText(c).width + ls; }
+      cx.fillStyle = s.termColor; cx.font = `${ts.italic?'italic ':''}${ts.weight||s.weight} ${s.size}px ${fam}`;
+      cx.fillText(tText, cur, ty);
+    }
+    if (s.dir === 'badge') {
+      cx.strokeStyle = '#5BD18E'; cx.lineWidth = 2;
+      const r=24, x=16, y=16, w=cw-32, h=ch-32;
+      cx.beginPath(); cx.moveTo(x+r,y); cx.arcTo(x+w,y,x+w,y+h,r); cx.arcTo(x+w,y+h,x,y+h,r); cx.arcTo(x,y+h,x,y,r); cx.arcTo(x,y,x+w,y,r); cx.closePath(); cx.stroke();
+    }
+    return { canvas: out, state: s };
+  }
+
+  async function exportSVG() {
+    const s = getState();
+    const data = await imgToDataUrl(MARK_SRC[s.markChoice]);
+    const mImg = await loadImage(MARK_SRC[s.markChoice]);
+    const fam = FONT_FAMILIES[s.fontKey].replace(/"/g, "'");
+    const ts = FONT_TERMINAL_STYLE[s.fontKey] || {};
+    const isMono = s.fontKey === 'mono';
+    const wText = isMono ? 'sage' : 'Sage';
+    const tText = isMono ? '_' : '.';
+    const ls = (FONT_LETTER_SP[s.fontKey] + s.trackingPct/100) * s.size;
+    const mH = s.markPx, mW = mImg.width * (mH / mImg.height);
+    const pad = Math.max(s.size * 0.6, 80), gap = 14, sgap = 12, tH = s.size;
+    const approx = s.size * 0.58;
+    const totalW = wText.length * approx + ls * (wText.length-1) + approx;
+    let cw, ch, mx, my, tx, ty;
+    if (s.dir === 'stacked') {
+      cw = pad*2 + Math.max(mW, totalW); ch = pad*2 + mH + sgap + tH;
+      mx = (cw - mW)/2; my = pad; tx = (cw - totalW)/2; ty = pad + mH + sgap + s.size*0.78;
+    } else {
+      const ch0 = Math.max(mH, tH); cw = pad*2 + mW + gap + totalW; ch = pad*2 + ch0;
+      mx = pad; my = pad + (ch0 - mH)/2; tx = pad + mW + gap; ty = pad + (ch0 - tH)/2 + s.size*0.78;
+    }
+    const esc = (s) => s.replace(/[<>&'"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;',"'":'&apos;','"':'&quot;'}[c]));
+    const termAttrs = ts.italic ? `font-style="italic" font-weight="${ts.weight||s.weight}"` : `font-weight="${s.weight}"`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cw}" height="${ch}" viewBox="0 0 ${cw} ${ch}">
+  <title>Sage logo</title>
+  ${s.dir!=='word-only' ? `<image href="${data}" x="${mx}" y="${my}" width="${mW}" height="${mH}" />` : ''}
+  ${s.dir!=='mark-only' ? `<text x="${tx}" y="${ty}" font-family="${fam}" font-size="${s.size}" font-weight="${s.weight}" letter-spacing="${ls.toFixed(2)}" fill="${s.wordColor}">${esc(wText)}<tspan ${termAttrs} fill="${s.termColor}">${esc(tText)}</tspan></text>` : ''}
+</svg>`;
+    downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), `sage-logo-${s.fontKey}-${s.dir}.svg`);
+  }
+
+  async function exportFavicons() {
+    const s = getState();
+    const img = await loadImage(MARK_SRC[s.markChoice]);
+    const sizes = [16, 32, 48, 96];
+    for (const sz of sizes) {
+      const out = document.createElement('canvas');
+      out.width = sz; out.height = sz;
+      const cx = out.getContext('2d');
+      const m = sz * 0.06;
+      const max = sz - m*2;
+      const r = Math.min(max/img.width, max/img.height);
+      const w = img.width*r, h = img.height*r;
+      cx.drawImage(img, (sz-w)/2, (sz-h)/2, w, h);
+      await new Promise(res => out.toBlob(b => { downloadBlob(b, `sage-favicon-${sz}.png`); res(); }, 'image/png'));
+    }
+  }
+
+  document.querySelectorAll('.ex-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      btn.classList.add('busy');
+      try {
+        const kind = btn.dataset.ex;
+        if (kind === 'png-1x' || kind === 'png-2x' || kind === 'png-bg') {
+          const scale = kind === 'png-2x' ? 2 : 1;
+          const includeBg = kind === 'png-bg';
+          const { canvas, state } = await renderLockup({ scale, includeBg });
+          await new Promise(res => canvas.toBlob(b => {
+            downloadBlob(b, `sage-logo-${state.fontKey}-${state.dir}${includeBg?'-bg':''}@${scale}x.png`); res();
+          }, 'image/png'));
+        } else if (kind === 'svg') {
+          await exportSVG();
+        } else if (kind === 'mark-png') {
+          const s = getState();
+          const img = await loadImage(MARK_SRC[s.markChoice]);
+          const out = document.createElement('canvas'); out.width = 1024; out.height = 1024;
+          const cx = out.getContext('2d');
+          const m = 80, max = 1024 - m*2;
+          const r = Math.min(max/img.width, max/img.height);
+          const w = img.width*r, h = img.height*r;
+          cx.drawImage(img, (1024-w)/2, (1024-h)/2, w, h);
+          await new Promise(res => out.toBlob(b => { downloadBlob(b, `sage-mark-${s.markChoice}-1024.png`); res(); }, 'image/png'));
+        } else if (kind === 'favicons') {
+          await exportFavicons();
+        }
+        btn.classList.remove('busy'); btn.classList.add('done');
+        setTimeout(() => btn.classList.remove('done'), 1400);
+      } catch (e) {
+        console.error(e);
+        btn.classList.remove('busy');
+      }
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
