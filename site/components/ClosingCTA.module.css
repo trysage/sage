@@ -1,0 +1,145 @@
+.section {
+  padding: 160px 0 120px;
+  text-align: center;
+  position: relative;
+}
+
+.section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, rgba(148, 255, 194, 0.09), transparent 60%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 56px;
+  position: relative;
+}
+
+.mark {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(148, 255, 194, 0.08);
+  border: 1px solid rgba(148, 255, 194, 0.25);
+}
+
+.h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 64px;
+  line-height: 1.05;
+  letter-spacing: -0.045em;
+  color: var(--ink-0);
+  max-width: 22ch;
+  margin: 0 auto 40px;
+}
+
+.h2 em {
+  font-style: normal;
+  color: var(--mint-400);
+  font-weight: 500;
+}
+
+.ctaRow {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btnPrimary {
+  background: var(--mint-400);
+  color: var(--ink-900);
+}
+
+.btnPrimary:hover {
+  background: #b0ffda;
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--ink-100);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.btnGhost:hover {
+  border-color: var(--mint-400);
+  color: var(--mint-400);
+}
+
+.btnLg {
+  padding: 16px 26px;
+  font-size: 15px;
+}
+
+.partners {
+  margin-top: 96px;
+  padding-top: 32px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+.partnersLabel {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-300);
+  padding-right: 32px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.marks {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  padding-left: 32px;
+}
+
+.partnerMark {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--ink-200);
+  letter-spacing: -0.01em;
+  opacity: 0.9;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  cursor: default;
+}
+
+.partnerMark:hover {
+  color: var(--mint-400);
+  opacity: 1;
+}
+
+.mono {
+  font-family: var(--font-mono) !important;
+  font-size: 14px !important;
+  letter-spacing: 0.04em !important;
+  font-weight: 500 !important;
+}

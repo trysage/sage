@@ -1,0 +1,220 @@
+.section {
+  padding: 0 0 120px;
+}
+
+.container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 56px;
+}
+
+.block {
+  border-radius: 28px;
+  padding: 80px;
+  background:
+    radial-gradient(ellipse at 80% 20%, rgba(148, 255, 194, 0.16), transparent 55%),
+    linear-gradient(160deg, #0e1614 0%, #08110e 100%);
+  border: 1px solid rgba(148, 255, 194, 0.22);
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 64px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--mint-300);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.eyebrow::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: var(--mint-300);
+}
+
+.h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 56px;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  color: var(--ink-0);
+  margin: 20px 0 24px;
+  max-width: 16ch;
+}
+
+.h2 em {
+  font-style: normal;
+  color: var(--mint-400);
+  font-weight: 500;
+}
+
+.body {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-100);
+  max-width: 50ch;
+  margin: 0 0 28px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-200);
+}
+
+/* — Signing diagram — */
+.diagram {
+  background: var(--ink-900);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 22px;
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.diagramLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--ink-300);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.sdRow {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.you {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.sage {
+  border-color: rgba(148, 255, 194, 0.3);
+  background: rgba(148, 255, 194, 0.04);
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink-800);
+  color: var(--ink-100);
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 400;
+}
+
+.avatarSage {
+  background: rgba(148, 255, 194, 0.1);
+  padding: 6px;
+  overflow: hidden;
+}
+
+.avatarSage img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.who {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--ink-0);
+}
+
+.role {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ink-300);
+  margin-top: 2px;
+}
+
+.sig {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--mint-400);
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(148, 255, 194, 0.1);
+  border: 1px solid rgba(148, 255, 194, 0.25);
+  white-space: nowrap;
+}
+
+.sdAnd {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--ink-300);
+}
+
+.sdLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sdResult {
+  margin-top: 8px;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(148, 255, 194, 0.06);
+  border: 1px solid rgba(148, 255, 194, 0.2);
+  text-align: center;
+}
+
+.sdResultLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--mint-400);
+  text-transform: uppercase;
+}
+
+.sdResultValue {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--ink-0);
+  margin-top: 6px;
+}
