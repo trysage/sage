@@ -1,53 +1,73 @@
 # Sage
 
-Multisig co-signer and security agent built on Squads Protocol (Solana). Sage acts as an autonomous second signer in n-of-m multisigs, evaluating pending proposals against configurable policy rules before approving or rejecting.
+Multisig co-signer and security agent built on Squads Protocol (Solana). Sage acts as an autonomous second signer in 2-of-2 multisigs, evaluating pending proposals against policy rules before approving or rejecting — learning your patterns, weighing each call, and stepping in only when something is wrong.
 
 ## Structure
 
 ```
-brandkit/   Brand assets — logos, color palette, typography
-client/     Dapp — multisig dashboard and proposal management
-site/       Marketing landing page
-backend/    API server + agent co-signer logic
+brandkit/   Brand assets — HTML reference pages (design system, logo system, playground, website)
+site/       Marketing site + brand kit (Next.js 15, TypeScript, CSS Modules)
 src/        Squads SDK wrappers (core agent library)
-tests/      Test suite for the core library
+tests/      Test suite — multisig, proposal lifecycle, config, reference transfer flow
+client/     Dapp — multisig dashboard (not started)
+backend/    API server + agent co-signer logic (not started)
 ```
 
-## TODO
+## Status
 
-### brandkit
-- [ ] Design logo (light and dark variants)
-- [ ] Define color palette and design tokens
-- [ ] Create social media cover images and banners
-- [ ] Export icon set (SVG + PNG)
+### Done
 
-### client
-- [ ] Bootstrap Next.js app with Tailwind
-- [ ] Integrate Solana wallet adapter (Phantom, Backpack)
+**Protocol layer (`src/`, `tests/`)**
+- `src/multisig.ts` — `createMultisig`, `deriveVaultPda`, `getMultisigState`, `getProposalState`
+- Full test suite: PDA derivation, permission bitmasks, proposal lifecycle, member/threshold config
+- Reference 2-of-2 transfer flow (`tests/reference/transfer-flow.test.ts`) — complete walkthrough with Step 5 marked as the agent decision hook
+
+**Marketing site (`site/`)**
+- Landing page: Nav, Hero with live Guardian card, How It Works, Squads integration block, FAQ, CTA — fully mobile responsive
+- Brand kit at `/brandkit`: design system, logo system, interactive logo playground with PNG/SVG/favicon export
+
+### In progress
+
+- [ ] Agent policy engine — plug decision logic into Step 5 of the transfer flow
+- [ ] Telegram notification for borderline transactions
+
+### Up next
+
+**client**
+- [ ] Bootstrap Next.js app with Solana wallet adapter (Phantom, Backpack)
 - [ ] Multisig creation flow (name, members, threshold)
-- [ ] Proposal dashboard (list, status badges, approve / reject actions)
+- [ ] Proposal dashboard (list, status badges, approve / reject)
 - [ ] Vault overview (balance, transaction history)
-- [ ] Connect to backend API
 
-### site
-- [ ] Hero section with product pitch
-- [ ] Feature highlights (co-signer, policy engine, risk scoring)
-- [ ] How-it-works section
-- [ ] CTA linking to the dapp
-- [ ] SEO meta tags and OG images
-
-### backend
-- [ ] Express server with health endpoint
-- [ ] Squads proposal watcher (poll or webhook for pending proposals)
+**backend**
+- [ ] Squads proposal watcher (poll pending proposals)
 - [ ] Policy engine — configurable rules per multisig (amount limits, allowlists, time windows)
-- [ ] Risk scoring module wired to the policy engine
-- [ ] Agent co-signer — call `proposalApprove` / `proposalReject` based on policy result
-- [ ] Notification delivery (Telegram bot, email)
-- [ ] Database schema (users, policy rules, audit log)
-- [ ] Auth middleware for client API calls
+- [ ] Risk scoring module
+- [ ] Agent co-signer calling `proposalApprove` / `proposalReject`
+- [ ] Telegram bot notifications
+- [ ] Auth middleware + database schema (users, policy rules, audit log)
 
-### general
-- [ ] Root `pnpm-workspace.yaml` and per-package `package.json` stubs
+**general**
 - [ ] CI pipeline (lint, test, build)
-- [ ] Deployment setup (client + site on Vercel, backend on Fly.io or VPS)
-- [ ] Environment variable templates (`.env.example`) for each package
+- [ ] Deployment (site on Vercel, backend on Fly.io)
+- [ ] `.env.example` templates
+
+## Running tests
+
+```bash
+npm test                          # all suites (requires local validator at localhost:8899)
+npm run test:multisig             # PDA derivation and multisig creation
+npm run test:proposal             # proposal lifecycle
+npm run test:config               # member and threshold management
+npm run test:reference            # full 2-of-2 agentic co-signer flow
+
+RPC_URL=https://api.devnet.solana.com npm run test:reference   # devnet
+```
+
+## Running the site
+
+```bash
+cd site
+npm install
+npm run dev     # http://localhost:3000
+```
