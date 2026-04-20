@@ -69,3 +69,13 @@
 .btnPrimary:hover {
   background: #b0ffda;
 }
+
+@media (max-width: 768px) {
+  .inner { padding: 14px 20px; }
+  .links { gap: 0; }
+  .links a:not(.btnPrimary) { display: none; }
+}
+
+@media (max-width: 480px) {
+  .btnPrimary { padding: 10px 16px; font-size: 13px; }
+}

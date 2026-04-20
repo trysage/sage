@@ -348,3 +348,32 @@
   color: var(--ink-300);
   margin-top: 10px;
 }
+
+@media (max-width: 1024px) {
+  .inner { grid-template-columns: 1fr; gap: 40px; }
+  .container { padding: 0 32px; }
+  .heading { font-size: 56px; }
+}
+
+@media (max-width: 768px) {
+  .hero { padding: 48px 0 40px; }
+  .container { padding: 0 20px; }
+  .heading { font-size: 42px; margin: 16px 0; }
+  .sub { font-size: 17px; }
+  .ctaRow { flex-direction: column; gap: 10px; }
+  .ctaRow .btn { justify-content: center; }
+  .stats {
+    margin-top: 48px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .statItem { padding: 20px 0; }
+  .statItem + .statItem { border-left: none; padding-left: 0; }
+  .statItem:nth-child(2n) { border-left: 1px dashed rgba(255,255,255,.08); padding-left: 20px; }
+  .statItem:nth-child(n+3) { border-top: 1px dashed rgba(255,255,255,.08); }
+  .statNum { font-size: 36px; }
+}
+
+@media (max-width: 480px) {
+  .heading { font-size: 36px; }
+  .guardian { padding: 20px; }
+}

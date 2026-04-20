@@ -103,3 +103,20 @@
   color: var(--ink-0);
   font-weight: 600;
 }
+
+@media (max-width: 1024px) {
+  .sectionHead { grid-template-columns: 1fr; gap: 16px; margin-bottom: 40px; }
+  .item { grid-template-columns: 56px 1fr; gap: 16px 20px; }
+  .a { grid-column: 1 / -1; padding-left: 76px; }
+}
+
+@media (max-width: 768px) {
+  .section { padding: 72px 0; }
+  .container { padding: 0 20px; }
+  .h2 { font-size: 36px; }
+  .lede { font-size: 18px; max-width: none; }
+  .item { grid-template-columns: 1fr; gap: 10px; padding: 24px 0; }
+  .num { display: none; }
+  .a { padding-left: 0; }
+  .q { font-size: 22px; }
+}

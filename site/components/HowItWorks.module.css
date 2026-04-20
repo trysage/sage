@@ -306,3 +306,26 @@
   background: rgba(229, 82, 79, 0.12);
   color: var(--danger);
 }
+
+@media (max-width: 1024px) {
+  .steps { grid-template-columns: 1fr; }
+  .sectionHead { grid-template-columns: 1fr; gap: 16px; margin-bottom: 40px; }
+}
+
+@media (max-width: 768px) {
+  .section { padding: 72px 0; }
+  .container { padding: 0 20px; }
+  .h2 { font-size: 36px; }
+  .lede { font-size: 18px; max-width: none; }
+  .loopDiagram { border-radius: 20px; padding: 16px; gap: 8px; }
+  .loopNode { padding: 8px 12px; }
+  .loopVal { font-size: 15px; }
+  .step { padding: 24px; min-height: auto; gap: 16px; }
+  .stepH3 { font-size: 26px; }
+}
+
+@media (max-width: 480px) {
+  .loopDiagram { flex-direction: column; border-radius: 18px; align-items: flex-start; }
+  .loopArrow { padding-left: 16px; }
+  .loopBack { align-self: flex-end; }
+}

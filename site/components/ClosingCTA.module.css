@@ -143,3 +143,29 @@
   letter-spacing: 0.04em !important;
   font-weight: 500 !important;
 }
+
+@media (max-width: 768px) {
+  .section { padding: 96px 0 72px; }
+  .container { padding: 0 20px; }
+  .h2 { font-size: 40px; }
+  .partners {
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 64px;
+  }
+  .partnersLabel {
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,.1);
+    padding-right: 0;
+    padding-bottom: 16px;
+    width: 100%;
+    text-align: center;
+  }
+  .marks { padding-left: 0; justify-content: center; flex-wrap: wrap; gap: 24px; }
+}
+
+@media (max-width: 480px) {
+  .h2 { font-size: 34px; }
+  .ctaRow { flex-direction: column; align-items: stretch; }
+  .ctaRow .btn { justify-content: center; }
+}

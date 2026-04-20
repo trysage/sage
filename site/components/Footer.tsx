@@ -26,7 +26,7 @@ export default function Footer() {
             </a>
           ))}
         </nav>
-        <span className={s.meta}>© 2026 · sage.xyz · Solana</span>
+        <span className={s.meta}>© 2026 · trysage.xyz · Solana</span>
       </div>
     </footer>
   )
