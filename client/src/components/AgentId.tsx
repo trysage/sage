@@ -1,14 +1,13 @@
-import Image from "next/image";
-
 interface AgentIdProps {
   label?: string;
 }
 
-export function AgentId({ label = "Sage · watching" }: AgentIdProps) {
+export function AgentId({ label = "Watching" }: AgentIdProps) {
   return (
     <span className="agent-id">
       <span className="av">
-        <Image src="/sage-mark-mint.png" alt="Sage" width={18} height={18} />
+        {/* plain img — avoids Next.js Image inline-size override on small icons */}
+        <img src="/sage-mark-mint.png" alt="Sage" />
       </span>
       <span>{label}</span>
       <span className="live" />

@@ -13,9 +13,10 @@ export default function ProfilePage() {
 
       <main className="main" style={{ paddingRight: 56 }}>
         <div className="main-top">
+          <img src="/sage-mark-mint.png" alt="Sage" className="mobile-logo" />
           <AgentId />
           <div className="right">
-            <span>Last sync · 12s</span>
+            <span className="sync-label">Last sync · 12s</span>
           </div>
         </div>
 

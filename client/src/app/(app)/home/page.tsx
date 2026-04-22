@@ -15,10 +15,11 @@ export default function HomePage() {
       {/* ── Main content ── */}
       <main className="main">
         <div className="main-top">
+          <img src="/sage-mark-mint.png" alt="Sage" className="mobile-logo" />
           <AgentId />
           <div className="right">
-            <span>Last sync · 12s</span>
-            <button className="ico-btn" title="Refresh">
+            <span className="sync-label">Last sync · 12s</span>
+            <button className="ico-btn sync-label" title="Refresh">
               <RefreshCw size={14} />
             </button>
             <button className="ico-btn" title="Notifications">
@@ -42,19 +43,19 @@ export default function HomePage() {
         {/* Action quad */}
         <div className="quad">
           <button className="qb">
-            <span className="qb-ic"><ArrowUpRight size={18} /></span>
+            <span className="qb-ic"><ArrowUpRight size={16} /></span>
             Send
           </button>
           <button className="qb">
-            <span className="qb-ic"><ArrowDownLeft size={18} /></span>
+            <span className="qb-ic"><ArrowDownLeft size={16} /></span>
             Receive
           </button>
           <button className="qb">
-            <span className="qb-ic"><ArrowLeftRight size={18} /></span>
+            <span className="qb-ic"><ArrowLeftRight size={16} /></span>
             Swap
           </button>
           <button className="qb">
-            <span className="qb-ic"><Plug size={18} /></span>
+            <span className="qb-ic"><Plug size={16} /></span>
             Connect
           </button>
         </div>
