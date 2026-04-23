@@ -1,5 +1,10 @@
-import Link from "next/link";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useAuth } from "@/app/context/AuthContext";
+import { Splash } from "@/components/loaders";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24">
@@ -11,6 +16,19 @@ const GoogleIcon = () => (
 );
 
 export default function LoginPage() {
+  const { user, wallet, loading, login } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user && wallet) {
+      router.replace("/home");
+    }
+  }, [loading, user, wallet, router]);
+
+  if (loading) {
+    return <Splash message="Signing in to Sage" />;
+  }
+
   return (
     <div className="scr-login">
       <div className="bg-glow" />
@@ -35,11 +53,10 @@ export default function LoginPage() {
             Your wallet is being watched. Sign in to see what Sage has been doing.
           </p>
 
-          {/* Stub: will be replaced with real Google OAuth */}
-          <Link href="/home" className="auth-btn primary">
+          <button onClick={login} className="auth-btn primary">
             <GoogleIcon />
             Continue with Google
-          </Link>
+          </button>
 
           <div className="login-foot">
             <a>What is Sage?</a>
