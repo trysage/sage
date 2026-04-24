@@ -145,13 +145,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Stay loading while:
   // 1. Privy SDK not ready
   // 2. OAuth redirect is in flight (sessionStorage flag bridges the page reload gap)
-  // 3. Authenticated but wallets still being created
+  // 3. Authenticated but Solana wallet not yet created (EVM creation runs in background)
   const loading =
     !ready ||
     oAuthPending ||
-    (authenticated &&
-      ((!primarySolanaWallet && !solanaCreateFailed) ||
-        (!primaryEvmWallet && !evmCreateFailed)));
+    (authenticated && !primarySolanaWallet && !solanaCreateFailed);
 
   const login = useCallback(() => {
     sessionStorage.setItem(OAUTH_PENDING_KEY, "1");
