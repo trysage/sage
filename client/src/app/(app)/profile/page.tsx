@@ -1,10 +1,24 @@
+"use client";
+
 import { Copy, ExternalLink, Shield, Mail, LogOut } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { AgentId } from "@/components/AgentId";
+import { useAuth } from "@/app/context/AuthContext";
 
-const WALLET_ADDRESS = "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU";
+function truncate(addr: string) {
+  return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
+}
 
 export default function ProfilePage() {
+  const { user, wallet, logout } = useAuth();
+
+  const initial = user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
+  const address = wallet?.address ?? "";
+
+  function copyAddress() {
+    if (address) navigator.clipboard.writeText(address);
+  }
+
   return (
     <div className="app-shell no-rail">
       <div className="ambient" />
@@ -28,7 +42,7 @@ export default function ProfilePage() {
         {/* Portrait + identity fields */}
         <section className="pf-hero">
           <div className="pf-portrait">
-            <div className="pf-avatar">K</div>
+            <div className="pf-avatar">{initial}</div>
             <div className="pf-glyph">
               <Shield size={14} />
             </div>
@@ -36,7 +50,17 @@ export default function ProfilePage() {
 
           <div className="pf-id">
             <h1 className="pf-name">
-              Koshik<em> Mahanta.</em>
+              {user?.name
+                ? (() => {
+                    const parts = user.name.split(" ");
+                    const last = parts.pop();
+                    return (
+                      <>
+                        {parts.join(" ")}&nbsp;<em>{last}.</em>
+                      </>
+                    );
+                  })()
+                : <em>{user?.email ?? "—"}</em>}
             </h1>
 
             <div className="pf-meta">
@@ -45,7 +69,7 @@ export default function ProfilePage() {
                   <Mail size={14} />
                   Email
                 </span>
-                <span className="val">koshik@consensolabs.com</span>
+                <span className="val">{user?.email ?? "—"}</span>
               </div>
 
               <div className="pf-field network">
@@ -61,15 +85,17 @@ export default function ProfilePage() {
                   <Shield size={14} />
                   Wallet address
                 </span>
-                <span className="val mono">{WALLET_ADDRESS}</span>
+                <span className="val mono" title={address}>
+                  {address ? truncate(address) : "—"}
+                </span>
               </div>
             </div>
 
             <div className="pf-acts">
-              <button className="ghost-btn">
+              <button className="ghost-btn" onClick={copyAddress} disabled={!address}>
                 <Copy size={13} /> Copy address
               </button>
-              <button className="ghost-btn">
+              <button className="ghost-btn" disabled={!address}>
                 <ExternalLink size={13} /> Open in Squads
               </button>
             </div>
@@ -84,7 +110,7 @@ export default function ProfilePage() {
               Your guardian goes quiet until you return. Pending reviews stay queued.
             </div>
           </div>
-          <button className="lo-btn">
+          <button className="lo-btn" onClick={logout}>
             <LogOut size={14} /> Log out
           </button>
         </section>

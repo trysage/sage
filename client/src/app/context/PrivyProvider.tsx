@@ -15,16 +15,13 @@ export default function PrivyProvider({ children }: { children: React.ReactNode 
       config={{
         loginMethods: ["google"],
         embeddedWallets: {
-          createOnLogin: "all-users",
-        },
-        solanaClusters: [
-          {
-            name: "mainnet-beta",
-            rpcUrl:
-              process.env.NEXT_PUBLIC_SOLANA_RPC ||
-              "https://api.mainnet-beta.solana.com",
+          ethereum: {
+            createOnLogin: "off",
           },
-        ],
+          solana: {
+            createOnLogin: "off",
+          },
+        },
         appearance: {
           theme: "dark",
           accentColor: "#5BD18E",

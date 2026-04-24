@@ -7,15 +7,24 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useState,
   type ReactNode,
 } from "react";
-import { usePrivy, useSolanaWallets } from "@privy-io/react-auth";
+import {
+  usePrivy,
+  useWallets,
+  useCreateWallet,
+  useIdentityToken,
+  useLoginWithOAuth,
+  useLogout,
+} from "@privy-io/react-auth";
+import {
+  useWallets as useSolanaWallets,
+  useCreateWallet as useSolanaCreateWallet,
+  type ConnectedStandardSolanaWallet,
+} from "@privy-io/react-auth/solana";
 
-export interface SolanaProvider {
-  publicKey: { toBase58(): string };
-  signMessage(msg: Uint8Array): Promise<{ signature: Uint8Array }>;
-  signTransaction(tx: unknown): Promise<unknown>;
-}
+const OAUTH_PENDING_KEY = "sage_oauth_pending";
 
 export interface AuthUser {
   email?: string;
@@ -29,42 +38,85 @@ export interface AuthWallet {
 
 export interface AuthContextType {
   user: AuthUser | null;
+  /** Primary Solana embedded wallet */
   wallet: AuthWallet | null;
+  /** EVM embedded wallet */
+  evmWallet: AuthWallet | null;
   loading: boolean;
   login: () => void;
   logout: () => Promise<void>;
-  getSolanaProvider: () => Promise<SolanaProvider | null>;
+  /** Raw Solana wallet for signing */
+  getSolanaWallet: () => ConnectedStandardSolanaWallet | null;
+  identityToken: string | null;
   privyUser: ReturnType<typeof usePrivy>["user"];
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const {
-    ready,
-    authenticated,
-    user: privyUser,
-    login: privyLogin,
-    logout: privyLogout,
-  } = usePrivy();
-  const { wallets, createWallet } = useSolanaWallets();
+  const { ready, authenticated, user: privyUser } = usePrivy();
+  const { initOAuth } = useLoginWithOAuth();
+  const { logout: privyLogout } = useLogout();
 
-  const hasAttemptedCreate = useRef(false);
+  // EVM wallet hooks
+  const { wallets: evmWallets } = useWallets();
+  const { createWallet: createEvmWallet } = useCreateWallet();
 
-  const primaryWallet = useMemo(
-    () => wallets.find((w) => w.walletClientType === "privy"),
-    [wallets]
+  // Solana wallet hooks
+  const { wallets: solanaWallets } = useSolanaWallets();
+  const { createWallet: createSolanaWallet } = useSolanaCreateWallet();
+
+  const { identityToken } = useIdentityToken();
+
+  const hasAttemptedEvmCreate = useRef(false);
+  const hasAttemptedSolanaCreate = useRef(false);
+  const [evmCreateFailed, setEvmCreateFailed] = useState(false);
+  const [solanaCreateFailed, setSolanaCreateFailed] = useState(false);
+
+  // Persisted flag so the loader holds across the OAuth full-page redirect.
+  // Set before initOAuth fires; cleared once Privy confirms authenticated.
+  const [oAuthPending, setOAuthPending] = useState(
+    () => typeof window !== "undefined" && sessionStorage.getItem(OAUTH_PENDING_KEY) === "1"
   );
 
   useEffect(() => {
-    if (!ready || !authenticated || primaryWallet) return;
-    if (hasAttemptedCreate.current) return;
-    hasAttemptedCreate.current = true;
-    createWallet().catch((e) => {
-      console.error("Privy createWallet (Solana) failed:", e);
-      hasAttemptedCreate.current = false;
+    if (authenticated && oAuthPending) {
+      sessionStorage.removeItem(OAUTH_PENDING_KEY);
+      setOAuthPending(false);
+    }
+  }, [authenticated, oAuthPending]);
+
+  const primaryEvmWallet = useMemo(
+    () => evmWallets.find((w) => w.walletClientType === "privy") ?? null,
+    [evmWallets]
+  );
+
+  const primarySolanaWallet = useMemo(
+    () => solanaWallets[0] ?? null,
+    [solanaWallets]
+  );
+
+  // Manual EVM wallet creation
+  useEffect(() => {
+    if (!ready || !authenticated || primaryEvmWallet || evmCreateFailed) return;
+    if (hasAttemptedEvmCreate.current) return;
+    hasAttemptedEvmCreate.current = true;
+    createEvmWallet().catch((e) => {
+      console.error("EVM wallet creation failed:", e);
+      setEvmCreateFailed(true);
     });
-  }, [ready, authenticated, primaryWallet, createWallet]);
+  }, [ready, authenticated, primaryEvmWallet, evmCreateFailed, createEvmWallet]);
+
+  // Manual Solana wallet creation
+  useEffect(() => {
+    if (!ready || !authenticated || primarySolanaWallet || solanaCreateFailed) return;
+    if (hasAttemptedSolanaCreate.current) return;
+    hasAttemptedSolanaCreate.current = true;
+    createSolanaWallet().catch((e) => {
+      console.error("Solana wallet creation failed:", e);
+      setSolanaCreateFailed(true);
+    });
+  }, [ready, authenticated, primarySolanaWallet, solanaCreateFailed, createSolanaWallet]);
 
   const user: AuthUser | null = useMemo(() => {
     if (!privyUser) return null;
@@ -81,42 +133,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [privyUser]);
 
   const wallet: AuthWallet | null = useMemo(() => {
-    if (!primaryWallet?.address) return null;
-    return { address: primaryWallet.address };
-  }, [primaryWallet]);
+    if (!primarySolanaWallet?.address) return null;
+    return { address: primarySolanaWallet.address };
+  }, [primarySolanaWallet]);
 
-  const loading = !ready || (authenticated && !primaryWallet);
+  const evmWallet: AuthWallet | null = useMemo(() => {
+    if (!primaryEvmWallet?.address) return null;
+    return { address: primaryEvmWallet.address };
+  }, [primaryEvmWallet]);
+
+  // Stay loading while:
+  // 1. Privy SDK not ready
+  // 2. OAuth redirect is in flight (sessionStorage flag bridges the page reload gap)
+  // 3. Authenticated but wallets still being created
+  const loading =
+    !ready ||
+    oAuthPending ||
+    (authenticated &&
+      ((!primarySolanaWallet && !solanaCreateFailed) ||
+        (!primaryEvmWallet && !evmCreateFailed)));
 
   const login = useCallback(() => {
-    privyLogin();
-  }, [privyLogin]);
+    sessionStorage.setItem(OAUTH_PENDING_KEY, "1");
+    setOAuthPending(true);
+    initOAuth({ provider: "google" });
+  }, [initOAuth]);
 
   const logout = useCallback(async () => {
+    sessionStorage.removeItem(OAUTH_PENDING_KEY);
     await privyLogout();
   }, [privyLogout]);
 
-  const getSolanaProvider = useCallback(async (): Promise<SolanaProvider | null> => {
-    if (!primaryWallet) return null;
-    try {
-      const provider = await primaryWallet.getProvider();
-      return provider as unknown as SolanaProvider;
-    } catch (e) {
-      console.error("getSolanaProvider failed:", e);
-      return null;
-    }
-  }, [primaryWallet]);
+  const getSolanaWallet = useCallback(
+    () => primarySolanaWallet,
+    [primarySolanaWallet]
+  );
 
   const value: AuthContextType = useMemo(
     () => ({
       user,
       wallet,
+      evmWallet,
       loading,
       login,
       logout,
-      getSolanaProvider,
+      getSolanaWallet,
+      identityToken: identityToken ?? null,
       privyUser: privyUser ?? null,
     }),
-    [user, wallet, loading, login, logout, getSolanaProvider, privyUser]
+    [user, wallet, evmWallet, loading, login, logout, getSolanaWallet, identityToken, privyUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
