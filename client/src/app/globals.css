@@ -382,6 +382,44 @@ body {
   transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
+/* Test send widget */
+.test-send {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px dashed rgba(91,209,142,.25);
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  background: rgba(91,209,142,.03);
+}
+.test-send-label {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--ink-300); letter-spacing: .04em;
+  flex: 1;
+}
+.test-send-btn {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(91,209,142,.35);
+  background: transparent;
+  color: var(--mint-400);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+  white-space: nowrap;
+}
+.test-send-btn:hover:not(:disabled) { background: rgba(91,209,142,.08); border-color: var(--mint-400); }
+.test-send-btn:disabled { opacity: .45; cursor: default; }
+.test-send-result {
+  width: 100%; font-size: 11px; margin-top: 2px;
+}
+.test-send-result.ok  { color: var(--mint-300); }
+.test-send-result.ok a { color: var(--mint-300); text-decoration: underline; }
+.test-send-result.err { color: var(--danger); word-break: break-all; }
+
 /* Segment tabs */
 .seg-tabs {
   margin-top: 36px; display: flex; gap: 28px;

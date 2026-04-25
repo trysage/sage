@@ -10,10 +10,10 @@ function truncate(addr: string) {
 }
 
 export default function ProfilePage() {
-  const { user, wallet, logout } = useAuth();
+  const { user, vaultPda, logout } = useAuth();
 
   const initial = user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?";
-  const address = wallet?.address ?? "";
+  const address = vaultPda ?? "";
 
   function copyAddress() {
     if (address) navigator.clipboard.writeText(address);
@@ -83,7 +83,7 @@ export default function ProfilePage() {
               <div className="pf-field full">
                 <span className="cap">
                   <Shield size={14} />
-                  Wallet address
+                  Vault address
                 </span>
                 <span className="val mono" title={address}>
                   {address ? truncate(address) : "—"}

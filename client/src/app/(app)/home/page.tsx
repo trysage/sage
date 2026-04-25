@@ -1,11 +1,61 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
-import { RefreshCw, Bell, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Plug, CheckCircle2, XCircle } from "lucide-react";
+import { RefreshCw, Bell, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Plug, CheckCircle2, XCircle, FlaskConical } from "lucide-react";
+import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Sidebar } from "@/components/Sidebar";
 import { AgentId } from "@/components/AgentId";
 import { TokenRow } from "@/components/TokenRow";
 import { TraceRow } from "@/components/TraceRow";
+import { useAuth } from "@/app/context/AuthContext";
+import { proposeAndExecute, loadSageAccount } from "@/lib/squads";
+
+const RPC_URL =
+  process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
+
+const TEST_AMOUNT = 0.0001 * LAMPORTS_PER_SOL;
 
 export default function HomePage() {
+  const { wallet, getSolanaWallet } = useAuth();
+  const [sending, setSending] = useState(false);
+  const [txSig, setTxSig] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
+
+  async function handleTestSend() {
+    const solanaWallet = getSolanaWallet();
+    const account = loadSageAccount();
+
+    if (!solanaWallet || !account || !wallet?.address) return;
+
+    setSending(true);
+    setTxSig(null);
+    setSendError(null);
+
+    try {
+      const connection = new Connection(RPC_URL, "confirmed");
+      const { vaultPda, multisigPda } = account;
+
+      // Send 0.0001 SOL from vault back to the signer wallet (self-transfer for testing)
+      console.log("vaultPda", vaultPda.toBase58());
+      console.log("multisigPda", multisigPda.toBase58());
+      console.log("wallet.address", wallet.address);
+      const ix = SystemProgram.transfer({
+        fromPubkey: vaultPda,
+        toPubkey: new PublicKey('5QSRmvpHimVhXh2YP622A61vaThB8ut2iWJW9DPmCTNj'),
+        lamports: TEST_AMOUNT,
+      });
+
+      const sig = await proposeAndExecute(connection, solanaWallet, multisigPda, [ix], "test: 0.0001 SOL");
+      setTxSig(sig);
+    } catch (e) {
+      console.error("Error sending test tx:", e);
+      setSendError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSending(false);
+    }
+  }
+
   return (
     <div className="app-shell">
       <div className="ambient" />
@@ -58,6 +108,29 @@ export default function HomePage() {
             <span className="qb-ic"><Plug size={16} /></span>
             Connect
           </button>
+        </div>
+
+        {/* ── Test transfer ── */}
+        <div className="test-send">
+          <div className="test-send-label">
+            <FlaskConical size={13} />
+            Test vault transfer · 0.0001 SOL → your wallet
+          </div>
+          <button
+            className="test-send-btn"
+            onClick={handleTestSend}
+            disabled={sending || !wallet}
+          >
+            {sending ? "Sending…" : "Send test tx"}
+          </button>
+          {txSig && (
+            <div className="test-send-result ok">
+              ✓ Confirmed · <a href={`https://explorer.solana.com/tx/${txSig}`} target="_blank" rel="noreferrer">{txSig.slice(0, 16)}…</a>
+            </div>
+          )}
+          {sendError && (
+            <div className="test-send-result err">{sendError}</div>
+          )}
         </div>
 
         {/* Segment tabs */}
