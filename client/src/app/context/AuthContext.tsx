@@ -23,8 +23,16 @@ import {
   useCreateWallet as useSolanaCreateWallet,
   type ConnectedStandardSolanaWallet,
 } from "@privy-io/react-auth/solana";
+import { Connection } from "@solana/web3.js";
+import {
+  createSageAccount,
+  loadSageAccount,
+  clearSageAccount,
+} from "@/lib/squads";
 
 const OAUTH_PENDING_KEY = "sage_oauth_pending";
+const RPC_URL =
+  process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
 
 export interface AuthUser {
   email?: string;
@@ -42,6 +50,8 @@ export interface AuthContextType {
   wallet: AuthWallet | null;
   /** EVM embedded wallet */
   evmWallet: AuthWallet | null;
+  /** Squads vault PDA for this user */
+  vaultPda: string | null;
   loading: boolean;
   login: () => void;
   logout: () => Promise<void>;
@@ -70,8 +80,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasAttemptedEvmCreate = useRef(false);
   const hasAttemptedSolanaCreate = useRef(false);
+  const hasAttemptedSageCreate = useRef(false);
   const [evmCreateFailed, setEvmCreateFailed] = useState(false);
   const [solanaCreateFailed, setSolanaCreateFailed] = useState(false);
+  const [vaultPda, setVaultPda] = useState<string | null>(
+    () => loadSageAccount()?.vaultPda.toBase58() ?? null
+  );
+  const [sageCreateFailed, setSageCreateFailed] = useState(false);
 
   // Persisted flag so the loader holds across the OAuth full-page redirect.
   // Set before initOAuth fires; cleared once Privy confirms authenticated.
@@ -118,6 +133,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [ready, authenticated, primarySolanaWallet, solanaCreateFailed, createSolanaWallet]);
 
+  // Sage account creation — runs once after Solana wallet is ready
+  useEffect(() => {
+    if (!primarySolanaWallet || vaultPda || sageCreateFailed) return;
+    if (hasAttemptedSageCreate.current) return;
+    hasAttemptedSageCreate.current = true;
+    const connection = new Connection(RPC_URL, "confirmed");
+    createSageAccount(connection, primarySolanaWallet)
+      .then((info) => setVaultPda(info.vaultPda.toBase58()))
+      .catch((e) => {
+        console.error("Sage account creation failed:", e);
+        setSageCreateFailed(true);
+      });
+  }, [primarySolanaWallet, vaultPda, sageCreateFailed]);
+
   const user: AuthUser | null = useMemo(() => {
     if (!privyUser) return null;
     const google = (
@@ -146,10 +175,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 1. Privy SDK not ready
   // 2. OAuth redirect is in flight (sessionStorage flag bridges the page reload gap)
   // 3. Authenticated but Solana wallet not yet created (EVM creation runs in background)
+  // 4. Solana wallet ready but Sage vault account not yet created
   const loading =
     !ready ||
     oAuthPending ||
-    (authenticated && !primarySolanaWallet && !solanaCreateFailed);
+    (authenticated && !primarySolanaWallet && !solanaCreateFailed) ||
+    (!!primarySolanaWallet && !vaultPda && !sageCreateFailed);
 
   const login = useCallback(() => {
     sessionStorage.setItem(OAUTH_PENDING_KEY, "1");
@@ -159,6 +190,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     sessionStorage.removeItem(OAUTH_PENDING_KEY);
+    clearSageAccount();
+    setVaultPda(null);
+    hasAttemptedSageCreate.current = false;
     await privyLogout();
   }, [privyLogout]);
 
@@ -172,6 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       wallet,
       evmWallet,
+      vaultPda,
       loading,
       login,
       logout,
@@ -179,7 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       identityToken: identityToken ?? null,
       privyUser: privyUser ?? null,
     }),
-    [user, wallet, evmWallet, loading, login, logout, getSolanaWallet, identityToken, privyUser]
+    [user, wallet, evmWallet, vaultPda, loading, login, logout, getSolanaWallet, identityToken, privyUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
