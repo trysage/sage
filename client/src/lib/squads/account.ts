@@ -12,7 +12,7 @@ import {
 import * as multisig from "@sqds/multisig";
 import type { ConnectedStandardSolanaWallet } from "@privy-io/react-auth/solana";
 
-const STORAGE_KEY = "sage_multisig_v1";
+const storageKey = (walletAddress: string) => `sage_multisig_v1_${walletAddress}`;
 
 interface StoredAccount {
   multisigPda: string;
@@ -132,15 +132,15 @@ export async function createSageAccount(
     multisigPda: multisigPda.toBase58(),
     vaultPda: vaultPda.toBase58(),
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+  localStorage.setItem(storageKey(solanaWallet.address), JSON.stringify(stored));
 
   return { multisigPda, vaultPda };
 }
 
-/** Load a previously created Sage account from localStorage. */
-export function loadSageAccount(): SageAccountInfo | null {
+/** Load a previously created Sage account from localStorage for a given wallet address. */
+export function loadSageAccount(walletAddress: string): SageAccountInfo | null {
   if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem(STORAGE_KEY);
+  const raw = localStorage.getItem(storageKey(walletAddress));
   if (!raw) return null;
   try {
     const stored: StoredAccount = JSON.parse(raw);
@@ -151,11 +151,6 @@ export function loadSageAccount(): SageAccountInfo | null {
   } catch {
     return null;
   }
-}
-
-/** Clear the stored Sage account (call on logout). */
-export function clearSageAccount(): void {
-  if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
 }
 
 /**

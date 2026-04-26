@@ -1,9 +1,15 @@
 export {
   createSageAccount,
   loadSageAccount,
-  clearSageAccount,
   proposeTransaction,
   executeTransaction,
   proposeAndExecute,
   type SageAccountInfo,
 } from "./account";
+
+export {
+  createSageAccountSponsored,
+  proposeTransactionSponsored,
+  executeTransactionSponsored,
+  proposeAndExecuteSponsored,
+} from "./sponsor";
