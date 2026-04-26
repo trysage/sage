@@ -23,11 +23,9 @@ import {
   useCreateWallet as useSolanaCreateWallet,
   type ConnectedStandardSolanaWallet,
 } from "@privy-io/react-auth/solana";
-import { Connection } from "@solana/web3.js";
 import {
-  createSageAccount,
   loadSageAccount,
-  clearSageAccount,
+  createSageAccountSponsored,
 } from "@/lib/squads";
 
 const OAUTH_PENDING_KEY = "sage_oauth_pending";
@@ -83,9 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasAttemptedSageCreate = useRef(false);
   const [evmCreateFailed, setEvmCreateFailed] = useState(false);
   const [solanaCreateFailed, setSolanaCreateFailed] = useState(false);
-  const [vaultPda, setVaultPda] = useState<string | null>(
-    () => loadSageAccount()?.vaultPda.toBase58() ?? null
-  );
+  const [vaultPda, setVaultPda] = useState<string | null>(null);
   const [sageCreateFailed, setSageCreateFailed] = useState(false);
 
   // Persisted flag so the loader holds across the OAuth full-page redirect.
@@ -133,13 +129,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, [ready, authenticated, primarySolanaWallet, solanaCreateFailed, createSolanaWallet]);
 
-  // Sage account creation — runs once after Solana wallet is ready
+  // When the wallet address becomes known (login / wallet switch), load any
+  // previously created Sage account from per-wallet localStorage before
+  // attempting to create a new one.
+  useEffect(() => {
+    if (!primarySolanaWallet?.address) return;
+    const existing = loadSageAccount(primarySolanaWallet.address);
+    if (existing) {
+      setVaultPda(existing.vaultPda.toBase58());
+      hasAttemptedSageCreate.current = true; // prevent creation effect from running
+    }
+  }, [primarySolanaWallet?.address]);
+
+  // Create a new Sage account only if storage had nothing for this wallet.
+  // Server is the Squads creator so user needs zero SOL.
   useEffect(() => {
     if (!primarySolanaWallet || vaultPda || sageCreateFailed) return;
     if (hasAttemptedSageCreate.current) return;
     hasAttemptedSageCreate.current = true;
-    const connection = new Connection(RPC_URL, "confirmed");
-    createSageAccount(connection, primarySolanaWallet)
+    createSageAccountSponsored(primarySolanaWallet.address)
       .then((info) => setVaultPda(info.vaultPda.toBase58()))
       .catch((e) => {
         console.error("Sage account creation failed:", e);
@@ -190,9 +198,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     sessionStorage.removeItem(OAUTH_PENDING_KEY);
-    clearSageAccount();
     setVaultPda(null);
-    hasAttemptedSageCreate.current = false;
+    hasAttemptedSageCreate.current = false; // allow load-from-storage effect to re-run on next login
+    setSageCreateFailed(false);
     await privyLogout();
   }, [privyLogout]);
 

@@ -9,7 +9,7 @@ import { AgentId } from "@/components/AgentId";
 import { TokenRow } from "@/components/TokenRow";
 import { TraceRow } from "@/components/TraceRow";
 import { useAuth } from "@/app/context/AuthContext";
-import { proposeAndExecute, loadSageAccount } from "@/lib/squads";
+import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
 
 const RPC_URL =
   process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
@@ -24,9 +24,10 @@ export default function HomePage() {
 
   async function handleTestSend() {
     const solanaWallet = getSolanaWallet();
-    const account = loadSageAccount();
+    if (!solanaWallet || !wallet?.address) return;
+    const account = loadSageAccount(wallet.address);
 
-    if (!solanaWallet || !account || !wallet?.address) return;
+    if (!account) return;
 
     setSending(true);
     setTxSig(null);
@@ -46,7 +47,7 @@ export default function HomePage() {
         lamports: TEST_AMOUNT,
       });
 
-      const sig = await proposeAndExecute(connection, solanaWallet, multisigPda, [ix], "test: 0.0001 SOL");
+      const sig = await proposeAndExecuteSponsored(connection, solanaWallet, multisigPda, [ix], "test: 0.0001 SOL");
       setTxSig(sig);
     } catch (e) {
       console.error("Error sending test tx:", e);
