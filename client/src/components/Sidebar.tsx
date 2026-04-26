@@ -13,13 +13,14 @@ const navItems = [
   { href: "/home",     label: "Home",     Icon: Home },
   { href: "/activity", label: "Activity", Icon: List },
   { href: "/requests", label: "Requests", Icon: Bell, badge: 1 },
-  { href: "/profile",  label: "Settings", Icon: Settings },
+  { href: "/profile",  label: "Profile", Icon: User },
+  { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, wallet, logout } = useAuth();
+  const { user, wallet, vaultPda, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -37,11 +38,13 @@ export function Sidebar() {
   const copyAddress = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!wallet?.address) return;
-    try {
-      await navigator.clipboard.writeText(wallet.address);
-    } catch {
-      // ignore
-    }
+    try { await navigator.clipboard.writeText(wallet.address); } catch { /* ignore */ }
+  };
+
+  const copyVault = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!vaultPda) return;
+    try { await navigator.clipboard.writeText(vaultPda); } catch { /* ignore */ }
   };
 
   const handleLogout = async () => {
@@ -109,15 +112,16 @@ export function Sidebar() {
               <div className="sb-w-meta">
                 <div className="sb-w-name">{user?.name ?? user?.email}</div>
                 <div className="sb-w-addr">
-                  {wallet?.address ? truncateAddress(wallet.address) : "—"}
+                  {vaultPda ? truncateAddress(vaultPda) : wallet?.address ? truncateAddress(wallet.address) : "—"}
                 </div>
               </div>
-              <span className="sb-w-copy" onClick={copyAddress} title="Copy address">
+              <span className="sb-w-copy" onClick={vaultPda ? copyVault : copyAddress} title="Copy vault address">
                 <Copy size={13} />
               </span>
             </div>
           </div>
         )}
+
       </div>
     </aside>
   );

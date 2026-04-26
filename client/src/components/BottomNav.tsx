@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, List, Bell, Settings } from "lucide-react";
+import { Home, Bell, Settings, User } from "lucide-react";
 import { clsx } from "clsx";
 
 const items = [
   { href: "/home",     label: "Home",     Icon: Home },
-  { href: "/activity", label: "Activity", Icon: List },
   { href: "/requests", label: "Requests", Icon: Bell, badge: 1 },
-  { href: "/profile",  label: "Settings", Icon: Settings },
+  { href: "/profile",  label: "Profile",  Icon: User },
+  { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
 export function BottomNav() {
