@@ -248,7 +248,18 @@ body {
   font-family: var(--font-mono); font-size: 10px; font-weight: 700;
   display: inline-flex; align-items: center; justify-content: center;
 }
-.sb-foot { margin-top: auto; padding-top: 16px; border-top: 1px dashed rgba(255,255,255,.08); }
+.sb-foot { margin-top: auto; padding-top: 16px; border-top: 1px dashed rgba(255,255,255,.08); display: flex; flex-direction: column; gap: 8px; }
+
+.sb-theme-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 8px;
+  background: none; border: none;
+  color: var(--ink-300); font-size: 12px; font-family: var(--font-sans);
+  cursor: pointer; width: 100%; text-align: left;
+  transition: background 120ms ease, color 120ms ease;
+}
+.sb-theme-btn:hover { background: rgba(255,255,255,.04); color: var(--ink-100); }
+[data-theme="light"] .sb-theme-btn:hover { background: rgba(0,0,0,.04); color: var(--ink-100); }
 
 .sb-wallet-wrap { position: relative; }
 
@@ -1119,4 +1130,177 @@ body {
   .login-left h1 { font-size: 40px; }
   .login-right { justify-content: center; }
   .guardian { max-width: 100%; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   Light mode — values sourced from app.html design tokens
+   Applied via [data-theme="light"] on <html>
+   ══════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  /* Ink variables mapped from design's semantic light tokens:
+     --text=#0A0D0E  --text-2=#1F2421  --text-3=#2F332E
+     --text-faint=#6A6F66  --text-disabled=#9CA197
+     --bg=#FBFBF7  --bg-2=#F2F2EB  --bg-rail=#F6F6F0          */
+  --ink-0:   #0A0D0E;
+  --ink-100: #1F2421;
+  --ink-200: #2F332E;
+  --ink-300: #6A6F66;
+  --ink-500: #9CA197;
+  --ink-700: #C8CBBE;
+  --ink-800: #F2F2EB;
+  --ink-850: #F6F6F0;
+  --ink-900: #FBFBF7;
+  --ink-950: #FFFFFF;
+}
+
+/* ── Body & shell ── */
+[data-theme="light"] body { background: var(--ink-900); }
+
+[data-theme="light"] .app-shell .ambient::after {
+  background: linear-gradient(90deg, transparent, rgba(20,24,26,.06), transparent);
+}
+
+/* ── Sidebar ── */
+/* Design rule token: rgba(20,24,26,.08) = --rule */
+[data-theme="light"] .sb { border-right-color: rgba(20,24,26,.08); }
+[data-theme="light"] .sb-foot { border-top-color: rgba(20,24,26,.10); }
+[data-theme="light"] .sb-item:hover { background: rgba(20,24,26,.04); }
+[data-theme="light"] .sb-item.on { background: rgba(91,209,142,.12); color: #1F7A48; }
+[data-theme="light"] .sb-item.on svg { color: #1F7A48; }
+[data-theme="light"] .sb-wallet {
+  background: rgba(20,24,26,.04);
+  border-color: rgba(20,24,26,.08);
+}
+[data-theme="light"] .sb-wallet:hover,
+[data-theme="light"] .sb-wallet.open {
+  background: rgba(20,24,26,.06);
+  border-color: rgba(20,24,26,.14);
+}
+[data-theme="light"] .sb-popover {
+  background: #FFFFFF;
+  border-color: rgba(20,24,26,.12);
+  box-shadow: 0 8px 32px rgba(20,30,28,.12);
+}
+[data-theme="light"] .sb-pop-item { color: var(--ink-100); }
+[data-theme="light"] .sb-pop-item:hover { background: rgba(20,24,26,.04); color: var(--ink-0); }
+[data-theme="light"] .sb-w-copy:hover { color: #1F7A48; }
+
+/* ── Main ── */
+[data-theme="light"] .main-top .right .ico-btn { border-color: rgba(20,24,26,.08); }
+[data-theme="light"] .main-top .right .ico-btn:hover { color: #1F7A48; border-color: rgba(91,209,142,.3); }
+[data-theme="light"] .hero-bal { border-bottom-color: rgba(20,24,26,.08); }
+[data-theme="light"] .hero-bal .num em { color: #1F7A48; }
+[data-theme="light"] .hero-bal .delta .up { color: #1F7A48; }
+
+/* Action quad — design uses mint-tinted icons always */
+[data-theme="light"] .quad {
+  background: #F2F2EB;
+  border-color: rgba(20,24,26,.08);
+}
+[data-theme="light"] .qb + .qb::before { border-left-color: rgba(20,24,26,.10); }
+[data-theme="light"] .qb:hover { background: rgba(91,209,142,.06); }
+[data-theme="light"] .qb .qb-ic {
+  background: rgba(91,209,142,.10);
+  border-color: rgba(91,209,142,.22);
+  color: #1F7A48;
+}
+[data-theme="light"] .qb:hover .qb-ic {
+  background: rgba(91,209,142,.16);
+  border-color: rgba(91,209,142,.35);
+}
+
+/* Test send */
+[data-theme="light"] .test-send { background: rgba(91,209,142,.04); }
+
+/* Segment tabs */
+[data-theme="light"] .seg-tabs { border-bottom-color: rgba(20,24,26,.10); }
+[data-theme="light"] .seg .ct { background: rgba(20,24,26,.06); }
+[data-theme="light"] .seg.on { color: #1F7A48; border-color: #1F7A48; }
+[data-theme="light"] .seg.on .ct { background: rgba(91,209,142,.18); color: #1F7A48; }
+
+/* Token list — design --bg-2 surface */
+[data-theme="light"] .t-list { background: #F2F2EB; border-color: rgba(20,24,26,.08); }
+[data-theme="light"] .t-row { border-bottom-color: rgba(20,24,26,.06); }
+[data-theme="light"] .t-row:hover { background: rgba(20,24,26,.025); }
+[data-theme="light"] .t-amt .price .up { color: #1F7A48; }
+
+/* ── Right rail — design --bg-rail=#F6F6F0 ── */
+[data-theme="light"] .rail {
+  border-left-color: rgba(20,24,26,.08);
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(91,209,142,.08), transparent 50%),
+    #F6F6F0;
+}
+[data-theme="light"] .rail-head { border-bottom-color: rgba(20,24,26,.10); }
+[data-theme="light"] .rail-quote em { color: #1F7A48; }
+[data-theme="light"] .rail-h2 { border-top-color: rgba(20,24,26,.10); }
+[data-theme="light"] .rail-h2 a { color: #1F7A48; }
+[data-theme="light"] .trace-row { border-bottom-color: rgba(20,24,26,.06); }
+
+/* Pending card — design --grad-amber */
+[data-theme="light"] .pending {
+  background: linear-gradient(160deg, #FBF1D9 0%, #F5E6BE 100%);
+  border-color: rgba(240,179,60,.40);
+  box-shadow: 0 12px 40px rgba(20,30,28,.10), inset 0 1px 0 rgba(255,255,255,.6);
+}
+[data-theme="light"] .pending::before { opacity: .2; }
+[data-theme="light"] .pending .reason {
+  background: rgba(20,24,26,.04);
+  border-left-color: rgba(240,179,60,.55);
+}
+[data-theme="light"] .pending .reason em { color: #1F7A48; }
+[data-theme="light"] .pending .acts .deny { border-color: rgba(20,24,26,.18); }
+
+/* ── Login / Guardian card — design --grad-mint ── */
+[data-theme="light"] .scr-login { background: var(--ink-900); }
+[data-theme="light"] .guardian {
+  background: linear-gradient(160deg, #EAFBF2 0%, #D9F4E5 100%);
+  border-color: rgba(91,209,142,.28);
+  box-shadow: 0 24px 80px rgba(20,30,28,.10), inset 0 1px 0 rgba(255,255,255,.6);
+}
+[data-theme="light"] .guardian::before { opacity: .25; }
+[data-theme="light"] .guardian .head { border-bottom-color: rgba(20,24,26,.10); }
+[data-theme="light"] .guardian .head .pulse { color: #1F7A48; }
+[data-theme="light"] .tx { border-bottom-color: rgba(20,24,26,.06); }
+
+/* Pills — mint text darkened for light bg legibility */
+[data-theme="light"] .pill.safe { color: #1F7A48; }
+
+/* Agent ID badge */
+[data-theme="light"] .agent-id { color: #1F7A48; }
+
+/* ── Profile ── */
+[data-theme="light"] .pf-eyebrow .dash { background: rgba(20,24,26,.08); }
+[data-theme="light"] .pf-avatar {
+  background: linear-gradient(160deg, #EAFBF2 0%, #D9F4E5 100%);
+  border-color: rgba(91,209,142,.32);
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 24px 50px -28px rgba(91,209,142,.2);
+}
+[data-theme="light"] .pf-glyph {
+  background: var(--ink-950);
+  border-color: rgba(91,209,142,.40);
+  color: #1F7A48;
+}
+[data-theme="light"] .pf-acts { border-top-color: rgba(20,24,26,.10); }
+[data-theme="light"] .pf-logout { border-top-color: rgba(20,24,26,.10); }
+[data-theme="light"] .ghost-btn { border-color: rgba(20,24,26,.14); }
+[data-theme="light"] .ghost-btn:hover { border-color: rgba(91,209,142,.40); color: #1F7A48; }
+[data-theme="light"] .lo-btn { border-color: rgba(20,24,26,.18); }
+
+/* ── Splash / Loaders ── */
+[data-theme="light"] .loader-splash { background: var(--ink-900); }
+[data-theme="light"] .l5-node-user {
+  background: rgba(20,24,26,.04);
+  border-color: rgba(20,24,26,.10);
+}
+[data-theme="light"] .l5-user-glyph { background: linear-gradient(135deg, #1F2421, #2F332E); }
+[data-theme="light"] .l5-user-glyph::after { background: var(--ink-900); }
+[data-theme="light"] .l6-row { background: rgba(20,24,26,.06); }
+
+/* ── Mobile bottom nav ── */
+@media (max-width: 768px) {
+  [data-theme="light"] .bottom-nav {
+    background: rgba(251,251,247,.92);
+    border-top-color: rgba(20,24,26,.08);
+  }
 }

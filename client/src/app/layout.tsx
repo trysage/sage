@@ -31,6 +31,10 @@ export const viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${manrope.variable} ${jetbrainsMono.variable}`}>
+      <head>
+        {/* Apply saved theme before first paint to prevent flash */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var p=localStorage.getItem('sage_theme')||'dark';var e=p==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):p;document.documentElement.setAttribute('data-theme',e);}catch(e){}})();` }} />
+      </head>
       <body>
         <Providers>{children}</Providers>
       </body>

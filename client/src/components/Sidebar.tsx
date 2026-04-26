@@ -4,9 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, List, Bell, Settings, Copy, LogOut, User } from "lucide-react";
+import { Home, List, Bell, Settings, Copy, LogOut, User, Sun, Moon, Monitor } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuth } from "@/app/context/AuthContext";
+import { useTheme, type ThemePreference } from "@/app/context/ThemeContext";
 import { truncateAddress } from "@/utils/address";
 
 const navItems = [
@@ -17,12 +18,24 @@ const navItems = [
   { href: "/settings", label: "Settings", Icon: Settings },
 ];
 
+const THEME_CYCLE: ThemePreference[] = ["dark", "light", "system"];
+const THEME_ICON = { dark: Moon, light: Sun, system: Monitor };
+const THEME_LABEL = { dark: "Dark", light: "Light", system: "System" };
+
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, wallet, vaultPda, logout } = useAuth();
+  const { preference, setPreference } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const cycleTheme = () => {
+    const next = THEME_CYCLE[(THEME_CYCLE.indexOf(preference) + 1) % THEME_CYCLE.length];
+    setPreference(next);
+  };
+
+  const ThemeIcon = THEME_ICON[preference];
 
   // Close on outside click
   useEffect(() => {
@@ -83,6 +96,15 @@ export function Sidebar() {
       </nav>
 
       <div className="sb-foot">
+        <button
+          className="sb-theme-btn"
+          onClick={cycleTheme}
+          title={`Theme: ${THEME_LABEL[preference]}`}
+        >
+          <ThemeIcon size={14} />
+          <span>{THEME_LABEL[preference]}</span>
+        </button>
+
         {user && (
           <div className="sb-wallet-wrap" ref={menuRef}>
             {/* Popover menu */}

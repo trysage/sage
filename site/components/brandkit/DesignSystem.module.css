@@ -1,7 +1,3 @@
-:root {
-  --r-xs: 4px; --r-sm: 8px; --r-md: 14px; --r-lg: 22px; --r-pill: 999px;
-}
-
 .page { max-width: 1280px; margin: 0 auto; padding: 80px 56px 120px; }
 
 /* Hero */

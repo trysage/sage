@@ -23,6 +23,8 @@
   --font-serif: var(--font-manrope), -apple-system, system-ui, sans-serif;
   --font-sans:  var(--font-manrope), -apple-system, system-ui, sans-serif;
   --font-mono:  var(--font-jetbrains), ui-monospace, Menlo, monospace;
+
+  --r-xs: 4px; --r-sm: 8px; --r-md: 14px; --r-lg: 22px; --r-pill: 999px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
