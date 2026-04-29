@@ -13,6 +13,7 @@ import { AgentId } from "@/components/AgentId";
 import { TokenRow } from "@/components/TokenRow";
 import { TraceRow } from "@/components/TraceRow";
 import { ActivityRow } from "@/components/ActivityRow";
+import { ReceiveDialog } from "@/components/ReceiveDialog";
 import { useAuth } from "@/app/context/AuthContext";
 import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
 import { usePortfolio } from "@/hooks/usePortfolio";
@@ -73,11 +74,12 @@ function formatPrice(price: number): string {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
-  const { user, wallet, getSolanaWallet } = useAuth();
+  const { user, wallet, vaultPda, getSolanaWallet } = useAuth();
   const portfolio = usePortfolio();
   const txHistory = useTransactions();
 
   const [activeTab, setActiveTab] = useState<Tab>("assets");
+  const [showReceive, setShowReceive] = useState(false);
   const [sending, setSending] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -199,7 +201,7 @@ export default function HomePage() {
             <span className="qb-ic"><ArrowUpRight size={16} /></span>
             Send
           </button>
-          <button className="qb">
+          <button className="qb" onClick={() => setShowReceive(true)}>
             <span className="qb-ic"><ArrowDownLeft size={16} /></span>
             Receive
           </button>
@@ -417,6 +419,12 @@ export default function HomePage() {
           ))}
         </motion.div>
       </motion.aside>
+
+      <ReceiveDialog
+        open={showReceive}
+        onClose={() => setShowReceive(false)}
+        address={vaultPda}
+      />
     </div>
   );
 }
