@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, Bell, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Plug,
   CheckCircle2, XCircle, FlaskConical,
@@ -24,10 +25,30 @@ const TEST_AMOUNT = 0.0001 * LAMPORTS_PER_SOL;
 
 type Tab = "assets" | "activity" | "nfts";
 
+// ── Animation variants ────────────────────────────────────────────────────────
+
+const listVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05, delayChildren: 0.05 },
+  },
+};
+
+const rowVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, type: "spring" as const, bounce: 0.1 },
+  },
+};
+
+// ── Formatters ────────────────────────────────────────────────────────────────
+
 function formatHeroBalance(usd: number): { integer: string; decimal: string } {
   const [intPart, decPart = "00"] = usd.toFixed(2).split(".");
-  const integer = `$${parseInt(intPart).toLocaleString("en-US")}`;
-  return { integer, decimal: `.${decPart}` };
+  return { integer: `$${parseInt(intPart).toLocaleString("en-US")}`, decimal: `.${decPart}` };
 }
 
 function formatUSD(n: number): string {
@@ -48,6 +69,8 @@ function formatPrice(price: number): string {
   if (price < 1) return `$${price.toFixed(4)}`;
   return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function HomePage() {
   const { user, wallet, getSolanaWallet } = useAuth();
@@ -87,20 +110,16 @@ export default function HomePage() {
     }
   }
 
-  // ── Hero balance ──────────────────────────────────────────────────────────
+  // ── Derived values ────────────────────────────────────────────────────────
   const totalUsd = portfolio.data?.totalUsd ?? null;
   const pct = portfolio.data?.percentChange24h ?? null;
   const { integer: balInt, decimal: balDec } = totalUsd != null
     ? formatHeroBalance(totalUsd)
     : { integer: "$--,---", decimal: ".--" };
-
   const deltaUsd = totalUsd != null && pct != null
     ? totalUsd * (pct / (100 + pct))
     : null;
-
   const greeting = user?.name ? `gm, ${user.name.split(" ")[0]}` : "gm";
-
-  // ── Tab counts ────────────────────────────────────────────────────────────
   const tokenCount = portfolio.data?.tokens.length ?? 0;
   const activityCount = txHistory.data.length;
 
@@ -110,8 +129,10 @@ export default function HomePage() {
 
       <Sidebar />
 
-      {/* ── Main content ── */}
+      {/* ── Main ── */}
       <main className="main">
+
+        {/* Top bar */}
         <div className="main-top">
           <img src="/sage-mark-mint.png" alt="Sage" className="mobile-logo" />
           <AgentId />
@@ -132,28 +153,48 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Hero balance */}
+        {/* ── Hero balance ── */}
         <section className="hero-bal">
-          <span className="lbl">{greeting}</span>
-          <div className="num">
+          <motion.span
+            className="lbl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+          >
+            {greeting}
+          </motion.span>
+
+          <motion.div
+            className="num"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15, duration: 0.5, type: "spring", bounce: 0.15 }}
+          >
             {balInt}<em>{balDec}</em>
-          </div>
-          {pct != null && deltaUsd != null ? (
-            <div className="delta">
+          </motion.div>
+
+          <motion.div
+            className="delta"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25, duration: 0.4 }}
+          >
+            {pct != null && deltaUsd != null ? (
               <span className={pct >= 0 ? "up" : "dn"}>
                 {pct >= 0 ? "▲" : "▼"} {formatUSD(deltaUsd)} · {Math.abs(pct).toFixed(2)}%
               </span>
-              <span className="meta">24 hours</span>
-            </div>
-          ) : (
-            <div className="delta">
-              <span className="meta">24 hours</span>
-            </div>
-          )}
+            ) : null}
+            <span className="meta">24 hours</span>
+          </motion.div>
         </section>
 
-        {/* Action quad */}
-        <div className="quad">
+        {/* ── Action quad ── */}
+        <motion.div
+          className="quad"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4, type: "spring", bounce: 0.1 }}
+        >
           <button className="qb">
             <span className="qb-ic"><ArrowUpRight size={16} /></span>
             Send
@@ -170,10 +211,15 @@ export default function HomePage() {
             <span className="qb-ic"><Plug size={16} /></span>
             Connect
           </button>
-        </div>
+        </motion.div>
 
-        {/* Test transfer */}
-        <div className="test-send">
+        {/* ── Test transfer ── */}
+        <motion.div
+          className="test-send"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.35 }}
+        >
           <div className="test-send-label">
             <FlaskConical size={13} />
             Test vault transfer · 0.0001 SOL → your wallet
@@ -193,100 +239,123 @@ export default function HomePage() {
               </a>
             </div>
           )}
-          {sendError && (
-            <div className="test-send-result err">{sendError}</div>
-          )}
-        </div>
+          {sendError && <div className="test-send-result err">{sendError}</div>}
+        </motion.div>
 
-        {/* Segment tabs */}
-        <div className="seg-tabs">
-          <div
-            className={`seg${activeTab === "assets" ? " on" : ""}`}
-            onClick={() => setActiveTab("assets")}
+        {/* ── Segment tabs ── */}
+        <motion.div
+          className="seg-tabs"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.38, duration: 0.35 }}
+        >
+          {(["assets", "activity", "nfts"] as Tab[]).map((tab) => {
+            const labels: Record<Tab, string> = { assets: "Assets", activity: "Activity", nfts: "NFTs" };
+            const counts: Record<Tab, string | number> = {
+              assets: portfolio.loading ? "…" : tokenCount,
+              activity: txHistory.loading ? "…" : activityCount,
+              nfts: 0,
+            };
+            return (
+              <div
+                key={tab}
+                className={`seg${activeTab === tab ? " on" : ""}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {labels[tab]} <span className="ct">{counts[tab]}</span>
+                {activeTab === tab && (
+                  <motion.span
+                    className="seg-indicator"
+                    layoutId="sage-tab-indicator"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </motion.div>
+
+        {/* ── Tab pane ── */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            className="tab-pane"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18 }}
           >
-            Assets{" "}
-            <span className="ct">{portfolio.loading ? "…" : tokenCount}</span>
-          </div>
-          <div
-            className={`seg${activeTab === "activity" ? " on" : ""}`}
-            onClick={() => setActiveTab("activity")}
-          >
-            Activity{" "}
-            <span className="ct">{txHistory.loading ? "…" : activityCount}</span>
-          </div>
-          <div
-            className={`seg${activeTab === "nfts" ? " on" : ""}`}
-            onClick={() => setActiveTab("nfts")}
-          >
-            NFTs <span className="ct">0</span>
-          </div>
-        </div>
 
-        {/* Tab pane */}
-        <div className="tab-pane">
-          {/* ── Assets ── */}
-          {activeTab === "assets" && (
-            <div className="t-list">
-              {portfolio.loading && (
-                <>
-                  <SkeletonRow />
-                  <SkeletonRow />
-                  <SkeletonRow />
-                </>
-              )}
-              {!portfolio.loading && portfolio.error && (
-                <div className="tab-empty">{portfolio.error}</div>
-              )}
-              {!portfolio.loading && !portfolio.error && tokenCount === 0 && (
-                <div className="tab-empty">No tokens in this vault yet</div>
-              )}
-              {!portfolio.loading && portfolio.data?.tokens.map((token) => (
-                <TokenRow
-                  key={token.id}
-                  name={token.name}
-                  symbol={token.symbol}
-                  iconUrl={token.iconUrl}
-                  amount={formatBalance(token.balance, token.symbol)}
-                  price={formatPrice(token.price)}
-                  value={token.usdValue != null ? formatUSD(token.usdValue) : "—"}
-                />
-              ))}
-            </div>
-          )}
+            {/* Assets */}
+            {activeTab === "assets" && (
+              <div className="t-list">
+                {portfolio.loading && <SkeletonRows count={4} />}
+                {!portfolio.loading && portfolio.error && (
+                  <EmptyState message={portfolio.error} />
+                )}
+                {!portfolio.loading && !portfolio.error && tokenCount === 0 && (
+                  <EmptyState message="No tokens in this vault yet" />
+                )}
+                {!portfolio.loading && portfolio.data && (
+                  <motion.div variants={listVariants} initial="hidden" animate="visible">
+                    {portfolio.data.tokens.map((token) => (
+                      <motion.div key={token.id} variants={rowVariants}>
+                        <TokenRow
+                          name={token.name}
+                          symbol={token.symbol}
+                          iconUrl={token.iconUrl}
+                          amount={formatBalance(token.balance, token.symbol)}
+                          price={formatPrice(token.price)}
+                          value={token.usdValue != null ? formatUSD(token.usdValue) : "—"}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+            )}
 
-          {/* ── Activity ── */}
-          {activeTab === "activity" && (
-            <div className="t-list">
-              {txHistory.loading && (
-                <>
-                  <SkeletonRow />
-                  <SkeletonRow />
-                  <SkeletonRow />
-                </>
-              )}
-              {!txHistory.loading && txHistory.error && (
-                <div className="tab-empty">{txHistory.error}</div>
-              )}
-              {!txHistory.loading && !txHistory.error && activityCount === 0 && (
-                <div className="tab-empty">No transactions yet</div>
-              )}
-              {!txHistory.loading && txHistory.data.map((tx) => (
-                <ActivityRow key={tx.id} tx={tx} />
-              ))}
-            </div>
-          )}
+            {/* Activity */}
+            {activeTab === "activity" && (
+              <div className="t-list">
+                {txHistory.loading && <SkeletonRows count={4} />}
+                {!txHistory.loading && txHistory.error && (
+                  <EmptyState message={txHistory.error} />
+                )}
+                {!txHistory.loading && !txHistory.error && activityCount === 0 && (
+                  <EmptyState message="No transactions yet" />
+                )}
+                {!txHistory.loading && txHistory.data.length > 0 && (
+                  <motion.div variants={listVariants} initial="hidden" animate="visible">
+                    {txHistory.data.map((tx) => (
+                      <motion.div key={tx.id} variants={rowVariants}>
+                        <ActivityRow tx={tx} />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </div>
+            )}
 
-          {/* ── NFTs ── */}
-          {activeTab === "nfts" && (
-            <div className="t-list">
-              <div className="tab-empty">NFTs coming soon</div>
-            </div>
-          )}
-        </div>
+            {/* NFTs */}
+            {activeTab === "nfts" && (
+              <div className="t-list">
+                <EmptyState message="NFTs coming soon" />
+              </div>
+            )}
+
+          </motion.div>
+        </AnimatePresence>
+
       </main>
 
       {/* ── Right rail ── */}
-      <aside className="rail">
+      <motion.aside
+        className="rail"
+        initial={{ opacity: 0, x: 16 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3, duration: 0.5, type: "spring", bounce: 0.1 }}
+      >
         <div className="rail-head">
           <span className="title">
             <Image src="/sage-mark-mint.png" alt="Sage" width={18} height={18} />
@@ -305,10 +374,7 @@ export default function HomePage() {
 
         <div className="pending">
           <div className="ph">
-            <span className="pill watch">
-              <span className="dot" />
-              REVIEW
-            </span>
+            <span className="pill watch"><span className="dot" />REVIEW</span>
             <span className="when">2 min ago</span>
           </div>
           <div>
@@ -321,12 +387,8 @@ export default function HomePage() {
             Telegram message you opened earlier. Holding for your tap.
           </p>
           <div className="acts">
-            <button className="approve">
-              <CheckCircle2 size={14} /> Approve
-            </button>
-            <button className="deny">
-              <XCircle size={14} /> Deny
-            </button>
+            <button className="approve"><CheckCircle2 size={14} /> Approve</button>
+            <button className="deny"><XCircle size={14} /> Deny</button>
           </div>
         </div>
 
@@ -335,27 +397,64 @@ export default function HomePage() {
           <a>View all</a>
         </div>
 
-        <div className="stream">
-          <TraceRow ts="00:14:02" pill="safe"   label="PASS"  title="Swap on Jupiter"   meta="0.84 SOL → 132 USDC · within band" />
-          <TraceRow ts="00:11:48" pill="safe"   label="PASS"  title="Stake to Jito"     meta="5 SOL · routine" />
-          <TraceRow ts="00:08:21" pill="danger" label="BLOCK" title="Drainer signature" meta="DRA1…nrZk · simulated −all SOL" />
-          <TraceRow ts="00:02:55" pill="safe"   label="PASS"  title="USDC to Coinbase"  meta="120 USDC · seen 8× before" />
-          <TraceRow ts="yesterday" pill="watch" label="HELD"  title="New site connected" meta="jup.ag · read-only · approved by you" />
-        </div>
-      </aside>
+        <motion.div
+          className="stream"
+          variants={listVariants}
+          initial="hidden"
+          animate="visible"
+          transition={{ delayChildren: 0.4 }}
+        >
+          {[
+            { ts: "00:14:02", pill: "safe"   as const, label: "PASS",  title: "Swap on Jupiter",    meta: "0.84 SOL → 132 USDC · within band" },
+            { ts: "00:11:48", pill: "safe"   as const, label: "PASS",  title: "Stake to Jito",      meta: "5 SOL · routine" },
+            { ts: "00:08:21", pill: "danger" as const, label: "BLOCK", title: "Drainer signature",  meta: "DRA1…nrZk · simulated −all SOL" },
+            { ts: "00:02:55", pill: "safe"   as const, label: "PASS",  title: "USDC to Coinbase",   meta: "120 USDC · seen 8× before" },
+            { ts: "yesterday",pill: "watch"  as const, label: "HELD",  title: "New site connected", meta: "jup.ag · read-only · approved by you" },
+          ].map((row) => (
+            <motion.div key={row.ts} variants={rowVariants}>
+              <TraceRow {...row} />
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.aside>
     </div>
   );
 }
 
-function SkeletonRow() {
+// ── Sub-components ────────────────────────────────────────────────────────────
+
+function SkeletonRows({ count }: { count: number }) {
   return (
-    <div className="skel-row">
-      <div className="skel-circle" />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
-        <div className="skel-line" style={{ width: "40%" }} />
-        <div className="skel-line" style={{ width: "25%" }} />
-      </div>
-      <div className="skel-line" style={{ width: 72 }} />
-    </div>
+    <motion.div
+      variants={listVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {Array.from({ length: count }).map((_, i) => (
+        <motion.div key={i} variants={rowVariants}>
+          <div className="skel-row">
+            <div className="skel-circle" />
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+              <div className="skel-line" style={{ width: "40%" }} />
+              <div className="skel-line" style={{ width: "25%" }} />
+            </div>
+            <div className="skel-line" style={{ width: 72 }} />
+          </div>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <motion.div
+      className="tab-empty"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1, duration: 0.3 }}
+    >
+      {message}
+    </motion.div>
   );
 }

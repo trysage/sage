@@ -442,13 +442,20 @@ body {
   color: var(--ink-300); cursor: pointer;
   border-bottom: 2px solid transparent;
   display: inline-flex; align-items: center; gap: 8px;
+  position: relative;
 }
 .seg .ct {
   font-family: var(--font-mono); font-size: 10px; padding: 2px 7px; border-radius: 999px;
   background: rgba(255,255,255,.05); color: var(--ink-300); font-weight: 500;
 }
-.seg.on { color: var(--mint-300); border-color: var(--mint-300); }
+/* Color on active — border handled by motion .seg-indicator */
+.seg.on { color: var(--mint-300); border-color: transparent; }
 .seg.on .ct { background: rgba(91,209,142,.12); color: var(--mint-300); }
+/* Framer Motion tab underline indicator */
+.seg-indicator {
+  position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 2px; background: var(--mint-300); border-radius: 1px;
+}
 
 /* Token list */
 .t-list {
@@ -1320,8 +1327,9 @@ body {
 /* Segment tabs */
 [data-theme="light"] .seg-tabs { border-bottom-color: rgba(20,24,26,.10); }
 [data-theme="light"] .seg .ct { background: rgba(20,24,26,.06); }
-[data-theme="light"] .seg.on { color: #1F7A48; border-color: #1F7A48; }
+[data-theme="light"] .seg.on { color: #1F7A48; border-color: transparent; }
 [data-theme="light"] .seg.on .ct { background: rgba(91,209,142,.18); color: #1F7A48; }
+[data-theme="light"] .seg-indicator { background: #1F7A48; }
 
 /* Token list — design --bg-2 surface */
 [data-theme="light"] .t-list { background: #F2F2EB; border-color: rgba(20,24,26,.08); }
