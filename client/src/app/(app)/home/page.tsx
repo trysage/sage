@@ -2,22 +2,59 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { RefreshCw, Bell, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Plug, CheckCircle2, XCircle, FlaskConical } from "lucide-react";
+import {
+  RefreshCw, Bell, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Plug,
+  CheckCircle2, XCircle, FlaskConical,
+} from "lucide-react";
 import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Sidebar } from "@/components/Sidebar";
 import { AgentId } from "@/components/AgentId";
 import { TokenRow } from "@/components/TokenRow";
 import { TraceRow } from "@/components/TraceRow";
+import { ActivityRow } from "@/components/ActivityRow";
 import { useAuth } from "@/app/context/AuthContext";
 import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
+import { usePortfolio } from "@/hooks/usePortfolio";
+import { useTransactions } from "@/hooks/useTransactions";
 
 const RPC_URL =
   process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
 
 const TEST_AMOUNT = 0.0001 * LAMPORTS_PER_SOL;
 
+type Tab = "assets" | "activity" | "nfts";
+
+function formatHeroBalance(usd: number): { integer: string; decimal: string } {
+  const [intPart, decPart = "00"] = usd.toFixed(2).split(".");
+  const integer = `$${parseInt(intPart).toLocaleString("en-US")}`;
+  return { integer, decimal: `.${decPart}` };
+}
+
+function formatUSD(n: number): string {
+  return `$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function formatBalance(balance: string, symbol: string): string {
+  const num = parseFloat(balance);
+  if (isNaN(num)) return `0 ${symbol}`;
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M ${symbol}`;
+  if (num >= 1_000) return `${num.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${symbol}`;
+  return `${parseFloat(num.toFixed(6))} ${symbol}`;
+}
+
+function formatPrice(price: number): string {
+  if (price === 0) return "$0.00";
+  if (price < 0.0001) return `$${price.toExponential(2)}`;
+  if (price < 1) return `$${price.toFixed(4)}`;
+  return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export default function HomePage() {
-  const { wallet, getSolanaWallet } = useAuth();
+  const { user, wallet, getSolanaWallet } = useAuth();
+  const portfolio = usePortfolio();
+  const txHistory = useTransactions();
+
+  const [activeTab, setActiveTab] = useState<Tab>("assets");
   const [sending, setSending] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -26,7 +63,6 @@ export default function HomePage() {
     const solanaWallet = getSolanaWallet();
     if (!solanaWallet || !wallet?.address) return;
     const account = loadSageAccount(wallet.address);
-
     if (!account) return;
 
     setSending(true);
@@ -36,17 +72,11 @@ export default function HomePage() {
     try {
       const connection = new Connection(RPC_URL, "confirmed");
       const { vaultPda, multisigPda } = account;
-
-      // Send 0.0001 SOL from vault back to the signer wallet (self-transfer for testing)
-      console.log("vaultPda", vaultPda.toBase58());
-      console.log("multisigPda", multisigPda.toBase58());
-      console.log("wallet.address", wallet.address);
       const ix = SystemProgram.transfer({
         fromPubkey: vaultPda,
-        toPubkey: new PublicKey('5QSRmvpHimVhXh2YP622A61vaThB8ut2iWJW9DPmCTNj'),
+        toPubkey: new PublicKey("5QSRmvpHimVhXh2YP622A61vaThB8ut2iWJW9DPmCTNj"),
         lamports: TEST_AMOUNT,
       });
-
       const sig = await proposeAndExecuteSponsored(connection, solanaWallet, multisigPda, [ix], "test: 0.0001 SOL");
       setTxSig(sig);
     } catch (e) {
@@ -56,6 +86,23 @@ export default function HomePage() {
       setSending(false);
     }
   }
+
+  // ── Hero balance ──────────────────────────────────────────────────────────
+  const totalUsd = portfolio.data?.totalUsd ?? null;
+  const pct = portfolio.data?.percentChange24h ?? null;
+  const { integer: balInt, decimal: balDec } = totalUsd != null
+    ? formatHeroBalance(totalUsd)
+    : { integer: "$--,---", decimal: ".--" };
+
+  const deltaUsd = totalUsd != null && pct != null
+    ? totalUsd * (pct / (100 + pct))
+    : null;
+
+  const greeting = user?.name ? `gm, ${user.name.split(" ")[0]}` : "gm";
+
+  // ── Tab counts ────────────────────────────────────────────────────────────
+  const tokenCount = portfolio.data?.tokens.length ?? 0;
+  const activityCount = txHistory.data.length;
 
   return (
     <div className="app-shell">
@@ -69,8 +116,14 @@ export default function HomePage() {
           <img src="/sage-mark-mint.png" alt="Sage" className="mobile-logo" />
           <AgentId />
           <div className="right">
-            <span className="sync-label">Last sync · 12s</span>
-            <button className="ico-btn sync-label" title="Refresh">
+            <span className="sync-label">
+              {portfolio.loading ? "Syncing…" : "Live"}
+            </span>
+            <button
+              className="ico-btn sync-label"
+              title="Refresh"
+              onClick={() => { portfolio.refetch(); txHistory.refetch(); }}
+            >
               <RefreshCw size={14} />
             </button>
             <button className="ico-btn" title="Notifications">
@@ -81,14 +134,22 @@ export default function HomePage() {
 
         {/* Hero balance */}
         <section className="hero-bal">
-          <span className="lbl">gm, Koshik</span>
+          <span className="lbl">{greeting}</span>
           <div className="num">
-            $24,892<em>.40</em>
+            {balInt}<em>{balDec}</em>
           </div>
-          <div className="delta">
-            <span className="up">▲ $533.20 · 2.18%</span>
-            <span className="meta">24 hours</span>
-          </div>
+          {pct != null && deltaUsd != null ? (
+            <div className="delta">
+              <span className={pct >= 0 ? "up" : "dn"}>
+                {pct >= 0 ? "▲" : "▼"} {formatUSD(deltaUsd)} · {Math.abs(pct).toFixed(2)}%
+              </span>
+              <span className="meta">24 hours</span>
+            </div>
+          ) : (
+            <div className="delta">
+              <span className="meta">24 hours</span>
+            </div>
+          )}
         </section>
 
         {/* Action quad */}
@@ -111,7 +172,7 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* ── Test transfer ── */}
+        {/* Test transfer */}
         <div className="test-send">
           <div className="test-send-label">
             <FlaskConical size={13} />
@@ -126,7 +187,10 @@ export default function HomePage() {
           </button>
           {txSig && (
             <div className="test-send-result ok">
-              ✓ Confirmed · <a href={`https://explorer.solana.com/tx/${txSig}`} target="_blank" rel="noreferrer">{txSig.slice(0, 16)}…</a>
+              ✓ Confirmed ·{" "}
+              <a href={`https://explorer.solana.com/tx/${txSig}`} target="_blank" rel="noreferrer">
+                {txSig.slice(0, 16)}…
+              </a>
             </div>
           )}
           {sendError && (
@@ -136,28 +200,92 @@ export default function HomePage() {
 
         {/* Segment tabs */}
         <div className="seg-tabs">
-          <div className="seg on">
-            Tokens <span className="ct">5</span>
+          <div
+            className={`seg${activeTab === "assets" ? " on" : ""}`}
+            onClick={() => setActiveTab("assets")}
+          >
+            Assets{" "}
+            <span className="ct">{portfolio.loading ? "…" : tokenCount}</span>
           </div>
-          <div className="seg">
-            Activity <span className="ct">142</span>
+          <div
+            className={`seg${activeTab === "activity" ? " on" : ""}`}
+            onClick={() => setActiveTab("activity")}
+          >
+            Activity{" "}
+            <span className="ct">{txHistory.loading ? "…" : activityCount}</span>
           </div>
-          <div className="seg">
-            NFTs <span className="ct">12</span>
+          <div
+            className={`seg${activeTab === "nfts" ? " on" : ""}`}
+            onClick={() => setActiveTab("nfts")}
+          >
+            NFTs <span className="ct">0</span>
           </div>
         </div>
 
-        {/* Token list */}
-        <div className="t-list">
-          <TokenRow bg="sage" name="Sage"     symbol="SAGE" amount="124.18 SAGE" price="$67.84"      change="+4.2%"  changeUp value="$8,420.40" />
-          <TokenRow bg="sol"  name="Solana"   symbol="SOL"  amount="38.40 SOL"   price="$162.40"     change="+2.1%"  changeUp value="$6,236.00" />
-          <TokenRow bg="usdc" name="USD Coin" symbol="USDC" amount="6,200 USDC"  price="$1.00"       change="0.0%"            value="$6,200.00" />
-          <TokenRow bg="jup"  name="Jupiter"  symbol="JUP"  amount="2,180 JUP"   price="$0.94"       change="+1.4%"  changeUp value="$2,049.20" />
-          <TokenRow bg="bonk" name="Bonk"     symbol="BONK" amount="62.5M BONK"  price="$0.0000318"  change="−3.1%"           value="$1,986.80" />
+        {/* Tab pane */}
+        <div className="tab-pane">
+          {/* ── Assets ── */}
+          {activeTab === "assets" && (
+            <div className="t-list">
+              {portfolio.loading && (
+                <>
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </>
+              )}
+              {!portfolio.loading && portfolio.error && (
+                <div className="tab-empty">{portfolio.error}</div>
+              )}
+              {!portfolio.loading && !portfolio.error && tokenCount === 0 && (
+                <div className="tab-empty">No tokens in this vault yet</div>
+              )}
+              {!portfolio.loading && portfolio.data?.tokens.map((token) => (
+                <TokenRow
+                  key={token.id}
+                  name={token.name}
+                  symbol={token.symbol}
+                  iconUrl={token.iconUrl}
+                  amount={formatBalance(token.balance, token.symbol)}
+                  price={formatPrice(token.price)}
+                  value={token.usdValue != null ? formatUSD(token.usdValue) : "—"}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* ── Activity ── */}
+          {activeTab === "activity" && (
+            <div className="t-list">
+              {txHistory.loading && (
+                <>
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </>
+              )}
+              {!txHistory.loading && txHistory.error && (
+                <div className="tab-empty">{txHistory.error}</div>
+              )}
+              {!txHistory.loading && !txHistory.error && activityCount === 0 && (
+                <div className="tab-empty">No transactions yet</div>
+              )}
+              {!txHistory.loading && txHistory.data.map((tx) => (
+                <ActivityRow key={tx.id} tx={tx} />
+              ))}
+            </div>
+          )}
+
+          {/* ── NFTs ── */}
+          {activeTab === "nfts" && (
+            <div className="t-list">
+              <div className="tab-empty">NFTs coming soon</div>
+            </div>
+          )}
         </div>
       </main>
 
-      {/* ── Right rail: Sage live readout ── */}
+      {/* ── Right rail ── */}
       <aside className="rail">
         <div className="rail-head">
           <span className="title">
@@ -175,7 +303,6 @@ export default function HomePage() {
           <em>One needs you now.</em>"
         </p>
 
-        {/* Pending request */}
         <div className="pending">
           <div className="ph">
             <span className="pill watch">
@@ -203,20 +330,32 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Recent decisions */}
         <div className="rail-h2">
           <span>Recent decisions</span>
           <a>View all</a>
         </div>
 
         <div className="stream">
-          <TraceRow ts="00:14:02" pill="safe"   label="PASS"  title="Swap on Jupiter"    meta="0.84 SOL → 132 USDC · within band" />
-          <TraceRow ts="00:11:48" pill="safe"   label="PASS"  title="Stake to Jito"      meta="5 SOL · routine" />
-          <TraceRow ts="00:08:21" pill="danger" label="BLOCK" title="Drainer signature"  meta="DRA1…nrZk · simulated −all SOL" />
-          <TraceRow ts="00:02:55" pill="safe"   label="PASS"  title="USDC to Coinbase"   meta="120 USDC · seen 8× before" />
+          <TraceRow ts="00:14:02" pill="safe"   label="PASS"  title="Swap on Jupiter"   meta="0.84 SOL → 132 USDC · within band" />
+          <TraceRow ts="00:11:48" pill="safe"   label="PASS"  title="Stake to Jito"     meta="5 SOL · routine" />
+          <TraceRow ts="00:08:21" pill="danger" label="BLOCK" title="Drainer signature" meta="DRA1…nrZk · simulated −all SOL" />
+          <TraceRow ts="00:02:55" pill="safe"   label="PASS"  title="USDC to Coinbase"  meta="120 USDC · seen 8× before" />
           <TraceRow ts="yesterday" pill="watch" label="HELD"  title="New site connected" meta="jup.ag · read-only · approved by you" />
         </div>
       </aside>
+    </div>
+  );
+}
+
+function SkeletonRow() {
+  return (
+    <div className="skel-row">
+      <div className="skel-circle" />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="skel-line" style={{ width: "40%" }} />
+        <div className="skel-line" style={{ width: "25%" }} />
+      </div>
+      <div className="skel-line" style={{ width: 72 }} />
     </div>
   );
 }

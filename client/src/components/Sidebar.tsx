@@ -30,13 +30,6 @@ export function Sidebar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const cycleTheme = () => {
-    const next = THEME_CYCLE[(THEME_CYCLE.indexOf(preference) + 1) % THEME_CYCLE.length];
-    setPreference(next);
-  };
-
-  const ThemeIcon = THEME_ICON[preference];
-
   // Close on outside click
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -96,15 +89,6 @@ export function Sidebar() {
       </nav>
 
       <div className="sb-foot">
-        <button
-          className="sb-theme-btn"
-          onClick={cycleTheme}
-          title={`Theme: ${THEME_LABEL[preference]}`}
-        >
-          <ThemeIcon size={14} />
-          <span>{THEME_LABEL[preference]}</span>
-        </button>
-
         {user && (
           <div className="sb-wallet-wrap" ref={menuRef}>
             {/* Popover menu */}
@@ -114,6 +98,24 @@ export function Sidebar() {
                   <User size={13} />
                   Profile
                 </button>
+                <div className="sb-pop-divider" />
+                <div className="sb-pop-theme">
+                  {THEME_CYCLE.map((t) => {
+                    const Icon = THEME_ICON[t];
+                    return (
+                      <button
+                        key={t}
+                        className={clsx("sb-pop-theme-opt", preference === t && "active")}
+                        onClick={() => setPreference(t)}
+                        title={THEME_LABEL[t]}
+                      >
+                        <Icon size={13} />
+                        <span>{THEME_LABEL[t]}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="sb-pop-divider" />
                 <button className="sb-pop-item danger" onClick={handleLogout}>
                   <LogOut size={13} />
                   Log out

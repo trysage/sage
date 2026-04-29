@@ -250,16 +250,6 @@ body {
 }
 .sb-foot { margin-top: auto; padding-top: 16px; border-top: 1px dashed rgba(255,255,255,.08); display: flex; flex-direction: column; gap: 8px; }
 
-.sb-theme-btn {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px; border-radius: 8px;
-  background: none; border: none;
-  color: var(--ink-300); font-size: 12px; font-family: var(--font-sans);
-  cursor: pointer; width: 100%; text-align: left;
-  transition: background 120ms ease, color 120ms ease;
-}
-.sb-theme-btn:hover { background: rgba(255,255,255,.04); color: var(--ink-100); }
-[data-theme="light"] .sb-theme-btn:hover { background: rgba(0,0,0,.04); color: var(--ink-100); }
 
 .sb-wallet-wrap { position: relative; }
 
@@ -306,6 +296,16 @@ body {
 .sb-pop-item:hover { background: rgba(255,255,255,.06); color: var(--ink-0); }
 .sb-pop-item.danger { color: #f87171; }
 .sb-pop-item.danger:hover { background: rgba(248,113,113,.08); color: #fca5a5; }
+.sb-pop-divider { height: 1px; background: rgba(255,255,255,.07); margin: 2px 0; }
+.sb-pop-theme { display: flex; padding: 6px 8px; gap: 4px; }
+.sb-pop-theme-opt {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 7px 4px; border-radius: 8px; font-size: 10.5px; font-weight: 500;
+  color: var(--ink-300); background: none; border: none; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.sb-pop-theme-opt:hover { background: rgba(255,255,255,.06); color: var(--ink-100); }
+.sb-pop-theme-opt.active { background: rgba(91,209,142,.12); color: var(--mint-300); }
 
 /* ── Main content area ── */
 .main {
@@ -492,6 +492,106 @@ body {
 .t-amt .price .up { color: var(--mint-300); }
 .t-amt .price .dn { color: var(--danger); }
 .t-right { text-align: right; font-family: var(--font-mono); font-weight: 600; font-size: 14.5px; color: var(--ink-0); font-variant-numeric: tabular-nums; }
+
+/* ── Hero balance delta down ── */
+.hero-bal .delta .dn { color: var(--danger); }
+
+/* ── Generic token icon (API tokens without a specific bg class) ── */
+.ic-token {
+  background: rgba(255,255,255,.08);
+  color: var(--ink-200);
+  overflow: hidden;
+}
+
+/* ── Tab pane wrapper ── */
+.tab-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tab-empty {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 160px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-500);
+}
+
+/* ── Activity rows ── */
+.act-row {
+  display: grid; grid-template-columns: 40px 1fr auto;
+  gap: 16px; align-items: center;
+  padding: 14px 22px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  transition: background 120ms ease;
+}
+.act-row:last-child { border-bottom: 0; }
+.act-row:hover { background: rgba(255,255,255,.02); }
+
+.act-ico {
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.act-ico.send    { background: rgba(229,82,79,.10);   color: var(--danger); }
+.act-ico.receive { background: rgba(91,209,142,.10);  color: var(--mint-400); }
+.act-ico.trade   { background: rgba(240,179,60,.10);  color: var(--watch); }
+
+.act-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.act-title {
+  font-weight: 600; font-size: 14px; color: var(--ink-0);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.act-sub {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-300);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.act-right {
+  text-align: right; display: flex; flex-direction: column; gap: 3px;
+  flex-shrink: 0;
+}
+.act-amount {
+  font-family: var(--font-mono); font-weight: 600; font-size: 13.5px;
+  color: var(--ink-0); font-variant-numeric: tabular-nums;
+}
+.act-amount.in { color: var(--mint-300); }
+.act-usd {
+  font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-300);
+}
+.act-link {
+  font-family: var(--font-mono); font-size: 10px; color: var(--ink-500);
+  text-decoration: none;
+}
+.act-link:hover { color: var(--mint-300); }
+
+/* ── Skeleton loader rows ── */
+.skel-row {
+  display: flex; align-items: center; gap: 18px;
+  padding: 16px 22px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.skel-circle {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,255,255,.06); flex-shrink: 0;
+  position: relative; overflow: hidden;
+}
+.skel-circle::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(91,209,142,.08) 50%, transparent 100%);
+  animation: shimmer 1.8s linear infinite;
+}
+.skel-line {
+  height: 12px; border-radius: 6px;
+  background: rgba(255,255,255,.06);
+  position: relative; overflow: hidden;
+}
+.skel-line::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(91,209,142,.08) 50%, transparent 100%);
+  animation: shimmer 1.8s linear infinite;
+}
 
 /* ── Right rail ── */
 .rail {
@@ -1183,6 +1283,10 @@ body {
 }
 [data-theme="light"] .sb-pop-item { color: var(--ink-100); }
 [data-theme="light"] .sb-pop-item:hover { background: rgba(20,24,26,.04); color: var(--ink-0); }
+[data-theme="light"] .sb-pop-divider { background: rgba(20,24,26,.08); }
+[data-theme="light"] .sb-pop-theme-opt { color: var(--ink-300); }
+[data-theme="light"] .sb-pop-theme-opt:hover { background: rgba(20,24,26,.04); color: var(--ink-100); }
+[data-theme="light"] .sb-pop-theme-opt.active { background: rgba(91,209,142,.15); color: #1F7A48; }
 [data-theme="light"] .sb-w-copy:hover { color: #1F7A48; }
 
 /* ── Main ── */
@@ -1191,6 +1295,7 @@ body {
 [data-theme="light"] .hero-bal { border-bottom-color: rgba(20,24,26,.08); }
 [data-theme="light"] .hero-bal .num em { color: #1F7A48; }
 [data-theme="light"] .hero-bal .delta .up { color: #1F7A48; }
+[data-theme="light"] .ic-token { background: rgba(20,24,26,.06); color: var(--ink-300); }
 
 /* Action quad — design uses mint-tinted icons always */
 [data-theme="light"] .quad {
