@@ -18,6 +18,10 @@ export interface TokenPosition {
   usdValue: number | null;
   balance: string;
   price: number;
+  /** Absolute price change in USD over last 24h, or null if unavailable */
+  priceChange1d: number | null;
+  /** Percentage price change over last 24h, or null if unavailable */
+  pricePercentChange1d: number | null;
   /** Solana mint address, or empty string for native SOL */
   address: string;
   chain: { id: string; chainId: number; name: string };
@@ -254,6 +258,7 @@ export async function fetchTokenPositions(
 
         const fungibleInfo = attrs.fungible_info as RawFungibleInfo;
         const quantity = attrs.quantity as { int: string; decimals: number };
+        const changes = attrs.changes as { absolute_1d?: number; percent_1d?: number } | null;
         const impl = fungibleInfo?.implementations?.find(
           (i) => i.chain_id === SOLANA_CHAIN
         );
@@ -269,6 +274,8 @@ export async function fetchTokenPositions(
           usdValue: (attrs.value as number) ?? null,
           balance: formatUnits(BigInt(quantity?.int ?? "0"), quantity?.decimals ?? 9),
           price: (attrs.price as number) ?? 0,
+          priceChange1d: changes?.absolute_1d ?? null,
+          pricePercentChange1d: changes?.percent_1d ?? null,
           address: mintAddress,
           chain: { id: SOLANA_CHAIN, chainId: SOLANA_CHAIN_ID, name: "Solana" },
           verified: fungibleInfo?.flags?.verified ?? false,
@@ -517,7 +524,7 @@ export async function fetchTokenDetails(
   return null;
 }
 
-async function fetchSinglePeriodChart(
+export async function fetchSinglePeriodChart(
   tokenId: string,
   period: ChartPeriod,
   currency: string,

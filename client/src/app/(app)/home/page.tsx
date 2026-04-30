@@ -14,7 +14,9 @@ import { TokenRow } from "@/components/TokenRow";
 import { TraceRow } from "@/components/TraceRow";
 import { ActivityRow } from "@/components/ActivityRow";
 import { ReceiveDialog } from "@/components/ReceiveDialog";
+import { TokenDetailDialog } from "@/components/TokenDetailDialog";
 import { useAuth } from "@/app/context/AuthContext";
+import type { TokenPosition } from "@/lib/api";
 import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -80,6 +82,7 @@ export default function HomePage() {
 
   const [activeTab, setActiveTab] = useState<Tab>("assets");
   const [showReceive, setShowReceive] = useState(false);
+  const [selectedToken, setSelectedToken] = useState<TokenPosition | null>(null);
   const [sending, setSending] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -309,6 +312,9 @@ export default function HomePage() {
                           amount={formatBalance(token.balance, token.symbol)}
                           price={formatPrice(token.price)}
                           value={token.usdValue != null ? formatUSD(token.usdValue) : "—"}
+                          percentChange1d={token.pricePercentChange1d}
+                          dollarChange1d={token.priceChange1d}
+                          onClick={token.tokenId ? () => setSelectedToken(token) : undefined}
                         />
                       </motion.div>
                     ))}
@@ -424,6 +430,12 @@ export default function HomePage() {
         open={showReceive}
         onClose={() => setShowReceive(false)}
         address={vaultPda}
+      />
+
+      <TokenDetailDialog
+        open={selectedToken !== null}
+        onClose={() => setSelectedToken(null)}
+        token={selectedToken}
       />
     </div>
   );

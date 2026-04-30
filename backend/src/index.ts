@@ -7,6 +7,7 @@ import type { UserDetailsRow } from "./lib/supabase/types.js";
 import { createPortfolioRouter } from "./routes/portfolio.js";
 import { createTransactionsRouter } from "./routes/transactions.js";
 import { createUsersRouter } from "./routes/users.js";
+import { createTokensRouter } from "./routes/tokens.js";
 
 const app = express();
 
@@ -63,6 +64,7 @@ app.use(express.json());
 
 // Public routes — no auth
 app.use("/portfolio", createPortfolioRouter());
+app.use("/tokens", createTokensRouter());
 
 // Authenticated routes (auth is a no-op when AGENT_SECRET is unset)
 app.use("/transactions", auth, createTransactionsRouter());

@@ -18,6 +18,8 @@ export interface TokenPosition {
   usdValue: number | null;
   balance: string;
   price: number;
+  priceChange1d: number | null;
+  pricePercentChange1d: number | null;
   address: string;
   chain: { id: string; chainId: number; name: string };
   verified: boolean;
@@ -74,5 +76,61 @@ export async function getTransactions(
     { headers: authHeaders(token) }
   );
   if (!res.ok) throw new Error(`Transactions fetch failed: ${res.status}`);
+  return res.json();
+}
+
+// ── Token detail ──────────────────────────────────────────────────────────────
+
+export type ChartPeriod = "day" | "week" | "month" | "year" | "max";
+
+export interface TokenDetails {
+  tokenId: string;
+  name: string;
+  symbol: string;
+  description: string | null;
+  iconUrl: string | null;
+  verified: boolean;
+  externalLinks: { type: string; name: string; url: string }[];
+  marketData?: {
+    totalSupply: number | null;
+    circulatingSupply: number | null;
+    marketCap: number | null;
+    fullyDilutedValuation: number | null;
+    price: number | null;
+    changes: {
+      percent1d: number | null;
+      percent30d: number | null;
+      percent90d: number | null;
+      percent365d: number | null;
+    };
+  };
+}
+
+export interface TokenChartPoint {
+  timestamp: number;
+  price: number;
+}
+
+export interface TokenChartData {
+  beginAt: string;
+  endAt: string;
+  stats: { first: number; min: number; avg: number; max: number; last: number };
+  points: TokenChartPoint[];
+}
+
+export async function getTokenDetail(tokenId: string): Promise<TokenDetails> {
+  const res = await fetch(`${API_URL}/tokens/${encodeURIComponent(tokenId)}`);
+  if (!res.ok) throw new Error(`Token detail fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function getTokenChart(
+  tokenId: string,
+  period: ChartPeriod = "day"
+): Promise<TokenChartData> {
+  const res = await fetch(
+    `${API_URL}/tokens/${encodeURIComponent(tokenId)}/chart?period=${period}`
+  );
+  if (!res.ok) throw new Error(`Token chart fetch failed: ${res.status}`);
   return res.json();
 }
