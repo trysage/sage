@@ -2,21 +2,24 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { CheckCircle2, Loader2, ArrowLeft } from "lucide-react";
+import {
+  CheckCircle2, Loader2, ChevronDown, ArrowUpRight, UserRound, X, Coins,
+} from "lucide-react";
 import { Dialog } from "./Dialog";
 import { TokenRow } from "./TokenRow";
 import { useAuth } from "@/app/context/AuthContext";
 import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
 import type { TokenPosition } from "@/lib/api";
 
-type Phase = "form" | "pick" | "sending" | "success";
+type Phase = "form" | "sending" | "success";
 
 const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
-
 const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 
-function isValidSolanaAddress(addr: string): boolean {
-  return BASE58_RE.test(addr);
+function isValidSolanaAddress(s: string) { return BASE58_RE.test(s); }
+
+function truncate(addr: string) {
+  return addr.length > 20 ? `${addr.slice(0, 8)}…${addr.slice(-6)}` : addr;
 }
 
 async function resolveSnsName(name: string): Promise<string | null> {
@@ -31,23 +34,63 @@ async function resolveSnsName(name: string): Promise<string | null> {
   }
 }
 
-function fmtBalance(balance: string, symbol: string): string {
+function fmtTokenAmount(balance: string) {
   const n = parseFloat(balance);
-  if (isNaN(n)) return `0 ${symbol}`;
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M ${symbol}`;
-  if (n >= 1_000) return `${n.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${symbol}`;
-  return `${parseFloat(n.toFixed(6))} ${symbol}`;
+  if (isNaN(n)) return "0";
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return parseFloat(n.toFixed(6)).toString();
 }
 
-function fmtUSD(n: number): string {
+function fmtUSD(n: number) {
   return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function fmtPrice(price: number): string {
-  if (price === 0) return "$0.00";
-  if (price < 0.0001) return `$${price.toExponential(2)}`;
-  if (price < 1) return `$${price.toFixed(4)}`;
-  return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function fmtPrice(p: number) {
+  if (p === 0) return "$0.00";
+  if (p < 0.0001) return `$${p.toExponential(2)}`;
+  if (p < 1) return `$${p.toFixed(4)}`;
+  return `$${p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function TokenIcon({ token }: { token: TokenPosition }) {
+  if (token.iconUrl) {
+    return (
+      <span className="sdlg-token-ico">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={token.iconUrl}
+          alt={token.symbol}
+          onError={e => (e.currentTarget.style.display = "none")}
+        />
+      </span>
+    );
+  }
+  return (
+    <span className="sdlg-token-ico">
+      <span className="sdlg-token-ico-letter">{token.name.charAt(0)}</span>
+    </span>
+  );
+}
+
+function TxTokenIcon({ token }: { token: TokenPosition }) {
+  if (token.iconUrl) {
+    return (
+      <span className="sdlg-tx-ico">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={token.iconUrl}
+          alt={token.symbol}
+          onError={e => (e.currentTarget.style.display = "none")}
+        />
+      </span>
+    );
+  }
+  return (
+    <span className="sdlg-tx-ico">
+      <span className="sdlg-tx-ico-letter">{token.name.charAt(0)}</span>
+    </span>
+  );
 }
 
 interface SendDialogProps {
@@ -64,13 +107,15 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedToken, setSelectedToken] = useState<TokenPosition | null>(null);
+  const [tokenPickerOpen, setTokenPickerOpen] = useState(false);
   const [recipient, setRecipient] = useState("");
   const [resolvedAddress, setResolvedAddress] = useState<string | null>(null);
+  const [resolvedName, setResolvedName] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
 
-  // Reset when dialog fully closes
+  // Reset after dialog closes
   useEffect(() => {
     if (!open) {
       const t = setTimeout(() => {
@@ -79,56 +124,104 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         setError(null);
         setRecipient("");
         setResolvedAddress(null);
+        setResolvedName(null);
         setResolveError(null);
         setAmount("");
         setSelectedToken(null);
-      }, 320);
+        setTokenPickerOpen(false);
+      }, 350);
       return () => clearTimeout(t);
     }
   }, [open]);
 
-  // Default selection: prefer SOL
+  // Default to SOL
   useEffect(() => {
     if (tokens.length > 0 && !selectedToken) {
       setSelectedToken(tokens.find(t => t.symbol === "SOL") ?? tokens[0]);
     }
   }, [tokens, selectedToken]);
 
-  // Debounced SNS resolution
+  // Reset amount on token change
+  const prevTokenId = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedToken && selectedToken.id !== prevTokenId.current) {
+      prevTokenId.current = selectedToken.id;
+      setAmount("");
+    }
+  }, [selectedToken]);
+
+  // SNS resolution debounce
   const resolveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     const val = recipient.trim();
-    setResolvedAddress(null);
     setResolveError(null);
+
     if (resolveTimer.current) clearTimeout(resolveTimer.current);
 
+    if (!val) {
+      setResolvedAddress(null);
+      setResolvedName(null);
+      return;
+    }
+
+    // Raw address — accept immediately
+    if (isValidSolanaAddress(val)) {
+      setResolvedAddress(val);
+      setResolvedName(null);
+      return;
+    }
+
+    // .sol domain — debounced resolve
     if (val.endsWith(".sol")) {
       resolveTimer.current = setTimeout(async () => {
         setResolving(true);
         const result = await resolveSnsName(val);
         setResolving(false);
-        if (result) setResolvedAddress(result);
-        else setResolveError("Name not found");
+        if (result) {
+          setResolvedAddress(result);
+          setResolvedName(val);
+        } else {
+          setResolvedAddress(null);
+          setResolvedName(null);
+          setResolveError("Name not found");
+        }
       }, 600);
+    } else {
+      setResolvedAddress(null);
+      setResolvedName(null);
     }
 
     return () => { if (resolveTimer.current) clearTimeout(resolveTimer.current); };
   }, [recipient]);
 
+  const clearRecipient = () => {
+    setRecipient("");
+    setResolvedAddress(null);
+    setResolvedName(null);
+    setResolveError(null);
+  };
+
   const isSol = selectedToken?.symbol === "SOL";
   const maxBalance = selectedToken ? parseFloat(selectedToken.balance) : 0;
-  const amountNum = parseFloat(amount);
-  const recipientFinal =
-    resolvedAddress ??
-    (isValidSolanaAddress(recipient.trim()) ? recipient.trim() : null);
-  const isValidAmount = !isNaN(amountNum) && amountNum > 0 && amountNum <= maxBalance;
-  const canSend = recipientFinal !== null && isValidAmount && isSol;
+  const amountNum = parseFloat(amount) || 0;
+  const insufficientFunds = amountNum > 0 && amountNum > maxBalance;
+  const canSend =
+    resolvedAddress !== null &&
+    amountNum > 0 &&
+    !insufficientFunds &&
+    isSol;
   const amountUSD =
-    selectedToken && !isNaN(amountNum) && amountNum > 0
-      ? amountNum * selectedToken.price
-      : null;
+    selectedToken && amountNum > 0 ? amountNum * selectedToken.price : null;
 
-  async function handleSend() {
+  const applyMax = () => {
+    if (!selectedToken) return;
+    const raw = selectedToken.balance;
+    const trimmed = raw.includes(".") ? raw.replace(/\.?0+$/, "") : raw;
+    setAmount(trimmed || "0");
+  };
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     if (!canSend || !wallet?.address) return;
     const solanaWallet = getSolanaWallet();
     if (!solanaWallet) return;
@@ -145,7 +238,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
 
       const ix = SystemProgram.transfer({
         fromPubkey: vaultPda,
-        toPubkey: new PublicKey(recipientFinal!),
+        toPubkey: new PublicKey(resolvedAddress!),
         lamports,
       });
 
@@ -159,187 +252,256 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
 
       setTxSig(sig);
       setPhase("success");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
       setPhase("form");
     }
   }
 
-  const dialogTitle =
-    phase === "pick" ? "Select asset" : "Send";
+  // Snapshot for state screens
+  const sendingTo = resolvedAddress ?? "";
+  const sendingAmount = amount;
+  const sendingToken = selectedToken;
 
   return (
-    <Dialog
-      open={open}
-      onClose={phase === "sending" ? () => {} : onClose}
-      title={dialogTitle}
-    >
-      {/* ── Token picker ── */}
-      {phase === "pick" && (
-        <div className="sdlg-picker">
-          <button
-            className="sdlg-back"
-            onClick={() => setPhase("form")}
-          >
-            <ArrowLeft size={14} /> Back
-          </button>
-          <div className="t-list sdlg-pick-list">
-            {tokens.map(tok => (
+    <>
+      {/* Token picker — nested dialog */}
+      <Dialog
+        open={tokenPickerOpen}
+        onClose={() => setTokenPickerOpen(false)}
+        title="Select token"
+      >
+        <div className="sdlg-picker-head">
+          <Coins size={14} className="sdlg-picker-head-icon" />
+          <span className="sdlg-picker-title">
+            <span className="sdlg-picker-arrow">› </span>Tokens
+          </span>
+        </div>
+        {tokens.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--ink-300)", textAlign: "center", padding: "32px 0" }}>
+            No tokens in vault
+          </p>
+        ) : (
+          <div className="t-list" style={{ margin: "0 -4px" }}>
+            {tokens.map((t) => (
               <TokenRow
-                key={tok.id}
-                name={tok.name}
-                symbol={tok.symbol}
-                iconUrl={tok.iconUrl}
-                amount={fmtBalance(tok.balance, tok.symbol)}
-                price={fmtPrice(tok.price)}
-                value={tok.usdValue != null ? fmtUSD(tok.usdValue) : "—"}
+                key={t.id}
+                name={t.name}
+                symbol={t.symbol}
+                iconUrl={t.iconUrl}
+                amount={`${fmtTokenAmount(t.balance)} ${t.symbol}`}
+                price={fmtPrice(t.price)}
+                value={t.usdValue != null ? fmtUSD(t.usdValue) : "—"}
                 onClick={() => {
-                  setSelectedToken(tok);
-                  setAmount("");
-                  setPhase("form");
+                  setSelectedToken(t);
+                  setTokenPickerOpen(false);
                 }}
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </Dialog>
 
-      {/* ── Send form ── */}
-      {phase === "form" && (
-        <div className="sdlg-body">
-          {/* Asset selector */}
-          <div className="sdlg-section">
-            <label className="sdlg-label">Asset</label>
-            <button className="sdlg-token-sel" onClick={() => setPhase("pick")}>
-              <div className="sdlg-tok-ico-wrap">
-                {selectedToken?.iconUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={selectedToken.iconUrl}
-                    alt={selectedToken.symbol}
-                    className="sdlg-tok-ico"
-                    onError={e => (e.currentTarget.style.display = "none")}
-                  />
-                ) : (
-                  <span className="sdlg-tok-letter">
-                    {selectedToken ? selectedToken.name.charAt(0) : "?"}
-                  </span>
-                )}
-              </div>
-              <div className="sdlg-tok-info">
-                <span className="sdlg-tok-name">
-                  {selectedToken ? selectedToken.name : "Select asset"}
-                </span>
-                {selectedToken && (
-                  <span className="sdlg-tok-bal">
-                    {fmtBalance(selectedToken.balance, selectedToken.symbol)}
-                  </span>
-                )}
-              </div>
-              <span className="sdlg-sel-arrow">›</span>
-            </button>
-            {selectedToken && !isSol && (
-              <p className="sdlg-warn">Only SOL transfers are supported right now</p>
-            )}
-          </div>
-
-          {/* Recipient */}
-          <div className="sdlg-section">
-            <label className="sdlg-label">To</label>
-            <input
-              className="sdlg-input"
-              placeholder="Wallet address or .sol name"
-              value={recipient}
-              onChange={e => setRecipient(e.target.value)}
-              spellCheck={false}
-              autoComplete="off"
-            />
-            {resolving && (
-              <span className="sdlg-addr-hint">Resolving…</span>
-            )}
-            {resolvedAddress && (
-              <span className="sdlg-addr-resolved">
-                ✓ {resolvedAddress.slice(0, 6)}…{resolvedAddress.slice(-4)}
+      {/* Main send dialog */}
+      <Dialog
+        open={open}
+        onClose={phase === "sending" ? () => {} : onClose}
+        title="Send"
+      >
+        {/* ── Sending state ── */}
+        {phase === "sending" && sendingToken && (
+          <div className="sdlg-state">
+            <div className="sdlg-state-head">
+              <Loader2 size={36} className="sdlg-spinner" />
+              <p className="sdlg-state-label">Sending…</p>
+              <p className="sdlg-state-sub">Sign in your wallet when prompted</p>
+            </div>
+            <div className="sdlg-tx-card">
+              <div className="sdlg-tx-arrow"><ArrowUpRight size={20} /></div>
+              <TxTokenIcon token={sendingToken} />
+              <span className="sdlg-tx-amount">
+                {sendingAmount} {sendingToken.symbol}
               </span>
-            )}
-            {resolveError && (
-              <span className="sdlg-addr-err">{resolveError}</span>
-            )}
+            </div>
+            <dl className="sdlg-dl">
+              <div className="sdlg-dl-row">
+                <dt>To</dt>
+                <dd title={sendingTo}>{truncate(sendingTo)}</dd>
+              </div>
+            </dl>
           </div>
+        )}
 
-          {/* Amount */}
-          <div className="sdlg-section">
-            <div className="sdlg-amt-head">
-              <label className="sdlg-label">Amount</label>
-              {selectedToken && (
+        {/* ── Success state ── */}
+        {phase === "success" && sendingToken && (
+          <div className="sdlg-state">
+            <div className="sdlg-state-head">
+              <div className="sdlg-ok-box">
+                <CheckCircle2 size={40} />
+              </div>
+              <span className="sdlg-state-label">Sent!</span>
+            </div>
+            <div className="sdlg-tx-card">
+              <div className="sdlg-tx-arrow"><ArrowUpRight size={20} /></div>
+              <TxTokenIcon token={sendingToken} />
+              <span className="sdlg-tx-amount">
+                {sendingAmount} {sendingToken.symbol}
+              </span>
+            </div>
+            <dl className="sdlg-dl">
+              <div className="sdlg-dl-row">
+                <dt>To</dt>
+                <dd title={sendingTo}>{truncate(sendingTo)}</dd>
+              </div>
+            </dl>
+            {txSig && (
+              <a
+                href={`https://explorer.solana.com/tx/${txSig}`}
+                target="_blank"
+                rel="noreferrer"
+                className="sdlg-explorer-btn"
+              >
+                View on Explorer ↗
+              </a>
+            )}
+            <button className="sdlg-submit" onClick={onClose}>Done</button>
+          </div>
+        )}
+
+        {/* ── Form ── */}
+        {phase === "form" && (
+          <form className="sdlg-body" onSubmit={handleSubmit}>
+
+            {/* 1. Amount — big input first */}
+            <div className="sdlg-field">
+              <label className="sdlg-field-label">You&apos;re sending</label>
+              <div className="sdlg-amount-row">
+                <input
+                  className="sdlg-amount-input"
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  min="0"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={e => setAmount(e.target.value)}
+                />
+              </div>
+              {amountUSD != null ? (
+                <span className="sdlg-amount-secondary">≈ {fmtUSD(amountUSD)}</span>
+              ) : selectedToken?.price ? (
+                <span className="sdlg-amount-secondary" style={{ color: "transparent" }}>–</span>
+              ) : null}
+              <div className="sdlg-amount-meta">
+                <span className="sdlg-amount-bal">
+                  Balance:{" "}
+                  {selectedToken
+                    ? `${fmtTokenAmount(selectedToken.balance)} ${selectedToken.symbol}`
+                    : "--"}
+                </span>
                 <button
+                  type="button"
                   className="sdlg-max"
-                  onClick={() => setAmount(maxBalance.toFixed(6))}
+                  onClick={applyMax}
+                  disabled={!selectedToken || maxBalance <= 0}
                 >
                   MAX
                 </button>
+              </div>
+              {insufficientFunds && (
+                <span className="sdlg-insuf">Insufficient funds</span>
               )}
             </div>
-            <div className="sdlg-amt-row">
-              <input
-                className="sdlg-input sdlg-amt-input"
-                type="number"
-                placeholder="0.000000"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
-                min="0"
-                step="any"
-              />
-              {selectedToken && (
-                <span className="sdlg-amt-sym">{selectedToken.symbol}</span>
+
+            {/* 2. Token selector */}
+            <div className="sdlg-field">
+              <label className="sdlg-field-label">Token</label>
+              <button
+                type="button"
+                className="sdlg-token-btn"
+                onClick={() => setTokenPickerOpen(true)}
+              >
+                {selectedToken ? (
+                  <>
+                    <TokenIcon token={selectedToken} />
+                    <div className="sdlg-token-info">
+                      <p className="sdlg-token-sym">{selectedToken.symbol}</p>
+                      <p className="sdlg-token-bal">
+                        {fmtTokenAmount(selectedToken.balance)} {selectedToken.symbol}
+                        {selectedToken.usdValue != null &&
+                          ` · ${fmtUSD(selectedToken.usdValue)}`}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="sdlg-token-info">
+                    <p className="sdlg-token-sym">Select token</p>
+                    <p className="sdlg-token-bal">Tap to choose</p>
+                  </div>
+                )}
+                <ChevronDown size={20} className="sdlg-token-chev" />
+              </button>
+              {selectedToken && !isSol && (
+                <p className="sdlg-warn">Only SOL transfers are supported right now</p>
               )}
             </div>
-            {amountUSD != null && (
-              <span className="sdlg-usd">≈ {fmtUSD(amountUSD)}</span>
-            )}
-          </div>
 
-          {error && <div className="sdlg-error">{error}</div>}
+            {/* 3. Recipient */}
+            <div className="sdlg-field">
+              <label className="sdlg-field-label">To</label>
+              {resolvedAddress && !resolving ? (
+                <div className="sdlg-recip-card">
+                  <div className="sdlg-recip-avatar">
+                    <UserRound size={20} />
+                  </div>
+                  <div className="sdlg-recip-info">
+                    {resolvedName ? (
+                      <>
+                        <p className="sdlg-recip-name">{resolvedName}</p>
+                        <p className="sdlg-recip-addr" title={resolvedAddress}>
+                          {truncate(resolvedAddress)}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="sdlg-recip-name" title={resolvedAddress}>
+                        {truncate(resolvedAddress)}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Clear recipient"
+                    className="sdlg-recip-clear"
+                    onClick={clearRecipient}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <input
+                  className="sdlg-recip-input"
+                  type="text"
+                  placeholder="Address or .sol name"
+                  value={recipient}
+                  onChange={e => setRecipient(e.target.value)}
+                  spellCheck={false}
+                  autoComplete="off"
+                />
+              )}
+              {resolving && <span className="sdlg-resolving">Resolving…</span>}
+              {resolveError && !resolving && recipient.trim() && (
+                <span className="sdlg-resolve-err">{resolveError}</span>
+              )}
+            </div>
 
-          <button
-            className="sdlg-send-btn"
-            disabled={!canSend}
-            onClick={handleSend}
-          >
-            Send
-          </button>
-        </div>
-      )}
+            {error && <p className="sdlg-error">{error}</p>}
 
-      {/* ── Sending ── */}
-      {phase === "sending" && (
-        <div className="sdlg-state">
-          <Loader2 size={36} className="sdlg-spinner" />
-          <p className="sdlg-state-title">Sending…</p>
-          <span className="sdlg-state-hint">Sign in your wallet when prompted</span>
-        </div>
-      )}
-
-      {/* ── Success ── */}
-      {phase === "success" && (
-        <div className="sdlg-state">
-          <CheckCircle2 size={36} className="sdlg-ok-ic" />
-          <p className="sdlg-state-title">Sent!</p>
-          {txSig && (
-            <a
-              href={`https://explorer.solana.com/tx/${txSig}`}
-              target="_blank"
-              rel="noreferrer"
-              className="sdlg-explorer"
-            >
-              View on Explorer ↗
-            </a>
-          )}
-          <button className="sdlg-send-btn" onClick={onClose}>
-            Done
-          </button>
-        </div>
-      )}
-    </Dialog>
+            <button type="submit" className="sdlg-submit" disabled={!canSend}>
+              {canSend ? "Send" : resolvedAddress ? "Enter amount" : "Select recipient"}
+            </button>
+          </form>
+        )}
+      </Dialog>
+    </>
   );
 }
