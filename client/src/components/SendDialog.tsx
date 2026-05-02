@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import {
-  CheckCircle2, Loader2, ChevronDown, ArrowUpRight, UserRound, X, Coins,
+  CheckCircle2, ChevronDown, ArrowUpRight, UserRound, X, Coins,
 } from "lucide-react";
+import { Orbital } from "./loaders/Orbital";
 import { Dialog } from "./Dialog";
 import { TokenRow } from "./TokenRow";
 import { useAuth } from "@/app/context/AuthContext";
@@ -265,44 +266,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
 
   return (
     <>
-      {/* Token picker — nested dialog */}
-      <Dialog
-        open={tokenPickerOpen}
-        onClose={() => setTokenPickerOpen(false)}
-        title="Select token"
-      >
-        <div className="sdlg-picker-head">
-          <Coins size={14} className="sdlg-picker-head-icon" />
-          <span className="sdlg-picker-title">
-            <span className="sdlg-picker-arrow">› </span>Tokens
-          </span>
-        </div>
-        {tokens.length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--ink-300)", textAlign: "center", padding: "32px 0" }}>
-            No tokens in vault
-          </p>
-        ) : (
-          <div className="t-list" style={{ margin: "0 -4px" }}>
-            {tokens.map((t) => (
-              <TokenRow
-                key={t.id}
-                name={t.name}
-                symbol={t.symbol}
-                iconUrl={t.iconUrl}
-                amount={`${fmtTokenAmount(t.balance)} ${t.symbol}`}
-                price={fmtPrice(t.price)}
-                value={t.usdValue != null ? fmtUSD(t.usdValue) : "—"}
-                onClick={() => {
-                  setSelectedToken(t);
-                  setTokenPickerOpen(false);
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </Dialog>
-
-      {/* Main send dialog */}
+      {/* Main send dialog — rendered first so the picker (below) stacks on top */}
       <Dialog
         open={open}
         onClose={phase === "sending" ? () => {} : onClose}
@@ -312,7 +276,9 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         {phase === "sending" && sendingToken && (
           <div className="sdlg-state">
             <div className="sdlg-state-head">
-              <Loader2 size={36} className="sdlg-spinner" />
+              <div style={{ transform: "scale(0.65)", transformOrigin: "center" }}>
+                <Orbital />
+              </div>
               <p className="sdlg-state-label">Sending…</p>
               <p className="sdlg-state-sub">Sign in your wallet when prompted</p>
             </div>
@@ -500,6 +466,43 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
               {canSend ? "Send" : resolvedAddress ? "Enter amount" : "Select recipient"}
             </button>
           </form>
+        )}
+      </Dialog>
+
+      {/* Token picker — rendered after main dialog so it stacks on top (same z-index, later DOM wins) */}
+      <Dialog
+        open={tokenPickerOpen}
+        onClose={() => setTokenPickerOpen(false)}
+        title="Select token"
+      >
+        <div className="sdlg-picker-head">
+          <Coins size={14} className="sdlg-picker-head-icon" />
+          <span className="sdlg-picker-title">
+            <span className="sdlg-picker-arrow">› </span>Tokens
+          </span>
+        </div>
+        {tokens.length === 0 ? (
+          <p style={{ fontSize: 13, color: "var(--ink-300)", textAlign: "center", padding: "32px 0" }}>
+            No tokens in vault
+          </p>
+        ) : (
+          <div className="t-list" style={{ margin: "0 -4px" }}>
+            {tokens.map((t) => (
+              <TokenRow
+                key={t.id}
+                name={t.name}
+                symbol={t.symbol}
+                iconUrl={t.iconUrl}
+                amount={`${fmtTokenAmount(t.balance)} ${t.symbol}`}
+                price={fmtPrice(t.price)}
+                value={t.usdValue != null ? fmtUSD(t.usdValue) : "—"}
+                onClick={() => {
+                  setSelectedToken(t);
+                  setTokenPickerOpen(false);
+                }}
+              />
+            ))}
+          </div>
         )}
       </Dialog>
     </>

@@ -1660,9 +1660,6 @@ body {
   text-transform: uppercase; letter-spacing: .1em;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
-.sdlg-spinner { color: var(--mint-400); animation: spin 1s linear infinite; }
-
 .sdlg-ok-box {
   width: 80px; height: 80px; border-radius: 18px;
   background: rgba(91,209,142,.15); color: var(--mint-400);
