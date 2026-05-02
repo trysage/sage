@@ -14,6 +14,7 @@ import { TokenRow } from "@/components/TokenRow";
 import { TraceRow } from "@/components/TraceRow";
 import { ActivityRow } from "@/components/ActivityRow";
 import { ReceiveDialog } from "@/components/ReceiveDialog";
+import { SendDialog } from "@/components/SendDialog";
 import { TokenDetailDialog } from "@/components/TokenDetailDialog";
 import { useAuth } from "@/app/context/AuthContext";
 import type { TokenPosition } from "@/lib/api";
@@ -82,6 +83,7 @@ export default function HomePage() {
 
   const [activeTab, setActiveTab] = useState<Tab>("assets");
   const [showReceive, setShowReceive] = useState(false);
+  const [showSend, setShowSend] = useState(false);
   const [selectedToken, setSelectedToken] = useState<TokenPosition | null>(null);
   const [sending, setSending] = useState(false);
   const [txSig, setTxSig] = useState<string | null>(null);
@@ -200,7 +202,7 @@ export default function HomePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4, type: "spring", bounce: 0.1 }}
         >
-          <button className="qb">
+          <button className="qb" onClick={() => setShowSend(true)}>
             <span className="qb-ic"><ArrowUpRight size={16} /></span>
             Send
           </button>
@@ -425,6 +427,12 @@ export default function HomePage() {
           ))}
         </motion.div>
       </motion.aside>
+
+      <SendDialog
+        open={showSend}
+        onClose={() => setShowSend(false)}
+        tokens={portfolio.data?.tokens ?? []}
+      />
 
       <ReceiveDialog
         open={showReceive}
