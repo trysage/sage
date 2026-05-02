@@ -13,11 +13,13 @@
     "@solana/web3.js": "^1.98.4",
     "@sqds/multisig": "^2.1.4",
     "clsx": "^2.1.0",
-    "framer-motion": "^12.0.0",
+    "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",
-    "next": "^14.2.0",
+    "next": "14.2.35",
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "react-qr-code": "^2.0.21",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@types/node": "^20",
