@@ -1836,6 +1836,181 @@ body {
 .sdlg-picker-title { font-size: 13px; font-weight: 600; color: var(--ink-0); letter-spacing: .04em; }
 .sdlg-picker-arrow { color: var(--mint-400); }
 
+/* ══════════════════════════════════════════════════════════════
+   STATUS ANIMATIONS
+   ══════════════════════════════════════════════════════════════ */
+
+/* A1 — SUCCESS */
+.a-success { position: relative; }
+.a-success svg { width: 100%; height: 100%; overflow: visible; }
+.a-success .ring-bg { fill: none; stroke: rgba(91,209,142,.14); stroke-width: 2; }
+.a-success .ring {
+  fill: none; stroke: var(--mint-300); stroke-width: 2.5;
+  stroke-linecap: round; stroke-dasharray: 314; stroke-dashoffset: 314;
+  transform: rotate(-90deg); transform-origin: 50% 50%;
+  animation: success-ring 2.6s cubic-bezier(.22,.9,.35,1) infinite;
+}
+.a-success .disc {
+  fill: var(--mint-300); opacity: 0; transform: scale(0); transform-origin: 50% 50%;
+  animation: success-disc 2.6s cubic-bezier(.34,1.56,.64,1) infinite;
+}
+.a-success .check {
+  fill: none; stroke: #07140C; stroke-width: 5;
+  stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 80; stroke-dashoffset: 80;
+  animation: success-check 2.6s cubic-bezier(.65,0,.35,1) infinite;
+}
+.a-success .pulse {
+  fill: none; stroke: var(--mint-300); stroke-width: 1.5; opacity: 0;
+  transform-origin: 50% 50%;
+  animation: success-pulse 2.6s ease-out infinite;
+}
+.a-success.once .ring,
+.a-success.once .disc,
+.a-success.once .check,
+.a-success.once .pulse {
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+@keyframes success-ring {
+  0%   { stroke-dashoffset: 314; }
+  35%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes success-disc {
+  0%, 32% { transform: scale(0); opacity: 0; }
+  44%     { transform: scale(1.08); opacity: 1; }
+  52%     { transform: scale(1);    opacity: 1; }
+  100%    { transform: scale(1);    opacity: 1; }
+}
+@keyframes success-check {
+  0%, 50% { stroke-dashoffset: 80; }
+  66%     { stroke-dashoffset: 0; }
+  100%    { stroke-dashoffset: 0; }
+}
+@keyframes success-pulse {
+  0%, 42% { transform: scale(.6); opacity: 0; }
+  50%     { opacity: .55; }
+  72%     { transform: scale(1.35); opacity: 0; }
+  100%    { transform: scale(1.35); opacity: 0; }
+}
+
+/* A2 — PENDING (hourglass) */
+.a-pending { position: relative; }
+.a-pending svg { width: 100%; height: 100%; overflow: visible; }
+.a-pending .hg-ring { fill: none; stroke: rgba(232,179,57,.16); stroke-width: 1.5; }
+.a-pending .hg-frame { fill: none; stroke: var(--amber); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.a-pending .hg-glass { fill: rgba(232,179,57,.08); stroke: none; }
+.a-pending .hg-body { transform-origin: 100px 100px; animation: pending-flip 4s cubic-bezier(.7,0,.3,1) infinite; }
+.a-pending .sand-top { fill: var(--amber); transform-origin: 100px 80px; animation: sand-drain 4s linear infinite; }
+.a-pending .sand-bot { fill: var(--amber); transform-origin: 100px 120px; animation: sand-fill 4s linear infinite; }
+.a-pending .sand-stream { stroke: var(--amber); stroke-width: 1.5; stroke-linecap: round; fill: none; animation: sand-stream 4s linear infinite; }
+.a-pending .grain-dot { fill: var(--amber); animation: grain-fall 1s linear infinite; }
+.a-pending .grain-dot.g2 { animation-delay: -.33s; }
+.a-pending .grain-dot.g3 { animation-delay: -.66s; }
+@keyframes pending-flip {
+  0%, 45%   { transform: rotate(0deg); }
+  50%       { transform: rotate(180deg); }
+  95%, 100% { transform: rotate(180deg); }
+}
+@keyframes sand-drain {
+  0%   { transform: scaleY(1); }
+  45%  { transform: scaleY(.05); }
+  50%  { transform: scaleY(0); }
+  100% { transform: scaleY(0); }
+}
+@keyframes sand-fill {
+  0%   { transform: scaleY(0); }
+  45%  { transform: scaleY(.95); }
+  50%  { transform: scaleY(1); }
+  100% { transform: scaleY(1); }
+}
+@keyframes sand-stream {
+  0%, 45%   { opacity: .9; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes grain-fall {
+  0%   { transform: translateY(-6px); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateY(20px); opacity: 0; }
+}
+
+/* A3 — SCANNING (radar) */
+.a-scan { position: relative; }
+.a-scan svg { width: 100%; height: 100%; overflow: visible; }
+.a-scan .radar-ring { fill: none; stroke: rgba(111,217,210,.22); stroke-width: 1; }
+.a-scan .radar-ring.dim { stroke: rgba(111,217,210,.12); stroke-dasharray: 2 3; }
+.a-scan .radar-axis { stroke: rgba(111,217,210,.18); stroke-width: 1; fill: none; }
+.a-scan .radar-sweep { transform-origin: 100px 100px; animation: radar-spin 3s linear infinite; }
+.a-scan .radar-center { fill: var(--cyan); }
+.a-scan .blip { fill: var(--cyan); opacity: 0; transform-origin: 100px 100px; animation: blip-flash 3s linear infinite; }
+.a-scan .blip.b1 { animation-delay: 0s; }
+.a-scan .blip.b2 { animation-delay: -1s; }
+.a-scan .blip.b3 { animation-delay: -2s; }
+.a-scan .blip-ring { fill: none; stroke: var(--cyan); stroke-width: 1; opacity: 0; transform-origin: 100px 100px; animation: blip-ring-anim 3s linear infinite; }
+.a-scan .blip-ring.b1 { animation-delay: 0s; }
+.a-scan .blip-ring.b2 { animation-delay: -1s; }
+.a-scan .blip-ring.b3 { animation-delay: -2s; }
+@keyframes radar-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes blip-flash {
+  0%, 100% { opacity: 0; }
+  2%       { opacity: 1; }
+  25%      { opacity: .25; }
+  50%      { opacity: 0; }
+}
+@keyframes blip-ring-anim {
+  0%  { opacity: 0; transform: scale(.4); }
+  2%  { opacity: .8; transform: scale(.6); }
+  20% { opacity: 0; transform: scale(1.6); }
+  100%{ opacity: 0; transform: scale(1.6); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   EMPTY STATES
+   ══════════════════════════════════════════════════════════════ */
+.es {
+  padding: 48px 32px 40px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center; gap: 14px;
+  min-height: 320px; justify-content: center;
+}
+.es-art {
+  width: 160px; height: 120px;
+  position: relative; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 4px;
+}
+.es-art svg { width: 100%; height: 100%; overflow: visible; }
+.es h3 { font-weight: 600; font-size: 17px; letter-spacing: -.01em; margin: 0; color: var(--ink-0); }
+.es p { font-size: 13px; line-height: 1.55; color: var(--ink-300); margin: 0; max-width: 30ch; }
+.es-cta {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--mint-300); margin-top: 6px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid rgba(91,209,142,.35); border-radius: 999px;
+  background: transparent;
+  transition: all .2s ease;
+}
+.es-cta::after { content: "→"; font-family: var(--font-sans); font-size: 13px; }
+.es-cta:hover { background: rgba(91,209,142,.08); border-color: var(--mint-300); }
+
+/* shared SVG motif classes */
+.ea-stroke { stroke: var(--mint-300); stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ea-stroke-dim { stroke: rgba(255,255,255,.18); stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ea-fill { fill: rgba(91,209,142,.12); }
+.ea-dot { fill: var(--mint-300); }
+.ea-tx-wave { animation: es-shimmer 3s ease-in-out infinite; }
+.ea-nft-frame { animation: es-float 4s ease-in-out infinite; transform-origin: 50% 50%; }
+.ea-req-env  { animation: es-float-rev 4s ease-in-out infinite; transform-origin: 50% 50%; }
+.ea-tok-coin { animation: es-float 4s ease-in-out infinite; transform-origin: 50% 50%; }
+.ea-tok-coin.b { animation-delay: -2s; }
+@keyframes es-float     { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes es-float-rev { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px);  } }
+@keyframes es-shimmer   { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
+
 /* ── Dialog light theme ── */
 [data-theme="light"] .dlg-panel {
   box-shadow: 0 -4px 24px rgba(20,24,26,.06), 0 24px 64px rgba(20,24,26,.12);
