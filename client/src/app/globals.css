@@ -1093,7 +1093,7 @@ body {
 
 /* ── Dialog ── */
 .dlg-root {
-  position: fixed; inset: 0; z-index: 100;
+  position: fixed; inset: 0; z-index: 300;
   display: flex; align-items: flex-end; justify-content: center;
 }
 @media (min-width: 640px) {

@@ -5,9 +5,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, Bell, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Plug,
-  CheckCircle2, XCircle, FlaskConical,
+  CheckCircle2, XCircle,
 } from "lucide-react";
-import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { Sidebar } from "@/components/Sidebar";
 import { AgentId } from "@/components/AgentId";
 import { TokenRow } from "@/components/TokenRow";
@@ -18,14 +17,8 @@ import { SendDialog } from "@/components/SendDialog";
 import { TokenDetailDialog } from "@/components/TokenDetailDialog";
 import { useAuth } from "@/app/context/AuthContext";
 import type { TokenPosition } from "@/lib/api";
-import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useTransactions } from "@/hooks/useTransactions";
-
-const RPC_URL =
-  process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
-
-const TEST_AMOUNT = 0.0001 * LAMPORTS_PER_SOL;
 
 type Tab = "assets" | "activity" | "nfts";
 
@@ -85,38 +78,6 @@ export default function HomePage() {
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [selectedToken, setSelectedToken] = useState<TokenPosition | null>(null);
-  const [sending, setSending] = useState(false);
-  const [txSig, setTxSig] = useState<string | null>(null);
-  const [sendError, setSendError] = useState<string | null>(null);
-
-  async function handleTestSend() {
-    const solanaWallet = getSolanaWallet();
-    if (!solanaWallet || !wallet?.address) return;
-    const account = loadSageAccount(wallet.address);
-    if (!account) return;
-
-    setSending(true);
-    setTxSig(null);
-    setSendError(null);
-
-    try {
-      const connection = new Connection(RPC_URL, "confirmed");
-      const { vaultPda, multisigPda } = account;
-      const ix = SystemProgram.transfer({
-        fromPubkey: vaultPda,
-        toPubkey: new PublicKey("5QSRmvpHimVhXh2YP622A61vaThB8ut2iWJW9DPmCTNj"),
-        lamports: TEST_AMOUNT,
-      });
-      const sig = await proposeAndExecuteSponsored(connection, solanaWallet, multisigPda, [ix], "test: 0.0001 SOL");
-      setTxSig(sig);
-    } catch (e) {
-      console.error("Error sending test tx:", e);
-      setSendError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setSending(false);
-    }
-  }
-
   // ── Derived values ────────────────────────────────────────────────────────
   const totalUsd = portfolio.data?.totalUsd ?? null;
   const pct = portfolio.data?.percentChange24h ?? null;
@@ -218,35 +179,6 @@ export default function HomePage() {
             <span className="qb-ic"><Plug size={16} /></span>
             Connect
           </button>
-        </motion.div>
-
-        {/* ── Test transfer ── */}
-        <motion.div
-          className="test-send"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.35 }}
-        >
-          <div className="test-send-label">
-            <FlaskConical size={13} />
-            Test vault transfer · 0.0001 SOL → your wallet
-          </div>
-          <button
-            className="test-send-btn"
-            onClick={handleTestSend}
-            disabled={sending || !wallet}
-          >
-            {sending ? "Sending…" : "Send test tx"}
-          </button>
-          {txSig && (
-            <div className="test-send-result ok">
-              ✓ Confirmed ·{" "}
-              <a href={`https://explorer.solana.com/tx/${txSig}`} target="_blank" rel="noreferrer">
-                {txSig.slice(0, 16)}…
-              </a>
-            </div>
-          )}
-          {sendError && <div className="test-send-result err">{sendError}</div>}
         </motion.div>
 
         {/* ── Segment tabs ── */}
