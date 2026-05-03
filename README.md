@@ -34,10 +34,10 @@ backend/    API server + agent co-signer logic (not started)
 ### Up next
 
 **client**
-- [ ] Bootstrap Next.js app with Solana wallet adapter (Phantom, Backpack)
-- [ ] Multisig creation flow (name, members, threshold)
+- [x] Bootstrap Next.js app with Solana wallet adapter (Phantom, Backpack)
+- [x] Multisig creation flow (name, members, threshold)
 - [ ] Proposal dashboard (list, status badges, approve / reject)
-- [ ] Vault overview (balance, transaction history)
+- [x] Vault overview (balance, transaction history)
 
 **backend**
 - [ ] Squads proposal watcher (poll pending proposals)
@@ -45,12 +45,12 @@ backend/    API server + agent co-signer logic (not started)
 - [ ] Risk scoring module
 - [ ] Agent co-signer calling `proposalApprove` / `proposalReject`
 - [ ] Telegram bot notifications
-- [ ] Auth middleware + database schema (users, policy rules, audit log)
+- [x] Auth middleware + database schema (users, policy rules, audit log)
 
 **general**
-- [ ] CI pipeline (lint, test, build)
-- [ ] Deployment (site on Vercel, backend on Fly.io)
-- [ ] `.env.example` templates
+- [x] CI pipeline (lint, test, build)
+- [x] Deployment (site on Vercel, backend on Fly.io)
+- [x] `.env.example` templates
 
 ## Running tests
 
