@@ -7,9 +7,9 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   createTransferCheckedInstruction,
 } from "@solana/spl-token";
-import {
-  CheckCircle2, ChevronDown, ArrowUpRight, UserRound, X, Coins,
-} from "lucide-react";
+import { ChevronDown, ArrowUpRight, UserRound, X, Coins } from "lucide-react";
+import { SuccessAnimation } from "./animations/SuccessAnimation";
+import { EmptyTokens } from "./empty";
 import { Orbital } from "./loaders/Orbital";
 import { Dialog } from "./Dialog";
 import { TokenRow } from "./TokenRow";
@@ -352,9 +352,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         {phase === "success" && sendingToken && (
           <div className="sdlg-state">
             <div className="sdlg-state-head">
-              <div className="sdlg-ok-box">
-                <CheckCircle2 size={40} />
-              </div>
+              <SuccessAnimation size={120} loop={false} />
               <span className="sdlg-state-label">Sent!</span>
             </div>
             <div className="sdlg-tx-card">
@@ -529,9 +527,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
           </span>
         </div>
         {tokens.filter(t => !t.placeholder).length === 0 ? (
-          <p style={{ fontSize: 13, color: "var(--ink-300)", textAlign: "center", padding: "32px 0" }}>
-            No tokens in vault
-          </p>
+          <EmptyTokens />
         ) : (
           <div className="t-list" style={{ margin: "0 -4px" }}>
             {tokens.filter(t => !t.placeholder).map((t) => (

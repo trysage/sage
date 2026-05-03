@@ -15,6 +15,7 @@ import { ActivityRow } from "@/components/ActivityRow";
 import { ReceiveDialog } from "@/components/ReceiveDialog";
 import { SendDialog } from "@/components/SendDialog";
 import { TokenDetailDialog } from "@/components/TokenDetailDialog";
+import { EmptyTransactions, EmptyNFTs, EmptyTokens } from "@/components/empty";
 import { useAuth } from "@/app/context/AuthContext";
 import type { TokenPosition } from "@/lib/api";
 import { usePortfolio } from "@/hooks/usePortfolio";
@@ -235,7 +236,7 @@ export default function HomePage() {
                   <EmptyState message={portfolio.error} />
                 )}
                 {!portfolio.loading && !portfolio.error && tokenCount === 0 && !displayTokens.length && (
-                  <EmptyState message="No tokens in this vault yet" />
+                  <EmptyTokens onCta={() => setShowReceive(true)} />
                 )}
                 {!portfolio.loading && (
                   <motion.div variants={listVariants} initial="hidden" animate="visible">
@@ -268,7 +269,7 @@ export default function HomePage() {
                   <EmptyState message={txHistory.error} />
                 )}
                 {!txHistory.loading && !txHistory.error && activityCount === 0 && (
-                  <EmptyState message="No transactions yet" />
+                  <EmptyTransactions onCta={() => setShowSend(true)} />
                 )}
                 {!txHistory.loading && txHistory.data.length > 0 && (
                   <motion.div variants={listVariants} initial="hidden" animate="visible">
@@ -285,7 +286,7 @@ export default function HomePage() {
             {/* NFTs */}
             {activeTab === "nfts" && (
               <div className="t-list">
-                <EmptyState message="NFTs coming soon" />
+                <EmptyNFTs />
               </div>
             )}
 
