@@ -23,6 +23,8 @@ export interface TokenPosition {
   address: string;
   chain: { id: string; chainId: number; name: string };
   verified: boolean;
+  /** True for zero-balance fallback entries shown when the portfolio is sparse */
+  placeholder?: boolean;
 }
 
 export interface PortfolioResponse {
