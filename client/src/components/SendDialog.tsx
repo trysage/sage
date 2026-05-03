@@ -3,6 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import {
+  getAssociatedTokenAddressSync,
+  createAssociatedTokenAccountIdempotentInstruction,
+  createTransferCheckedInstruction,
+} from "@solana/spl-token";
+import {
   CheckCircle2, ChevronDown, ArrowUpRight, UserRound, X, Coins,
 } from "lucide-react";
 import { Orbital } from "./loaders/Orbital";
@@ -21,6 +26,17 @@ function isValidSolanaAddress(s: string) { return BASE58_RE.test(s); }
 
 function truncate(addr: string) {
   return addr.length > 20 ? `${addr.slice(0, 8)}…${addr.slice(-6)}` : addr;
+}
+
+function parseSendError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/insufficient lamports/i.test(msg)) return "Insufficient balance in vault";
+  if (/insufficient funds/i.test(msg)) return "Insufficient balance in vault";
+  if (/0x1\b/.test(msg) && /system program|11111111/i.test(msg)) return "Insufficient balance in vault";
+  if (/owner does not match/i.test(msg)) return "Token account error — vault may not hold this token";
+  if (/account not found/i.test(msg)) return "Token account not found";
+  if (/user rejected/i.test(msg) || /rejected the request/i.test(msg)) return "Transaction rejected in wallet";
+  return msg.length > 120 ? msg.slice(0, 120) + "…" : msg;
 }
 
 async function resolveSnsName(name: string): Promise<string | null> {
@@ -210,7 +226,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
     resolvedAddress !== null &&
     amountNum > 0 &&
     !insufficientFunds &&
-    isSol;
+    selectedToken !== null;
   const amountUSD =
     selectedToken && amountNum > 0 ? amountNum * selectedToken.price : null;
 
@@ -235,26 +251,59 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
     try {
       const connection = new Connection(RPC_URL, "confirmed");
       const { vaultPda, multisigPda } = account;
-      const lamports = BigInt(Math.round(amountNum * LAMPORTS_PER_SOL));
+      const recipientPubkey = new PublicKey(resolvedAddress!);
 
-      const ix = SystemProgram.transfer({
-        fromPubkey: vaultPda,
-        toPubkey: new PublicKey(resolvedAddress!),
-        lamports,
-      });
+      let instructions;
+      let memo: string;
+
+      if (isSol) {
+        const lamports = BigInt(Math.round(amountNum * LAMPORTS_PER_SOL));
+        instructions = [
+          SystemProgram.transfer({
+            fromPubkey: vaultPda,
+            toPubkey: recipientPubkey,
+            lamports,
+          }),
+        ];
+        memo = `send: ${amount} SOL`;
+      } else {
+        const mintPubkey = new PublicKey(selectedToken!.address);
+        const vaultAta = getAssociatedTokenAddressSync(mintPubkey, vaultPda, true);
+        const recipientAta = getAssociatedTokenAddressSync(mintPubkey, recipientPubkey, false);
+        const tokenAmount = BigInt(Math.round(amountNum * Math.pow(10, selectedToken!.decimals)));
+
+        instructions = [
+          // Create recipient ATA if it doesn't exist (idempotent — safe to always include)
+          createAssociatedTokenAccountIdempotentInstruction(
+            vaultPda,
+            recipientAta,
+            recipientPubkey,
+            mintPubkey,
+          ),
+          createTransferCheckedInstruction(
+            vaultAta,
+            mintPubkey,
+            recipientAta,
+            vaultPda,
+            tokenAmount,
+            selectedToken!.decimals,
+          ),
+        ];
+        memo = `send: ${amount} ${selectedToken!.symbol}`;
+      }
 
       const sig = await proposeAndExecuteSponsored(
         connection,
         solanaWallet,
         multisigPda,
-        [ix],
-        `send: ${amount} SOL`
+        instructions,
+        memo
       );
 
       setTxSig(sig);
       setPhase("success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(parseSendError(err));
       setPhase("form");
     }
   }
@@ -407,9 +456,6 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
                 )}
                 <ChevronDown size={20} className="sdlg-token-chev" />
               </button>
-              {selectedToken && !isSol && (
-                <p className="sdlg-warn">Only SOL transfers are supported right now</p>
-              )}
             </div>
 
             {/* 3. Recipient */}
