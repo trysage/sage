@@ -19,6 +19,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import type { TokenPosition } from "@/lib/api";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useTransactions } from "@/hooks/useTransactions";
+import { padTokensWithFallbacks } from "@/lib/tokenFallbacks";
 
 type Tab = "assets" | "activity" | "nfts";
 
@@ -88,6 +89,7 @@ export default function HomePage() {
     ? totalUsd * (pct / (100 + pct))
     : null;
   const greeting = user?.name ? `gm, ${user.name.split(" ")[0]}` : "gm";
+  const displayTokens = padTokensWithFallbacks(portfolio.data?.tokens ?? []);
   const tokenCount = portfolio.data?.tokens.length ?? 0;
   const activityCount = txHistory.data.length;
 
@@ -232,22 +234,23 @@ export default function HomePage() {
                 {!portfolio.loading && portfolio.error && (
                   <EmptyState message={portfolio.error} />
                 )}
-                {!portfolio.loading && !portfolio.error && tokenCount === 0 && (
+                {!portfolio.loading && !portfolio.error && tokenCount === 0 && !displayTokens.length && (
                   <EmptyState message="No tokens in this vault yet" />
                 )}
-                {!portfolio.loading && portfolio.data && (
+                {!portfolio.loading && (
                   <motion.div variants={listVariants} initial="hidden" animate="visible">
-                    {portfolio.data.tokens.map((token) => (
+                    {displayTokens.map((token) => (
                       <motion.div key={token.id} variants={rowVariants}>
                         <TokenRow
                           name={token.name}
                           symbol={token.symbol}
                           iconUrl={token.iconUrl}
                           amount={formatBalance(token.balance, token.symbol)}
-                          price={formatPrice(token.price)}
+                          price={token.price > 0 ? formatPrice(token.price) : "—"}
                           value={token.usdValue != null ? formatUSD(token.usdValue) : "—"}
                           percentChange1d={token.pricePercentChange1d}
                           dollarChange1d={token.priceChange1d}
+                          placeholder={token.placeholder}
                           onClick={token.tokenId ? () => setSelectedToken(token) : undefined}
                         />
                       </motion.div>
@@ -363,7 +366,7 @@ export default function HomePage() {
       <SendDialog
         open={showSend}
         onClose={() => setShowSend(false)}
-        tokens={portfolio.data?.tokens ?? []}
+        tokens={portfolio.data?.tokens ?? displayTokens}
       />
 
       <ReceiveDialog

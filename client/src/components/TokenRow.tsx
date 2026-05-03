@@ -14,6 +14,7 @@ interface TokenRowProps {
   /** Legacy: specific token gradient class (ic-sol, ic-usdc, etc.) */
   bg?: "sage" | "sol" | "usdc" | "jup" | "bonk";
   onClick?: () => void;
+  placeholder?: boolean;
 }
 
 export function TokenRow({
@@ -29,6 +30,7 @@ export function TokenRow({
   dollarChange1d,
   bg,
   onClick,
+  placeholder,
 }: TokenRowProps) {
   const icoClass = bg ? `ic-${bg}` : "ic-token";
   const pct = percentChange1d;
@@ -38,7 +40,7 @@ export function TokenRow({
     : null;
 
   return (
-    <div className={`t-row${onClick ? " t-row-clickable" : ""}`} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}>
+    <div className={`t-row${onClick ? " t-row-clickable" : ""}${placeholder ? " t-row-placeholder" : ""}`} style={placeholder ? { opacity: 0.35 } : undefined} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}>
       <div className={`t-ico ${icoClass}`}>
         {iconUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -67,9 +69,12 @@ export function TokenRow({
       </div>
       <div className="t-right">
         <span className="t-val">{value}</span>
-        {usdStr && (
-          <span className={`t-pct ${pctUp ? "up" : "dn"}`}>{usdStr}</span>
-        )}
+        <span
+          className={`t-pct ${pctUp ? "up" : "dn"}`}
+          style={usdStr ? undefined : { visibility: "hidden" }}
+        >
+          {usdStr ?? "—"}
+        </span>
       </div>
     </div>
   );
