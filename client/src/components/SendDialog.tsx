@@ -151,10 +151,11 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
     }
   }, [open]);
 
-  // Default to SOL
+  // Default to SOL (skip placeholder tokens)
   useEffect(() => {
-    if (tokens.length > 0 && !selectedToken) {
-      setSelectedToken(tokens.find(t => t.symbol === "SOL") ?? tokens[0]);
+    const sendable = tokens.filter(t => !t.placeholder);
+    if (sendable.length > 0 && !selectedToken) {
+      setSelectedToken(sendable.find(t => t.symbol === "SOL") ?? sendable[0]);
     }
   }, [tokens, selectedToken]);
 
@@ -527,13 +528,13 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
             <span className="sdlg-picker-arrow">› </span>Tokens
           </span>
         </div>
-        {tokens.length === 0 ? (
+        {tokens.filter(t => !t.placeholder).length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--ink-300)", textAlign: "center", padding: "32px 0" }}>
             No tokens in vault
           </p>
         ) : (
           <div className="t-list" style={{ margin: "0 -4px" }}>
-            {tokens.map((t) => (
+            {tokens.filter(t => !t.placeholder).map((t) => (
               <TokenRow
                 key={t.id}
                 name={t.name}
