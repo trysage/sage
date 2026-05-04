@@ -471,7 +471,7 @@ body {
   min-height: 0;
 }
 .t-row {
-  display: grid; grid-template-columns: 40px minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.2fr);
   gap: 18px; align-items: center;
   padding: 16px 22px;
   border-bottom: 1px solid rgba(255,255,255,.05);
@@ -495,12 +495,12 @@ body {
 .t-name { display: flex; flex-direction: column; gap: 2px; }
 .t-name .nm { font-weight: 600; font-size: 14.5px; color: var(--ink-0); }
 .t-name .sym { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; color: var(--ink-300); text-transform: uppercase; }
-.t-amt { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
+.t-amt { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; text-align: left; }
 .t-amt .a { font-family: var(--font-mono); font-weight: 500; font-size: 13.5px; color: var(--ink-100); font-variant-numeric: tabular-nums; }
-.t-amt .price { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-300); display: inline-flex; align-items: center; gap: 6px; }
+.t-amt .price { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-300); display: flex; align-items: center; gap: 6px; }
 .t-amt .price .up { color: var(--mint-300); }
 .t-amt .price .dn { color: var(--danger); }
-.t-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.t-right { text-align: left; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .t-val { font-family: var(--font-mono); font-weight: 600; font-size: 14.5px; color: var(--ink-0); font-variant-numeric: tabular-nums; }
 .t-pct { font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: .02em; }
 .t-pct.up { color: var(--mint-400); }
@@ -1335,6 +1335,7 @@ body {
     grid-template-columns: 36px minmax(0, 1fr) auto;
   }
   .t-amt { display: none; }
+  .t-row .t-right { align-items: flex-end; text-align: right; }
 
   /* Hero balance */
   .main-top { margin-bottom: 20px; }
