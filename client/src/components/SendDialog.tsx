@@ -15,6 +15,7 @@ import { Dialog } from "./Dialog";
 import { TokenRow } from "./TokenRow";
 import { useAuth } from "@/app/context/AuthContext";
 import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
+import { useTokenAmountInput } from "@/hooks/useTokenAmountInput";
 import type { TokenPosition } from "@/lib/api";
 
 type Phase = "form" | "sending" | "success";
@@ -130,7 +131,20 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
   const [resolvedName, setResolvedName] = useState<string | null>(null);
   const [resolving, setResolving] = useState(false);
   const [resolveError, setResolveError] = useState<string | null>(null);
-  const [amount, setAmount] = useState("");
+  const {
+    mode: amountMode,
+    inputValue: amountInputValue,
+    tokenAmount,
+    secondaryDisplay: amountSecondary,
+    setInputValue: setAmountInput,
+    toggleMode: toggleAmountMode,
+    setTokenAmountDirect,
+    reset: resetAmount,
+  } = useTokenAmountInput(
+    selectedToken?.price ?? 0,
+    selectedToken?.symbol ?? "",
+    selectedToken?.decimals ?? 9,
+  );
 
   // Reset after dialog closes
   useEffect(() => {
@@ -143,13 +157,13 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         setResolvedAddress(null);
         setResolvedName(null);
         setResolveError(null);
-        setAmount("");
+        resetAmount();
         setSelectedToken(null);
         setTokenPickerOpen(false);
       }, 350);
       return () => clearTimeout(t);
     }
-  }, [open]);
+  }, [open, resetAmount]);
 
   // Default to SOL (skip placeholder tokens)
   useEffect(() => {
@@ -164,9 +178,9 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
   useEffect(() => {
     if (selectedToken && selectedToken.id !== prevTokenId.current) {
       prevTokenId.current = selectedToken.id;
-      setAmount("");
+      resetAmount();
     }
-  }, [selectedToken]);
+  }, [selectedToken, resetAmount]);
 
   // SNS resolution debounce
   const resolveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -221,21 +235,19 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
 
   const isSol = selectedToken?.symbol === "SOL";
   const maxBalance = selectedToken ? parseFloat(selectedToken.balance) : 0;
-  const amountNum = parseFloat(amount) || 0;
+  const amountNum = parseFloat(tokenAmount) || 0;
   const insufficientFunds = amountNum > 0 && amountNum > maxBalance;
   const canSend =
     resolvedAddress !== null &&
     amountNum > 0 &&
     !insufficientFunds &&
     selectedToken !== null;
-  const amountUSD =
-    selectedToken && amountNum > 0 ? amountNum * selectedToken.price : null;
 
   const applyMax = () => {
     if (!selectedToken) return;
     const raw = selectedToken.balance;
     const trimmed = raw.includes(".") ? raw.replace(/\.?0+$/, "") : raw;
-    setAmount(trimmed || "0");
+    setTokenAmountDirect(trimmed || "0");
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -266,12 +278,12 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
             lamports,
           }),
         ];
-        memo = `send: ${amount} SOL`;
+        memo = `send: ${tokenAmount} SOL`;
       } else {
         const mintPubkey = new PublicKey(selectedToken!.address);
         const vaultAta = getAssociatedTokenAddressSync(mintPubkey, vaultPda, true);
         const recipientAta = getAssociatedTokenAddressSync(mintPubkey, recipientPubkey, false);
-        const tokenAmount = BigInt(Math.round(amountNum * Math.pow(10, selectedToken!.decimals)));
+        const tokenUnits = BigInt(Math.round(amountNum * Math.pow(10, selectedToken!.decimals)));
 
         instructions = [
           // Create recipient ATA if it doesn't exist (idempotent — safe to always include)
@@ -286,11 +298,11 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
             mintPubkey,
             recipientAta,
             vaultPda,
-            tokenAmount,
+            tokenUnits,
             selectedToken!.decimals,
           ),
         ];
-        memo = `send: ${amount} ${selectedToken!.symbol}`;
+        memo = `send: ${tokenAmount} ${selectedToken!.symbol}`;
       }
 
       const sig = await proposeAndExecuteSponsored(
@@ -311,7 +323,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
 
   // Snapshot for state screens
   const sendingTo = resolvedAddress ?? "";
-  const sendingAmount = amount;
+  const sendingAmount = tokenAmount;
   const sendingToken = selectedToken;
 
   return (
@@ -390,6 +402,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
             <div className="sdlg-field">
               <label className="sdlg-field-label">You&apos;re sending</label>
               <div className="sdlg-amount-row">
+                {amountMode === "usd" && <span className="sdlg-amount-prefix">$</span>}
                 <input
                   className="sdlg-amount-input"
                   type="number"
@@ -397,14 +410,18 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
                   step="any"
                   min="0"
                   placeholder="0.00"
-                  value={amount}
-                  onChange={e => setAmount(e.target.value)}
+                  value={amountInputValue}
+                  onChange={e => setAmountInput(e.target.value)}
                 />
               </div>
-              {amountUSD != null ? (
-                <span className="sdlg-amount-secondary">≈ {fmtUSD(amountUSD)}</span>
+              {amountSecondary ? (
+                <button type="button" className="sdlg-amount-secondary" onClick={toggleAmountMode}>
+                  {amountSecondary}
+                </button>
               ) : selectedToken?.price ? (
-                <span className="sdlg-amount-secondary" style={{ color: "transparent" }}>–</span>
+                <button type="button" className="sdlg-amount-secondary sdlg-amount-hint" onClick={toggleAmountMode}>
+                  {amountMode === "token" ? "Switch to $" : `Switch to ${selectedToken.symbol}`}
+                </button>
               ) : null}
               <div className="sdlg-amount-meta">
                 <span className="sdlg-amount-bal">
