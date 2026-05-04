@@ -11,7 +11,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { AgentId } from "@/components/AgentId";
 import { TokenRow } from "@/components/TokenRow";
 import { TraceRow } from "@/components/TraceRow";
-import { ActivityRow } from "@/components/ActivityRow";
+import { ActivityList } from "@/components/ActivityList";
 import { ReceiveDialog } from "@/components/ReceiveDialog";
 import { SendDialog } from "@/components/SendDialog";
 import { TokenDetailDialog } from "@/components/TokenDetailDialog";
@@ -272,13 +272,7 @@ export default function HomePage() {
                   <EmptyTransactions onCta={() => setShowSend(true)} />
                 )}
                 {!txHistory.loading && txHistory.data.length > 0 && (
-                  <motion.div variants={listVariants} initial="hidden" animate="visible">
-                    {txHistory.data.map((tx) => (
-                      <motion.div key={tx.id} variants={rowVariants}>
-                        <ActivityRow tx={tx} />
-                      </motion.div>
-                    ))}
-                  </motion.div>
+                  <ActivityList transactions={txHistory.data} />
                 )}
               </div>
             )}

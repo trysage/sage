@@ -66,17 +66,11 @@ function rowToProposal(row: MultisigProposalRow): MultisigProposal {
 }
 
 export async function getProposalsByVault(
-  vaultAddress: string,
-  limit = 50
+  _vaultAddress: string,
+  _limit = 50
 ): Promise<MultisigProposal[]> {
-  const { data, error } = await supabase
-    .from("multisig_proposals")
-    .select("*")
-    .eq("vault_address", vaultAddress)
-    .order("proposed_at", { ascending: false })
-    .limit(limit);
-  if (error) throw error;
-  return (data ?? []).map(rowToProposal);
+  // TODO: re-enable once the proposals pipeline is stable
+  return [];
 }
 
 export async function getProposal(id: string): Promise<MultisigProposal | null> {

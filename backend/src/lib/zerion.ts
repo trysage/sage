@@ -189,7 +189,10 @@ function pickDir(
   transfers: ZerionTransfer[],
   dir: "in" | "out" | "self"
 ): ZerionTransfer | undefined {
-  return transfers.find((t) => t.direction === dir && t.token.symbol !== "?");
+  const candidates = transfers.filter((t) => t.direction === dir && t.token.symbol !== "?");
+  if (candidates.length <= 1) return candidates[0];
+  // When multiple transfers exist (e.g. token transfer + SOL rent), prefer the non-SOL one
+  return candidates.find((t) => t.token.address !== "") ?? candidates[0];
 }
 
 // ── Portfolio ─────────────────────────────────────────────────────────────────
@@ -225,7 +228,6 @@ export async function fetchTokenPositions(
   while (attempt < maxRetries) {
     try {
       const response = await fetch(url, options);
-                console.log(response)
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const json = await response.json();
       const data: unknown[] = json?.data ?? [];
@@ -460,6 +462,7 @@ export async function fetchTransfers(
           transfers,
         });
       }
+
 
       return items;
     } catch (err) {

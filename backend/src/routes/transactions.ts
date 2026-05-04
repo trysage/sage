@@ -40,7 +40,6 @@ function zerionOnlyToActivity(z: ZerionHistoryItem, vaultAddress: string): Propo
       : undefined,
   };
 }
-
 /**
  * Merge Zerion op data into a Sage proposal record.
  * Zerion wins on token details (symbol, address, icon, amount, USD value)

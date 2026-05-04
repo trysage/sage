@@ -24,11 +24,22 @@ function formatUSD(n: number | null | undefined): string | null {
   return `$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-interface ActivityRowProps {
-  tx: TransactionItem;
+function TokenAvatar({ iconUrl, symbol }: { iconUrl: string | null; symbol: string | null }) {
+  if (iconUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={iconUrl} alt="" className="act-ico-img" />
+    );
+  }
+  return <span className="act-ico-sym">{(symbol || "?").slice(0, 5)}</span>;
 }
 
-export function ActivityRow({ tx }: ActivityRowProps) {
+interface ActivityRowProps {
+  tx: TransactionItem;
+  formattedTime?: string;
+}
+
+export function ActivityRow({ tx, formattedTime }: ActivityRowProps) {
   const dir = tx.direction ?? (tx.status === "executed" ? "send" : "send");
   const op = tx.operationType ?? "send";
   const isTrade = op === "trade";
@@ -37,16 +48,14 @@ export function ActivityRow({ tx }: ActivityRowProps) {
   let dirClass = isReceive ? "receive" : "send";
   if (isTrade) dirClass = "trade";
 
-  let icon = isReceive
-    ? <ArrowDownLeft size={16} />
-    : <ArrowUpRight size={16} />;
-  if (isTrade) icon = <ArrowLeftRight size={16} />;
-  if (op === "execute") icon = <Zap size={16} />;
+  let DirIcon = isReceive ? ArrowDownLeft : ArrowUpRight;
+  if (isTrade) DirIcon = ArrowLeftRight;
+  if (op === "execute") DirIcon = Zap;
 
   const symbol = tx.tokenSymbol ?? "";
   const label = isTrade && tx.tradeReceived
     ? `Swap ${symbol} → ${tx.tradeReceived.symbol}`
-    : `${capitalize(op)}${symbol ? ` ${symbol}` : ""}`;
+    : capitalize(op);
 
   const counterparty = isReceive ? tx.to : tx.to;
   const ts = tx.executedAt ?? tx.proposedAt;
@@ -63,14 +72,17 @@ export function ActivityRow({ tx }: ActivityRowProps) {
 
   return (
     <div className="act-row">
-      <div className={`act-ico ${dirClass}`}>{icon}</div>
+      <div className="act-ico"><TokenAvatar iconUrl={tx.tokenIconUrl} symbol={tx.tokenSymbol} /></div>
 
       <div className="act-body">
-        <span className="act-title">{label || "Transaction"}</span>
+        <span className="act-title">
+          <DirIcon className={`act-dir-ico ${dirClass}`} size={12} />
+          <span className="act-title-text">{label || "Transaction"}</span>
+        </span>
         <span className="act-sub">
           {counterparty ? `${isReceive ? "From" : "To"} ${truncate(counterparty)}` : truncate(tx.txSignature)}
           {" · "}
-          {relativeTime(ts)}
+          {formattedTime ?? relativeTime(ts)}
         </span>
       </div>
 
