@@ -1,5 +1,10 @@
-import { Router, type Request, type Response } from "express";
-import { getProposalsByVault, getProposal } from "../lib/supabase/index.js";
+import { Router, type Request, type Response, type IRouter } from "express";
+import {
+  getProposalsByVault,
+  getProposal,
+  getLastInReviewProposal,
+  updateProposal,
+} from "../lib/supabase/index.js";
 import { fetchTransfers, type ZerionHistoryItem } from "../lib/zerion.js";
 import type { ProposalWithActivity, MultisigProposal } from "../types.js";
 
@@ -14,9 +19,17 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
+const PROPOSAL_DEFAULTS = {
+  riskScore: null, riskVerdict: null, riskReasons: null,
+  inReview: false, reviewReason: null, reviewedAt: null,
+  rejected: false, rejectedAt: null, rejectReason: null,
+  amountUSD: null, screeningDisabled: false,
+} as const;
+
 /** Pure Zerion-only item — on-chain tx with no matching proposal in DB */
 function zerionOnlyToActivity(z: ZerionHistoryItem, vaultAddress: string): ProposalWithActivity {
   return {
+    ...PROPOSAL_DEFAULTS,
     id: `zerion:${z.hash}`,
     multisigAddress: "",
     vaultAddress,
@@ -63,7 +76,7 @@ function mergeWithZerion(tx: MultisigProposal, z: ZerionHistoryItem): ProposalWi
   };
 }
 
-export function createTransactionsRouter(): Router {
+export function createTransactionsRouter(): IRouter {
   const router = Router();
 
   /**
@@ -133,6 +146,72 @@ export function createTransactionsRouter(): Router {
         return;
       }
       res.json({ transaction: tx });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      res.status(500).json({ error: message });
+    }
+  });
+
+  /**
+   * PATCH /transactions/:id
+   * Use id = "latest" + body.vaultAddress to target the most recent in-review proposal.
+   * Body: { action: "review" | "reject" | "executed", reason?, txSignature? }
+   */
+  router.patch("/:id", async (req: Request, res: Response) => {
+    try {
+      const { action, reason, vaultAddress, txSignature } = req.body ?? {};
+
+      if (!action || !["review", "reject", "executed"].includes(action)) {
+        res.status(400).json({ error: "action must be 'review', 'reject', or 'executed'" });
+        return;
+      }
+
+      let id = req.params.id;
+      if (id === "latest") {
+        if (!vaultAddress) {
+          res.status(400).json({ error: "vaultAddress required when id=latest" });
+          return;
+        }
+        const latest = await getLastInReviewProposal(vaultAddress);
+        if (!latest) {
+          res.status(404).json({ error: "No in-review proposal found for this vault" });
+          return;
+        }
+        id = latest.id;
+      }
+
+      const tx = await getProposal(id);
+      if (!tx) {
+        res.status(404).json({ error: `Transaction not found: ${id}` });
+        return;
+      }
+
+      if (action === "review") {
+        await updateProposal(id, {
+          in_review: true,
+          review_reason: reason ?? "Flagged for manual review",
+          reviewed_at: new Date().toISOString(),
+        });
+        res.json({ status: "marked_review", proposalId: id });
+      } else if (action === "reject") {
+        await updateProposal(id, {
+          rejected: true,
+          rejected_at: new Date().toISOString(),
+          reject_reason: reason ?? "Rejected by owner",
+          in_review: false,
+          status: "rejected",
+        });
+        res.json({ status: "rejected", proposalId: id, to: tx.to, amount: tx.amount });
+      } else {
+        // executed — called by client after sponsor/send succeeds
+        await updateProposal(id, {
+          status: "executed",
+          executed_at: new Date().toISOString(),
+          tx_signature: txSignature ?? null,
+          in_review: false,
+        });
+        res.json({ status: "executed", proposalId: id, txSignature });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       res.status(500).json({ error: message });
