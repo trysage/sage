@@ -15,6 +15,7 @@ export function useTransactions() {
     setLoading(true);
     setError(null);
     try {
+      console.log("fetching transactions", vaultPda, identityToken);
       const result = await getTransactions(vaultPda, identityToken ?? undefined);
       setData(result.transactions);
     } catch (e) {

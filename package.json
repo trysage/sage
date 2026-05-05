@@ -3,15 +3,21 @@
   "version": "0.1.0",
   "description": "Multisig co-signer and security agent built on Squads Protocol (Solana)",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "scripts": {
+    "dev:client": "pnpm --filter sage-client dev",
+    "dev:server": "pnpm --filter sage-server dev",
+    "dev:site": "pnpm --filter sage-site dev",
+    "build": "tsc",
+    "build:all": "pnpm -r build",
+    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'",
+    "lint:all": "pnpm -r lint",
     "test": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/**/*.test.ts' --timeout 120000 --exit",
     "test:multisig": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/multisig.test.ts' --timeout 120000 --exit",
     "test:proposal": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/proposal.test.ts' --timeout 120000 --exit",
     "test:config": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/config.test.ts' --timeout 120000 --exit",
     "test:reference": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/reference/transfer-flow.test.ts' --timeout 120000 --exit",
-    "test:sponsored": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/reference/sponsored-flow.test.ts' --timeout 120000 --exit",
-    "build": "tsc",
-    "lint": "eslint 'src/**/*.ts' 'tests/**/*.ts'"
+    "test:sponsored": "TS_NODE_TRANSPILE_ONLY=true ts-mocha -r ts-node/register 'tests/reference/sponsored-flow.test.ts' --timeout 120000 --exit"
   },
   "dependencies": {
     "@solana/web3.js": "^1.91.8",
@@ -29,5 +35,17 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@reown/appkit",
+      "bigint-buffer",
+      "bufferutil",
+      "esbuild",
+      "keccak",
+      "sharp",
+      "unrs-resolver",
+      "utf-8-validate"
+    ]
   }
 }

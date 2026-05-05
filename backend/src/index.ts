@@ -28,9 +28,6 @@ declare global {
 }
 
 async function auth(req: Request, res: Response, next: NextFunction) {
-  // Skip auth entirely if AGENT_SECRET is not configured (local dev fallback)
-  if (!AGENT_SECRET) return next();
-
   const bearer = req.headers["authorization"]?.replace("Bearer ", "");
   if (!bearer) {
     res.status(401).json({ error: "Unauthorized" });
@@ -48,10 +45,10 @@ async function auth(req: Request, res: Response, next: NextFunction) {
     const { userId, walletAddress } = await verifyPrivyToken(bearer);
     req.callerId = `privy:${userId}`;
 
-    if (walletAddress) {
-      const user = await getUserBySignerAddress(walletAddress);
-      if (user) req.user = user;
-    }
+    // if (walletAddress) {
+    //   const user = await getUserBySignerAddress(walletAddress);
+    //   if (user) req.user = user;
+    // }
 
     return next();
   } catch {
@@ -63,8 +60,8 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
 // Public routes — no auth
-app.use("/portfolio", createPortfolioRouter());
-app.use("/tokens", createTokensRouter());
+app.use("/portfolio", auth, createPortfolioRouter());
+app.use("/tokens", auth, createTokensRouter());
 
 // Authenticated routes (auth is a no-op when AGENT_SECRET is unset)
 app.use("/transactions", auth, createTransactionsRouter());
