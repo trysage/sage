@@ -1,6 +1,7 @@
 "use client";
 
 import { useReducer, useCallback } from "react";
+import { formatUSD, formatTokenAmount } from "@/lib/format";
 
 export type AmountMode = "token" | "usd";
 
@@ -45,14 +46,15 @@ function usdDisplay(tokenAmt: string, price: number): string | null {
   if (!price) return null;
   const n = parseFloat(tokenAmt);
   if (!isFinite(n) || n <= 0) return null;
-  return `~$${(n * price).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const s = formatUSD(n * price);
+  return s ? `~${s}` : null;
 }
 
 function tokenDisplay(usdAmt: string, price: number, symbol: string): string | null {
   if (!price) return null;
   const n = parseFloat(usdAmt);
   if (!isFinite(n) || n <= 0) return null;
-  return `~${parseFloat((n / price).toPrecision(6)).toString()} ${symbol}`;
+  return `~${formatTokenAmount(n / price, { raw: true })} ${symbol}`;
 }
 
 // ── Reducer ───────────────────────────────────────────────────────────────────

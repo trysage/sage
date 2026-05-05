@@ -21,6 +21,7 @@ import type { TokenPosition } from "@/lib/api";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useTransactions } from "@/hooks/useTransactions";
 import { padTokensWithFallbacks } from "@/lib/tokenFallbacks";
+import { formatTokenAmount, formatUSD, formatPrice } from "@/lib/format";
 
 type Tab = "assets" | "activity" | "nfts";
 
@@ -48,25 +49,6 @@ const rowVariants = {
 function formatHeroBalance(usd: number): { integer: string; decimal: string } {
   const [intPart, decPart = "00"] = usd.toFixed(2).split(".");
   return { integer: `$${parseInt(intPart).toLocaleString("en-US")}`, decimal: `.${decPart}` };
-}
-
-function formatUSD(n: number): string {
-  return `$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatBalance(balance: string, symbol: string): string {
-  const num = parseFloat(balance);
-  if (isNaN(num)) return `0 ${symbol}`;
-  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M ${symbol}`;
-  if (num >= 1_000) return `${num.toLocaleString("en-US", { maximumFractionDigits: 2 })} ${symbol}`;
-  return `${parseFloat(num.toFixed(6))} ${symbol}`;
-}
-
-function formatPrice(price: number): string {
-  if (price === 0) return "$0.00";
-  if (price < 0.0001) return `$${price.toExponential(2)}`;
-  if (price < 1) return `$${price.toFixed(4)}`;
-  return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -152,7 +134,7 @@ export default function HomePage() {
           >
             {pct != null && deltaUsd != null ? (
               <span className={pct >= 0 ? "up" : "dn"}>
-                {pct >= 0 ? "▲" : "▼"} {formatUSD(deltaUsd)} · {Math.abs(pct).toFixed(2)}%
+                {pct >= 0 ? "▲" : "▼"} {formatUSD(deltaUsd) ?? ""} · {Math.abs(pct).toFixed(2)}%
               </span>
             ) : null}
             <span className="meta">24 hours</span>
@@ -246,9 +228,9 @@ export default function HomePage() {
                           name={token.name}
                           symbol={token.symbol}
                           iconUrl={token.iconUrl}
-                          amount={formatBalance(token.balance, token.symbol)}
+                          amount={`${formatTokenAmount(token.balance)} ${token.symbol}`}
                           price={token.price > 0 ? formatPrice(token.price) : "—"}
-                          value={token.usdValue != null ? formatUSD(token.usdValue) : "—"}
+                          value={formatUSD(token.usdValue) ?? "—"}
                           percentChange1d={token.pricePercentChange1d}
                           dollarChange1d={token.priceChange1d}
                           placeholder={token.placeholder}

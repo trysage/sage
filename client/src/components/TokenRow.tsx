@@ -1,3 +1,5 @@
+import { formatUSD } from "@/lib/format";
+
 interface TokenRowProps {
   name: string;
   symbol: string;
@@ -35,9 +37,8 @@ export function TokenRow({
   const icoClass = bg ? `ic-${bg}` : "ic-token";
   const pct = percentChange1d;
   const pctUp = pct != null ? pct >= 0 : (dollarChange1d != null ? dollarChange1d >= 0 : null);
-  const usdStr = dollarChange1d != null
-    ? `${dollarChange1d >= 0 ? "+" : "−"}$${Math.abs(dollarChange1d).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-    : null;
+  const absUsd = formatUSD(dollarChange1d != null ? Math.abs(dollarChange1d) : null);
+  const usdStr = absUsd ? `${dollarChange1d! >= 0 ? "+" : "−"}${absUsd}` : null;
 
   return (
     <div className={`t-row${onClick ? " t-row-clickable" : ""}${placeholder ? " t-row-placeholder" : ""}`} style={placeholder ? { opacity: 0.35 } : undefined} onClick={onClick} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} onKeyDown={onClick ? (e) => e.key === "Enter" && onClick() : undefined}>

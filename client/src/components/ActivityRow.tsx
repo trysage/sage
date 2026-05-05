@@ -1,4 +1,5 @@
 import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Zap } from "lucide-react";
+import { formatUSD } from "@/lib/format";
 import type { TransactionItem } from "@/lib/api";
 
 function truncate(addr: string | null): string {
@@ -19,10 +20,6 @@ function relativeTime(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-function formatUSD(n: number | null | undefined): string | null {
-  if (n == null) return null;
-  return `$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 function TokenAvatar({ iconUrl, symbol }: { iconUrl: string | null; symbol: string | null }) {
   if (iconUrl) {

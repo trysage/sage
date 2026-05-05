@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import { Dialog } from "./Dialog";
 import { useTokenDetail } from "@/hooks/useTokenDetail";
+import { formatPrice, formatCompact, formatCompactNum, formatPct } from "@/lib/format";
 import type { TokenPosition, TokenChartData, ChartPeriod } from "@/lib/api";
 
 // ── Period config ─────────────────────────────────────────────────────────────
@@ -27,37 +28,6 @@ const PERIODS: { label: string; value: ChartPeriod }[] = [
 ];
 
 // ── Formatters ────────────────────────────────────────────────────────────────
-
-function formatPrice(p: number | null | undefined): string {
-  if (p == null) return "—";
-  if (p < 0.0001) return `$${p.toExponential(2)}`;
-  if (p < 0.01) return `$${p.toFixed(6)}`;
-  if (p < 1) return `$${p.toFixed(4)}`;
-  return `$${p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatCompact(n: number | null | undefined): string | null {
-  if (n == null) return null;
-  if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
-  if (n >= 1e9)  return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6)  return `$${(n / 1e6).toFixed(2)}M`;
-  if (n >= 1e3)  return `$${(n / 1e3).toFixed(2)}K`;
-  return `$${n.toFixed(2)}`;
-}
-
-function formatCompactNum(n: number | null | undefined): string | null {
-  if (n == null) return null;
-  if (n >= 1e12) return `${(n / 1e12).toFixed(2)}T`;
-  if (n >= 1e9)  return `${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6)  return `${(n / 1e6).toFixed(2)}M`;
-  if (n >= 1e3)  return `${(n / 1e3).toFixed(2)}K`;
-  return n.toLocaleString("en-US");
-}
-
-function formatPct(n: number | null | undefined): string | null {
-  if (n == null) return null;
-  return `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`;
-}
 
 function xTickFormatter(ts: number, period: ChartPeriod): string {
   const d = new Date(ts);
@@ -126,7 +96,7 @@ function PriceChart({
   );
 
   if (loading) {
-    return (
+        return (
       <div className="tdlg-chart-wrap">
         <div className="tdlg-chart-skel" />
       </div>
@@ -324,7 +294,7 @@ export function TokenDetailDialog({ open, onClose, token }: TokenDetailDialogPro
                 {token.balance} {token.symbol}
                 {token.usdValue != null && (
                   <span className="tdlg-balance-usd">
-                    {` · $${token.usdValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    {` · ${formatCompact(token.usdValue) ?? ""}`}
                   </span>
                 )}
               </span>

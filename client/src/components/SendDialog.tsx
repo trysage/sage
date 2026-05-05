@@ -16,6 +16,7 @@ import { TokenRow } from "./TokenRow";
 import { useAuth } from "@/app/context/AuthContext";
 import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
 import { useTokenAmountInput } from "@/hooks/useTokenAmountInput";
+import { formatTokenAmount, formatUSD, formatPrice } from "@/lib/format";
 import type { TokenPosition } from "@/lib/api";
 
 type Phase = "form" | "sending" | "success";
@@ -52,24 +53,6 @@ async function resolveSnsName(name: string): Promise<string | null> {
   }
 }
 
-function fmtTokenAmount(balance: string) {
-  const n = parseFloat(balance);
-  if (isNaN(n)) return "0";
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return n.toLocaleString("en-US", { maximumFractionDigits: 2 });
-  return parseFloat(n.toFixed(6)).toString();
-}
-
-function fmtUSD(n: number) {
-  return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function fmtPrice(p: number) {
-  if (p === 0) return "$0.00";
-  if (p < 0.0001) return `$${p.toExponential(2)}`;
-  if (p < 1) return `$${p.toFixed(4)}`;
-  return `$${p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 function TokenIcon({ token }: { token: TokenPosition }) {
   if (token.iconUrl) {
@@ -427,7 +410,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
                 <span className="sdlg-amount-bal">
                   Balance:{" "}
                   {selectedToken
-                    ? `${fmtTokenAmount(selectedToken.balance)} ${selectedToken.symbol}`
+                    ? `${formatTokenAmount(selectedToken.balance)} ${selectedToken.symbol}`
                     : "--"}
                 </span>
                 <button
@@ -458,9 +441,9 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
                     <div className="sdlg-token-info">
                       <p className="sdlg-token-sym">{selectedToken.symbol}</p>
                       <p className="sdlg-token-bal">
-                        {fmtTokenAmount(selectedToken.balance)} {selectedToken.symbol}
+                        {formatTokenAmount(selectedToken.balance)} {selectedToken.symbol}
                         {selectedToken.usdValue != null &&
-                          ` · ${fmtUSD(selectedToken.usdValue)}`}
+                          ` · ${formatUSD(selectedToken.usdValue) ?? ""}`}
                       </p>
                     </div>
                   </>
@@ -553,9 +536,9 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
                 name={t.name}
                 symbol={t.symbol}
                 iconUrl={t.iconUrl}
-                amount={`${fmtTokenAmount(t.balance)} ${t.symbol}`}
-                price={fmtPrice(t.price)}
-                value={t.usdValue != null ? fmtUSD(t.usdValue) : "—"}
+                amount={`${formatTokenAmount(t.balance)} ${t.symbol}`}
+                price={formatPrice(t.price)}
+                value={formatUSD(t.usdValue) ?? "—"}
                 onClick={() => {
                   setSelectedToken(t);
                   setTokenPickerOpen(false);
