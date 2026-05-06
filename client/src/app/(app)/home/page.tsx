@@ -409,7 +409,7 @@ export default function HomePage() {
                       )}
                     </div>
                     <p className="reason">
-                      <em>Sage:</em> Reviewing this transaction. Check your Telegram for the verdict.
+                      <em>Sage:</em> This transaction needs your approval on TG. Communicate with the Sage on TG to approve or block the transaction.
                     </p>
                   </div>
                 </motion.div>
