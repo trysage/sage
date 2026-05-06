@@ -79,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasAttemptedEvmCreate = useRef(false);
   const hasAttemptedSolanaCreate = useRef(false);
   const hasAttemptedSageCreate = useRef(false);
+  const hasSyncedUser = useRef(false);
   const [evmCreateFailed, setEvmCreateFailed] = useState(false);
   const [solanaCreateFailed, setSolanaCreateFailed] = useState(false);
   const [vaultPda, setVaultPda] = useState<string | null>(null);
@@ -155,6 +156,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   }, [primarySolanaWallet, vaultPda, sageCreateFailed]);
 
+  // Sync user record to DB once per session after vault is known
+  useEffect(() => {
+    if (!vaultPda || !identityToken || !primarySolanaWallet) return;
+    if (hasSyncedUser.current) return;
+    hasSyncedUser.current = true;
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    const google = (privyUser as { google?: { email?: string; name?: string } } | null)?.google;
+
+    fetch(`${API_URL}/users`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${identityToken}` },
+      body: JSON.stringify({
+        vaultAddress: vaultPda,
+        signerAddress: primarySolanaWallet.address,
+        email: google?.email ?? null,
+        name: google?.name ?? null,
+      }),
+    }).catch((e) => console.error("User sync failed:", e));
+  }, [vaultPda, identityToken, primarySolanaWallet, privyUser]);
+
   const user: AuthUser | null = useMemo(() => {
     if (!privyUser) return null;
     const google = (
@@ -199,7 +221,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     sessionStorage.removeItem(OAUTH_PENDING_KEY);
     setVaultPda(null);
-    hasAttemptedSageCreate.current = false; // allow load-from-storage effect to re-run on next login
+    hasAttemptedSageCreate.current = false;
+    hasSyncedUser.current = false;
     setSageCreateFailed(false);
     await privyLogout();
   }, [privyLogout]);

@@ -7,19 +7,21 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   createTransferCheckedInstruction,
 } from "@solana/spl-token";
-import { ChevronDown, ArrowUpRight, UserRound, X, Coins } from "lucide-react";
+import { ChevronDown, ArrowUpRight, UserRound, X, Coins, Clock } from "lucide-react";
 import { SuccessAnimation } from "./animations/SuccessAnimation";
 import { EmptyTokens } from "./empty";
 import { Orbital } from "./loaders/Orbital";
 import { Dialog } from "./Dialog";
 import { TokenRow } from "./TokenRow";
 import { useAuth } from "@/app/context/AuthContext";
-import { proposeAndExecuteSponsored, loadSageAccount } from "@/lib/squads";
+import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
+import { proposeTransactionSponsored, loadSageAccount } from "@/lib/squads";
+import { postQueue, executeProposal } from "@/lib/api";
 import { useTokenAmountInput } from "@/hooks/useTokenAmountInput";
 import { formatTokenAmount, formatUSD, formatPrice } from "@/lib/format";
 import type { TokenPosition } from "@/lib/api";
 
-type Phase = "form" | "sending" | "success";
+type Phase = "form" | "proposing" | "reviewing" | "success";
 
 const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
 const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -101,7 +103,8 @@ interface SendDialogProps {
 }
 
 export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
-  const { wallet, getSolanaWallet } = useAuth();
+  const { wallet, getSolanaWallet, identityToken } = useAuth();
+  const { isScreeningActive } = useScreeningStatus();
 
   const [phase, setPhase] = useState<Phase>("form");
   const [txSig, setTxSig] = useState<string | null>(null);
@@ -143,7 +146,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         resetAmount();
         setSelectedToken(null);
         setTokenPickerOpen(false);
-      }, 350);
+      }, phase === "reviewing" ? 0 : 350);
       return () => clearTimeout(t);
     }
   }, [open, resetAmount]);
@@ -241,7 +244,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
     const account = loadSageAccount(wallet.address);
     if (!account) return;
 
-    setPhase("sending");
+    setPhase("proposing");
     setError(null);
 
     try {
@@ -255,11 +258,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
       if (isSol) {
         const lamports = BigInt(Math.round(amountNum * LAMPORTS_PER_SOL));
         instructions = [
-          SystemProgram.transfer({
-            fromPubkey: vaultPda,
-            toPubkey: recipientPubkey,
-            lamports,
-          }),
+          SystemProgram.transfer({ fromPubkey: vaultPda, toPubkey: recipientPubkey, lamports }),
         ];
         memo = `send: ${tokenAmount} SOL`;
       } else {
@@ -267,37 +266,48 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         const vaultAta = getAssociatedTokenAddressSync(mintPubkey, vaultPda, true);
         const recipientAta = getAssociatedTokenAddressSync(mintPubkey, recipientPubkey, false);
         const tokenUnits = BigInt(Math.round(amountNum * Math.pow(10, selectedToken!.decimals)));
-
         instructions = [
-          // Create recipient ATA if it doesn't exist (idempotent — safe to always include)
-          createAssociatedTokenAccountIdempotentInstruction(
-            vaultPda,
-            recipientAta,
-            recipientPubkey,
-            mintPubkey,
-          ),
-          createTransferCheckedInstruction(
-            vaultAta,
-            mintPubkey,
-            recipientAta,
-            vaultPda,
-            tokenUnits,
-            selectedToken!.decimals,
-          ),
+          createAssociatedTokenAccountIdempotentInstruction(vaultPda, recipientAta, recipientPubkey, mintPubkey),
+          createTransferCheckedInstruction(vaultAta, mintPubkey, recipientAta, vaultPda, tokenUnits, selectedToken!.decimals),
         ];
         memo = `send: ${tokenAmount} ${selectedToken!.symbol}`;
       }
 
-      const sig = await proposeAndExecuteSponsored(
-        connection,
-        solanaWallet,
-        multisigPda,
-        instructions,
-        memo
-      );
+      // 1. Propose + approve on-chain (user signs via Privy)
+      const txIndex = await proposeTransactionSponsored(connection, solanaWallet, multisigPda, instructions, memo);
 
-      setTxSig(sig);
-      setPhase("success");
+      // 2. Register with backend queue for risk screening
+      const amountUSD = selectedToken?.price && amountNum > 0
+        ? (amountNum * selectedToken.price).toFixed(2)
+        : undefined;
+
+      const queueResult = await postQueue({
+        multisigAddress: multisigPda.toBase58(),
+        vaultAddress: vaultPda.toBase58(),
+        proposalIndex: Number(txIndex),
+        to: resolvedAddress!,
+        amount: tokenAmount,
+        amountUSD,
+        tokenSymbol: selectedToken?.symbol,
+        tokenAddress: isSol ? undefined : selectedToken?.address,
+        tokenIconUrl: selectedToken?.iconUrl ?? undefined,
+        proposedBy: wallet.address,
+        screeningDisabled: !isScreeningActive,
+      }, identityToken ?? undefined);
+
+      if (!isScreeningActive) {
+        // Screening off — execute immediately
+        const execResult = await executeProposal(queueResult.id, identityToken ?? undefined);
+        setTxSig(execResult.signature ?? null);
+        setPhase("success");
+      } else if (queueResult.autoApproved) {
+        // AI approved and executed in one shot
+        setTxSig(queueResult.signature ?? null);
+        setPhase("success");
+      } else {
+        // Sent to Telegram for manual review
+        setPhase("reviewing");
+      }
     } catch (err) {
       setError(parseSendError(err));
       setPhase("form");
@@ -314,17 +324,17 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
       {/* Main send dialog — rendered first so the picker (below) stacks on top */}
       <Dialog
         open={open}
-        onClose={phase === "sending" ? () => {} : onClose}
+        onClose={phase === "proposing" ? () => {} : onClose}
         title="Send"
       >
-        {/* ── Sending state ── */}
-        {phase === "sending" && sendingToken && (
+        {/* ── Proposing state ── */}
+        {phase === "proposing" && sendingToken && (
           <div className="sdlg-state">
             <div className="sdlg-state-head">
               <div style={{ transform: "scale(0.65)", transformOrigin: "center" }}>
                 <Orbital />
               </div>
-              <p className="sdlg-state-label">Sending…</p>
+              <p className="sdlg-state-label">Proposing…</p>
               <p className="sdlg-state-sub">Sign in your wallet when prompted</p>
             </div>
             <div className="sdlg-tx-card">
@@ -340,6 +350,37 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
                 <dd title={sendingTo}>{truncate(sendingTo)}</dd>
               </div>
             </dl>
+          </div>
+        )}
+
+        {/* ── Reviewing state ── */}
+        {phase === "reviewing" && sendingToken && (
+          <div className="sdlg-state">
+            <div className="sdlg-state-head">
+              <div style={{
+                width: 80, height: 80, borderRadius: 20,
+                background: "rgba(251,191,36,.12)", color: "#fbbf24",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Clock size={36} />
+              </div>
+              <p className="sdlg-state-label" style={{ color: "#fbbf24" }}>Pending Review</p>
+              <p className="sdlg-state-sub">Your Sage agent is reviewing this transaction. You&apos;ll receive a Telegram notification.</p>
+            </div>
+            <div className="sdlg-tx-card">
+              <div className="sdlg-tx-arrow"><ArrowUpRight size={20} /></div>
+              <TxTokenIcon token={sendingToken} />
+              <span className="sdlg-tx-amount">
+                {sendingAmount} {sendingToken.symbol}
+              </span>
+            </div>
+            <dl className="sdlg-dl">
+              <div className="sdlg-dl-row">
+                <dt>To</dt>
+                <dd title={sendingTo}>{truncate(sendingTo)}</dd>
+              </div>
+            </dl>
+            <button className="sdlg-submit" onClick={onClose}>Done</button>
           </div>
         )}
 
@@ -508,7 +549,9 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
             {error && <p className="sdlg-error">{error}</p>}
 
             <button type="submit" className="sdlg-submit" disabled={!canSend}>
-              {canSend ? "Send" : resolvedAddress ? "Enter amount" : "Select recipient"}
+              {canSend
+                ? isScreeningActive ? "Propose" : "Send"
+                : resolvedAddress ? "Enter amount" : "Select recipient"}
             </button>
           </form>
         )}
