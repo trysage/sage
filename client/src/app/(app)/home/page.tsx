@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, Bell, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Plug,
-  CheckCircle2, XCircle,
+  ShieldOff, Settings,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { AgentId } from "@/components/AgentId";
@@ -17,6 +18,7 @@ import { SendDialog } from "@/components/SendDialog";
 import { TokenDetailDialog } from "@/components/TokenDetailDialog";
 import { EmptyTransactions, EmptyNFTs, EmptyTokens } from "@/components/empty";
 import { useAuth } from "@/app/context/AuthContext";
+import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
 import type { TokenPosition } from "@/lib/api";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -46,6 +48,18 @@ const rowVariants = {
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 
+function timeAgo(iso: string): string {
+  const secs = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (secs < 60) return "just now";
+  if (secs < 3600) return `${Math.floor(secs / 60)}m ago`;
+  if (secs < 86400) return `${Math.floor(secs / 3600)}h ago`;
+  return `${Math.floor(secs / 86400)}d ago`;
+}
+
+function truncAddr(addr: string) {
+  return addr.length > 16 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr;
+}
+
 function formatHeroBalance(usd: number): { integer: string; decimal: string } {
   const [intPart, decPart = "00"] = usd.toFixed(2).split(".");
   return { integer: `$${parseInt(intPart).toLocaleString("en-US")}`, decimal: `.${decPart}` };
@@ -55,8 +69,10 @@ function formatHeroBalance(usd: number): { integer: string; decimal: string } {
 
 export default function HomePage() {
   const { user, wallet, vaultPda, getSolanaWallet } = useAuth();
+  const { isScreeningActive, fullyActivated, loading: screeningLoading } = useScreeningStatus();
   const portfolio = usePortfolio();
   const txHistory = useTransactions();
+  const pendingTx = txHistory.data.find(tx => tx.status === "pending" || tx.inReview);
 
   const [activeTab, setActiveTab] = useState<Tab>("assets");
   const [showReceive, setShowReceive] = useState(false);
@@ -274,6 +290,9 @@ export default function HomePage() {
       {/* ── Right rail ── */}
       <motion.aside
         className="rail"
+        style={!screeningLoading && !isScreeningActive ? {
+          background: "radial-gradient(ellipse at 50% -10%, rgba(240,179,60,.04), transparent 50%), var(--ink-900)",
+        } : undefined}
         initial={{ opacity: 0, x: 16 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.3, duration: 0.5, type: "spring", bounce: 0.1 }}
@@ -283,36 +302,187 @@ export default function HomePage() {
             <Image src="/sage-mark-mint.png" alt="Sage" width={18} height={18} />
             Sage · live
           </span>
-          <span className="pulse">
-            <span className="dot" />
-            WATCHING
-          </span>
+          <AnimatePresence mode="wait">
+            {screeningLoading ? (
+              <motion.span
+                key="loading"
+                className="pulse"
+                style={{ color: "var(--ink-500)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <span className="dot" style={{ background: "var(--ink-500)", animation: "none", boxShadow: "none" }} />
+                SYNCING
+              </motion.span>
+            ) : isScreeningActive ? (
+              <motion.span
+                key="watching"
+                className="pulse"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <span className="dot" />
+                WATCHING
+              </motion.span>
+            ) : (
+              <motion.span
+                key="inactive"
+                className="pulse"
+                style={{ color: "var(--watch)" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <span className="dot" style={{ background: "var(--watch)", animation: "none", boxShadow: "0 0 8px var(--watch)" }} />
+                INACTIVE
+              </motion.span>
+            )}
+          </AnimatePresence>
         </div>
 
-        <p className="rail-quote">
-          "I review every signature so you don&#39;t have to.{" "}
-          <em>One needs you now.</em>"
-        </p>
+        <AnimatePresence mode="wait">
+          {isScreeningActive ? (
+            <motion.p
+              key="quote-active"
+              className="rail-quote"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+            >
+              "I review every signature so you don&#39;t have to.{" "}
+              <em>One needs you now.</em>"
+            </motion.p>
+          ) : (
+            <motion.p
+              key="quote-inactive"
+              className="rail-quote"
+              style={{ color: "var(--ink-300)" }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+            >
+              {!screeningLoading && (fullyActivated
+                ? "Screening is paused. Transactions execute without AI review."
+                : "Setup incomplete. Link Telegram to enable protection.")}
+            </motion.p>
+          )}
+        </AnimatePresence>
 
-        <div className="pending">
-          <div className="ph">
-            <span className="pill watch"><span className="dot" />REVIEW</span>
-            <span className="when">2 min ago</span>
-          </div>
-          <div>
-            <div className="who">Send to unknown wallet</div>
-            <div className="addr">8Hk2…Tx9R</div>
-            <div className="amt">−2.40 SOL · $396.00</div>
-          </div>
-          <p className="reason">
-            <em>Sage:</em> First-time recipient, but the address was copied from a
-            Telegram message you opened earlier. Holding for your tap.
-          </p>
-          <div className="acts">
-            <button className="approve"><CheckCircle2 size={14} /> Approve</button>
-            <button className="deny"><XCircle size={14} /> Deny</button>
-          </div>
-        </div>
+        <AnimatePresence mode="wait">
+          {isScreeningActive ? (
+            <AnimatePresence mode="wait">
+              {pendingTx ? (
+                <motion.div
+                  key="pending-real"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <div className="pending">
+                    <div className="ph">
+                      <span className="pill watch"><span className="dot" />REVIEW</span>
+                      <span className="when">{timeAgo(pendingTx.proposedAt)}</span>
+                    </div>
+                    <div>
+                      <div className="who">
+                        {pendingTx.amount && pendingTx.tokenSymbol
+                          ? `Send ${pendingTx.amount} ${pendingTx.tokenSymbol}`
+                          : "Pending transaction"}
+                      </div>
+                      {pendingTx.to && (
+                        <div className="addr">{truncAddr(pendingTx.to)}</div>
+                      )}
+                      {(pendingTx.amount || pendingTx.valueUSD) && (
+                        <div className="amt">
+                          {pendingTx.amount && pendingTx.tokenSymbol
+                            ? `−${pendingTx.amount} ${pendingTx.tokenSymbol}`
+                            : ""}
+                          {pendingTx.valueUSD
+                            ? ` · $${pendingTx.valueUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                            : ""}
+                        </div>
+                      )}
+                    </div>
+                    <p className="reason">
+                      <em>Sage:</em> Reviewing this transaction. Check your Telegram for the verdict.
+                    </p>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="pending-empty"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <RailScanPlaceholder />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          ) : !screeningLoading ? (
+            <motion.div
+              key="inactive-card"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+              style={{
+                background: "rgba(240,179,60,.05)",
+                border: "1px solid rgba(240,179,60,.14)",
+                borderRadius: 18,
+                padding: 18,
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                  background: "rgba(240,179,60,.1)", color: "var(--watch)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <ShieldOff size={18} />
+                </div>
+                <div>
+                  <p style={{ margin: 0, fontSize: 13.5, fontWeight: 600, color: "var(--ink-0)" }}>
+                    Guard inactive
+                  </p>
+                  <p style={{ margin: 0, marginTop: 2, fontSize: 11.5, color: "var(--ink-300)" }}>
+                    {fullyActivated ? "Screening paused by you" : "Telegram not connected"}
+                  </p>
+                </div>
+              </div>
+              <p style={{ margin: 0, fontSize: 12.5, color: "var(--ink-300)", lineHeight: 1.55 }}>
+                {fullyActivated
+                  ? "Transactions are executing immediately without AI review."
+                  : "Complete setup to let Sage screen transactions before they execute."}
+              </p>
+              <Link
+                href="/settings"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 7,
+                  padding: "9px 14px", borderRadius: 10,
+                  background: "rgba(240,179,60,.1)",
+                  border: "1px solid rgba(240,179,60,.2)",
+                  color: "var(--watch)",
+                  fontSize: 12.5, fontWeight: 600,
+                  textDecoration: "none",
+                  transition: "background .15s",
+                }}
+              >
+                <Settings size={13} />
+                {fullyActivated ? "Enable Sage Guard" : "Complete Setup"}
+              </Link>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
 
         <div className="rail-h2">
           <span>Recent decisions</span>
@@ -362,6 +532,53 @@ export default function HomePage() {
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+function RailScanPlaceholder() {
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", alignItems: "center",
+      gap: 16, padding: "20px 0",
+    }}>
+      {/* Sonar animation */}
+      <div style={{ position: "relative", width: 72, height: 72, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: "50%",
+              border: "1px solid rgba(91,209,142,.4)",
+            }}
+            animate={{ scale: [1, 2.2], opacity: [0.5, 0] }}
+            transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.8, ease: "easeOut" }}
+          />
+        ))}
+        <motion.div
+          style={{
+            width: 40, height: 40, borderRadius: "50%",
+            background: "rgba(91,209,142,.10)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          animate={{ scale: [1, 1.06, 1] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/sage-mark-mint.png" alt="" style={{ width: 22, height: 22, opacity: 0.85 }} />
+        </motion.div>
+      </div>
+
+      <div style={{ textAlign: "center" }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-200)", margin: 0 }}>
+          Examining your onchain moves
+        </p>
+        <p style={{ fontSize: 11.5, color: "var(--ink-500)", margin: "4px 0 0", lineHeight: 1.5 }}>
+          No pending transactions right now
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function SkeletonRows({ count }: { count: number }) {
   return (
