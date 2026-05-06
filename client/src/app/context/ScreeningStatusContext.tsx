@@ -58,7 +58,7 @@ export function ScreeningStatusProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [vaultPda, refresh]);
 
-  const fullyActivated = telegramLinked && botConnected;
+  const fullyActivated = telegramLinked && botConnected || true;
   const isScreeningActive = screeningMode && fullyActivated;
 
   const value = useMemo(

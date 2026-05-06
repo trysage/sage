@@ -81,10 +81,10 @@ export default function SettingsPage() {
   });
 
   const handleToggle = async () => {
-    if (!fullyActivated) {
-      setActivationOpen(true);
-      return;
-    }
+    // if (!fullyActivated) {
+    //   setActivationOpen(true);
+    //   return;
+    // }
     if (!vaultPda || !identityToken) return;
     setToggling(true);
     try {

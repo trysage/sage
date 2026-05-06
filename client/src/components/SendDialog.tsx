@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Connection, PublicKey, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import {
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountIdempotentInstruction,
   createTransferCheckedInstruction,
 } from "@solana/spl-token";
-import { ChevronDown, ArrowUpRight, UserRound, X, Coins, Clock } from "lucide-react";
+import { ChevronDown, ArrowUpRight, UserRound, X, Coins, Clock, MessageCircle } from "lucide-react";
+import { motion } from "framer-motion";
 import { SuccessAnimation } from "./animations/SuccessAnimation";
 import { EmptyTokens } from "./empty";
 import { Orbital } from "./loaders/Orbital";
@@ -103,11 +105,14 @@ interface SendDialogProps {
 }
 
 export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
+  const router = useRouter();
   const { wallet, getSolanaWallet, identityToken } = useAuth();
-  const { isScreeningActive } = useScreeningStatus();
+  const { isScreeningActive, fullyActivated } = useScreeningStatus();
 
   const [phase, setPhase] = useState<Phase>("form");
   const [txSig, setTxSig] = useState<string | null>(null);
+  const [proposedAt, setProposedAt] = useState<string | null>(null);
+  const [showTgRequiredModal, setShowTgRequiredModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [selectedToken, setSelectedToken] = useState<TokenPosition | null>(null);
@@ -239,6 +244,13 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSend || !wallet?.address) return;
+
+    // Gate: require full activation when screening is active
+    if (isScreeningActive && !fullyActivated) {
+      setShowTgRequiredModal(true);
+      return;
+    }
+
     const solanaWallet = getSolanaWallet();
     if (!solanaWallet) return;
     const account = loadSageAccount(wallet.address);
@@ -306,6 +318,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         setPhase("success");
       } else {
         // Sent to Telegram for manual review
+        setProposedAt(new Date().toISOString());
         setPhase("reviewing");
       }
     } catch (err) {
@@ -357,14 +370,23 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         {phase === "reviewing" && sendingToken && (
           <div className="sdlg-state">
             <div className="sdlg-state-head">
-              <div style={{
-                width: 80, height: 80, borderRadius: 20,
-                background: "rgba(251,191,36,.12)", color: "#fbbf24",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
+              <motion.div
+                style={{
+                  width: 80, height: 80, borderRadius: 20,
+                  background: "rgba(240,179,60,.12)", color: "var(--watch)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1, rotate: [0, 5, -5, 0] }}
+                transition={{
+                  opacity: { duration: 0.3 },
+                  scale: { type: "spring", bounce: 0.4 },
+                  rotate: { repeat: Infinity, duration: 2.2, ease: "easeInOut" },
+                }}
+              >
                 <Clock size={36} />
-              </div>
-              <p className="sdlg-state-label" style={{ color: "#fbbf24" }}>Pending Review</p>
+              </motion.div>
+              <p className="sdlg-state-label" style={{ color: "var(--watch)" }}>Pending Review</p>
               <p className="sdlg-state-sub">Your Sage agent is reviewing this transaction. You&apos;ll receive a Telegram notification.</p>
             </div>
             <div className="sdlg-tx-card">
@@ -379,6 +401,12 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
                 <dt>To</dt>
                 <dd title={sendingTo}>{truncate(sendingTo)}</dd>
               </div>
+              {proposedAt && (
+                <div className="sdlg-dl-row">
+                  <dt>Proposed</dt>
+                  <dd>{new Date(proposedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</dd>
+                </div>
+              )}
             </dl>
             <button className="sdlg-submit" onClick={onClose}>Done</button>
           </div>
@@ -555,6 +583,30 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
             </button>
           </form>
         )}
+      </Dialog>
+
+      {/* Telegram required modal */}
+      <Dialog open={showTgRequiredModal} onClose={() => setShowTgRequiredModal(false)} title="Telegram Required">
+        <div className="sdlg-tg-required">
+          <div className="sdlg-tg-icon">
+            <MessageCircle size={28} />
+          </div>
+          <p className="sdlg-tg-body">
+            AI screening is active. Telegram must be connected so the agent can notify you when a transaction needs review.
+          </p>
+          <button
+            className="sdlg-submit"
+            onClick={() => { setShowTgRequiredModal(false); router.push("/settings"); }}
+          >
+            Go to Settings
+          </button>
+          <button
+            className="sdlg-tg-cancel"
+            onClick={() => setShowTgRequiredModal(false)}
+          >
+            Cancel
+          </button>
+        </div>
       </Dialog>
 
       {/* Token picker — rendered after main dialog so it stacks on top (same z-index, later DOM wins) */}

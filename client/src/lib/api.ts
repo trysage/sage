@@ -62,6 +62,8 @@ export interface TransactionItem {
   executedAt: string | null;
   txSignature: string | null;
   status: string;
+  inReview?: boolean;
+  riskVerdict?: "APPROVE" | "REVIEW" | "BLOCK" | null;
   source: "sage-only" | "zerion-only" | "both";
   direction?: "send" | "receive";
   operationType?: string;
