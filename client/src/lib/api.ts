@@ -136,3 +136,85 @@ export async function getTokenChart(
   if (!res.ok) throw new Error(`Token chart fetch failed: ${res.status}`);
   return res.json();
 }
+
+// ── Screening status ──────────────────────────────────────────────────────────
+
+export interface StatusResponse {
+  screeningMode: boolean;
+  botConnected: boolean;
+  telegramChatId: string | null;
+  lastCheck: string | null;
+}
+
+export async function getStatus(vaultAddress: string, token?: string): Promise<StatusResponse> {
+  const res = await fetch(`${API_URL}/status?vault=${encodeURIComponent(vaultAddress)}`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error(`Status fetch failed: ${res.status}`);
+  return res.json();
+}
+
+export async function patchStatus(
+  vaultAddress: string,
+  patch: { screeningMode?: boolean; telegramChatId?: string; botConnected?: boolean },
+  token?: string
+): Promise<StatusResponse> {
+  const res = await fetch(`${API_URL}/status`, {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify({ vault: vaultAddress, ...patch }),
+  });
+  if (!res.ok) throw new Error(`Status update failed: ${res.status}`);
+  return res.json();
+}
+
+// ── Queue ─────────────────────────────────────────────────────────────────────
+
+export interface QueuePayload {
+  multisigAddress: string;
+  vaultAddress: string;
+  proposalIndex?: number;
+  to: string;
+  amount: string;
+  amountUSD?: string;
+  tokenSymbol?: string;
+  tokenAddress?: string;
+  tokenIconUrl?: string;
+  proposedBy?: string;
+  screeningDisabled?: boolean;
+}
+
+export interface QueueResponse {
+  success: boolean;
+  id: string;
+  risk?: { riskScore: number; verdict: string; reasons: string[] };
+  autoApproved?: boolean;
+  signature?: string;
+}
+
+export async function postQueue(payload: QueuePayload, token?: string): Promise<QueueResponse> {
+  const res = await fetch(`${API_URL}/queue`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error ?? `Queue failed: ${res.status}`);
+  return data;
+}
+
+// ── Execute ───────────────────────────────────────────────────────────────────
+
+export async function executeProposal(
+  proposalId: string,
+  token?: string
+): Promise<{ signature?: string; status?: string }> {
+  const res = await fetch(`${API_URL}/execute`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ proposalId }),
+  });
+  const data = await res.json();
+  if (!res.ok || data.error) throw new Error(data.error ?? `Execute failed: ${res.status}`);
+  return data;
+}
