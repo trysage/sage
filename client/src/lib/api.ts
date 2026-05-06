@@ -137,6 +137,26 @@ export async function getTokenChart(
   return res.json();
 }
 
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+export async function upsertUser(
+  fields: {
+    vaultAddress: string;
+    signerAddress?: string;
+    name?: string;
+    email?: string;
+    telegramId?: string;
+  },
+  token?: string
+): Promise<void> {
+  const res = await fetch(`${API_URL}/users`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error(`User upsert failed: ${res.status}`);
+}
+
 // ── Screening status ──────────────────────────────────────────────────────────
 
 export interface StatusResponse {

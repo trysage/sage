@@ -57,6 +57,8 @@ export interface AuthContextType {
   getSolanaWallet: () => ConnectedStandardSolanaWallet | null;
   identityToken: string | null;
   privyUser: ReturnType<typeof usePrivy>["user"];
+  /** Telegram user ID if Telegram is linked via Privy */
+  telegramUserId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -177,6 +179,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).catch((e) => console.error("User sync failed:", e));
   }, [vaultPda, identityToken, primarySolanaWallet, privyUser]);
 
+  const telegramUserId = useMemo(() => {
+    if (!privyUser) return null;
+    const tgAccount = (privyUser.linkedAccounts as unknown as Array<Record<string, unknown>> | undefined)
+      ?.find((a) => a.type === "telegram");
+    if (!tgAccount) return null;
+    return String((tgAccount.telegramUserId ?? tgAccount.subject ?? tgAccount.username ?? "") as string) || null;
+  }, [privyUser]);
+
   const user: AuthUser | null = useMemo(() => {
     if (!privyUser) return null;
     const google = (
@@ -244,8 +254,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       getSolanaWallet,
       identityToken: identityToken ?? null,
       privyUser: privyUser ?? null,
+      telegramUserId,
     }),
-    [user, wallet, evmWallet, vaultPda, loading, login, logout, getSolanaWallet, identityToken, privyUser]
+    [user, wallet, evmWallet, vaultPda, loading, login, logout, getSolanaWallet, identityToken, privyUser, telegramUserId]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

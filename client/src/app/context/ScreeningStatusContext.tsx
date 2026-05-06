@@ -2,82 +2,83 @@
 
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
   useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
   type ReactNode,
 } from "react";
+import { getStatus } from "@/lib/api";
 import { useAuth } from "./AuthContext";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
-
-interface ScreeningStatus {
+interface ScreeningStatusContextType {
   screeningMode: boolean;
   botConnected: boolean;
-  telegramChatId: string | null;
   telegramLinked: boolean;
   fullyActivated: boolean;
   isScreeningActive: boolean;
   loading: boolean;
   setScreeningMode: (v: boolean) => void;
   setBotConnected: (v: boolean) => void;
-  setTelegramChatId: (v: string | null) => void;
-  refetch: () => void;
+  setTelegramLinked: (v: boolean) => void;
+  refresh: () => Promise<void>;
 }
 
-const ScreeningStatusContext = createContext<ScreeningStatus | null>(null);
+const ScreeningStatusContext = createContext<ScreeningStatusContextType | null>(null);
 
 export function ScreeningStatusProvider({ children }: { children: ReactNode }) {
-  const { vaultPda, identityToken } = useAuth();
+  const { vaultPda, identityToken, telegramUserId } = useAuth();
   const [screeningMode, setScreeningMode] = useState(false);
   const [botConnected, setBotConnected] = useState(false);
-  const [telegramChatId, setTelegramChatId] = useState<string | null>(null);
+  const [telegramLinked, setTelegramLinked] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const refetch = useCallback(() => {
-    if (!vaultPda || !identityToken) {
-      setLoading(false);
-      return;
+  // Drive telegramLinked from Privy's linked accounts (same as zhentan)
+  useEffect(() => {
+    setTelegramLinked(!!telegramUserId);
+  }, [telegramUserId]);
+
+  const refresh = useCallback(async () => {
+    if (!vaultPda || !identityToken) return;
+    try {
+      const data = await getStatus(vaultPda, identityToken);
+      setScreeningMode(data.screeningMode ?? false);
+      setBotConnected(data.botConnected ?? false);
+    } catch {
+      // silent
     }
-    setLoading(true);
-    fetch(`${API_URL}/status?vault=${encodeURIComponent(vaultPda)}`, {
-      headers: { Authorization: `Bearer ${identityToken}` },
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        setScreeningMode(d.screeningMode ?? false);
-        setBotConnected(d.botConnected ?? false);
-        setTelegramChatId(d.telegramChatId ?? null);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
   }, [vaultPda, identityToken]);
 
   useEffect(() => {
-    refetch();
-  }, [refetch]);
+    if (!vaultPda) return;
+    setLoading(true);
+    refresh().finally(() => setLoading(false));
+    const interval = setInterval(refresh, 30_000);
+    return () => clearInterval(interval);
+  }, [vaultPda, refresh]);
 
-  const telegramLinked = !!telegramChatId;
   const fullyActivated = telegramLinked && botConnected;
   const isScreeningActive = screeningMode && fullyActivated;
 
+  const value = useMemo(
+    () => ({
+      screeningMode,
+      botConnected,
+      telegramLinked,
+      fullyActivated,
+      isScreeningActive,
+      loading,
+      setScreeningMode,
+      setBotConnected,
+      setTelegramLinked,
+      refresh,
+    }),
+    [screeningMode, botConnected, telegramLinked, fullyActivated, isScreeningActive, loading, refresh]
+  );
+
   return (
-    <ScreeningStatusContext.Provider
-      value={{
-        screeningMode,
-        botConnected,
-        telegramChatId,
-        telegramLinked,
-        fullyActivated,
-        isScreeningActive,
-        loading,
-        setScreeningMode,
-        setBotConnected,
-        setTelegramChatId,
-        refetch,
-      }}
-    >
+    <ScreeningStatusContext.Provider value={value}>
       {children}
     </ScreeningStatusContext.Provider>
   );

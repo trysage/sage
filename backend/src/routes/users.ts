@@ -33,11 +33,11 @@ export function createUsersRouter(): Router {
   /**
    * POST /users — upsert user record (called on login / onboarding)
    *
-   * Body: { vaultAddress, multisigAddress?, signerAddress?, name?, email? }
+   * Body: { vaultAddress, multisigAddress?, signerAddress?, name?, email?, telegramId? }
    */
   router.post("/", async (req: Request, res: Response) => {
     try {
-      const { vaultAddress, multisigAddress, signerAddress, name, email } = req.body ?? {};
+      const { vaultAddress, multisigAddress, signerAddress, name, email, telegramId } = req.body ?? {};
       if (!vaultAddress || !SOLANA_ADDRESS_RE.test(vaultAddress)) {
         res.status(400).json({ error: "Missing or invalid vaultAddress" });
         return;
@@ -47,6 +47,7 @@ export function createUsersRouter(): Router {
         signer_address: signerAddress ?? null,
         name: name ?? null,
         email: email ?? null,
+        ...(telegramId !== undefined ? { telegram_chat_id: telegramId || null } : {}),
       });
       res.json({ user });
     } catch (err) {
