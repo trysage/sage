@@ -12,6 +12,8 @@ import type { ConnectedStandardSolanaWallet } from "@privy-io/react-auth/solana"
 
 const storageKey = (walletAddress: string) => `sage_multisig_v1_${walletAddress}`;
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+
 function sponsorPubkey(): PublicKey {
   const key = process.env.NEXT_PUBLIC_SPONSOR_PUBKEY;
   if (!key) throw new Error("NEXT_PUBLIC_SPONSOR_PUBKEY not configured");
@@ -45,7 +47,7 @@ async function buildAndSendSponsored(
   });
   const userSignedTx = VersionedTransaction.deserialize(signedTransaction);
 
-  const res = await fetch("/api/sponsor/send", {
+  const res = await fetch(`${API_URL}/sponsor/send`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -67,7 +69,7 @@ async function buildAndSendSponsored(
 export async function createSageAccountSponsored(
   userPubkey: string
 ): Promise<{ multisigPda: PublicKey; vaultPda: PublicKey }> {
-  const res = await fetch("/api/sponsor/create", {
+  const res = await fetch(`${API_URL}/sponsor/create`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userPubkey }),
@@ -145,44 +147,28 @@ export async function proposeTransactionSponsored(
 }
 
 /**
- * Execute an approved vault transaction. Server pays the fee. User signs as
- * member via Privy. After execution, the server closes the vault transaction
- * and proposal accounts to reclaim rent (fire-and-forget).
+ * Execute an approved vault transaction.
+ * The backend holds Execute permission on the multisig and signs autonomously —
+ * no client wallet signature is required.
  */
 export async function executeTransactionSponsored(
-  connection: Connection,
-  solanaWallet: ConnectedStandardSolanaWallet,
+  _connection: Connection,
+  _solanaWallet: ConnectedStandardSolanaWallet,
   multisigPda: PublicKey,
   transactionIndex: bigint
 ): Promise<string> {
-  const member = new PublicKey(solanaWallet.address);
-
-  const { instruction, lookupTableAccounts } =
-    await multisig.instructions.vaultTransactionExecute({
-      connection,
-      multisigPda,
-      transactionIndex,
-      member,
-    });
-
-  const sig = await buildAndSendSponsored(
-    connection,
-    solanaWallet,
-    [instruction],
-    lookupTableAccounts
-  );
-
-  // Fire-and-forget: server reclaims rent from the now-executed tx/proposal accounts.
-  fetch("/api/sponsor/close", {
+  const res = await fetch(`${API_URL}/execute`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       multisigPda: multisigPda.toBase58(),
       transactionIndex: transactionIndex.toString(),
     }),
-  }).catch((e) => console.warn("[sponsor/close] rent reclaim failed:", e));
+  });
 
-  return sig;
+  const data = await res.json() as { signature?: string; error?: string };
+  if (!res.ok || data.error) throw new Error(data.error ?? "Execute failed");
+  return data.signature!;
 }
 
 /**
