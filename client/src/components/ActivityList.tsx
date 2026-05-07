@@ -58,9 +58,10 @@ const rowVariants = {
 
 interface ActivityListProps {
   transactions: TransactionItem[];
+  onSelect?: (tx: TransactionItem) => void;
 }
 
-export function ActivityList({ transactions }: ActivityListProps) {
+export function ActivityList({ transactions, onSelect }: ActivityListProps) {
   const groups = groupByDate(transactions);
 
   return (
@@ -72,7 +73,11 @@ export function ActivityList({ transactions }: ActivityListProps) {
             const ts = tx.executedAt ?? tx.proposedAt;
             return (
               <motion.div key={tx.id} variants={rowVariants}>
-                <ActivityRow tx={tx} formattedTime={isToday ? undefined : timeOnly(ts)} />
+                <ActivityRow
+                  tx={tx}
+                  formattedTime={isToday ? undefined : timeOnly(ts)}
+                  onClick={onSelect ? () => onSelect(tx) : undefined}
+                />
               </motion.div>
             );
           })}

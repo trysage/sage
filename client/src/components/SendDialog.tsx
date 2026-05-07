@@ -8,8 +8,8 @@ import {
   createAssociatedTokenAccountIdempotentInstruction,
   createTransferCheckedInstruction,
 } from "@solana/spl-token";
-import { ChevronDown, ArrowUpRight, UserRound, X, Coins, Clock, MessageCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { ChevronDown, ArrowUpRight, UserRound, X, Coins, MessageCircle } from "lucide-react";
+import { PendingAnimation } from "./animations/PendingAnimation";
 import { SuccessAnimation } from "./animations/SuccessAnimation";
 import { EmptyTokens } from "./empty";
 import { Orbital } from "./loaders/Orbital";
@@ -370,22 +370,7 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         {phase === "reviewing" && sendingToken && (
           <div className="sdlg-state">
             <div className="sdlg-state-head">
-              <motion.div
-                style={{
-                  width: 80, height: 80, borderRadius: 20,
-                  background: "rgba(240,179,60,.12)", color: "var(--watch)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1, rotate: [0, 5, -5, 0] }}
-                transition={{
-                  opacity: { duration: 0.3 },
-                  scale: { type: "spring", bounce: 0.4 },
-                  rotate: { repeat: Infinity, duration: 2.2, ease: "easeInOut" },
-                }}
-              >
-                <Clock size={36} />
-              </motion.div>
+              <PendingAnimation size={120} />
               <p className="sdlg-state-label" style={{ color: "var(--watch)" }}>Pending Review</p>
               <p className="sdlg-state-sub">Your Sage agent is reviewing this transaction. You&apos;ll receive a Telegram notification.</p>
             </div>

@@ -34,9 +34,10 @@ function TokenAvatar({ iconUrl, symbol }: { iconUrl: string | null; symbol: stri
 interface ActivityRowProps {
   tx: TransactionItem;
   formattedTime?: string;
+  onClick?: () => void;
 }
 
-export function ActivityRow({ tx, formattedTime }: ActivityRowProps) {
+export function ActivityRow({ tx, formattedTime, onClick }: ActivityRowProps) {
   const dir = tx.direction ?? (tx.status === "executed" ? "send" : "send");
   const op = tx.operationType ?? "send";
   const isTrade = op === "trade";
@@ -63,12 +64,8 @@ export function ActivityRow({ tx, formattedTime }: ActivityRowProps) {
 
   const usdDisplay = formatUSD(tx.valueUSD);
 
-  const explorerHref = tx.txSignature
-    ? `https://explorer.solana.com/tx/${tx.txSignature}`
-    : null;
-
   return (
-    <div className="act-row">
+    <div className="act-row" onClick={onClick} style={onClick ? { cursor: "pointer" } : undefined}>
       <div className="act-ico"><TokenAvatar iconUrl={tx.tokenIconUrl} symbol={tx.tokenSymbol} /></div>
 
       <div className="act-body">
@@ -90,16 +87,6 @@ export function ActivityRow({ tx, formattedTime }: ActivityRowProps) {
           </span>
         )}
         {usdDisplay && <span className="act-usd">{usdDisplay}</span>}
-        {explorerHref && (
-          <a
-            className="act-link"
-            href={explorerHref}
-            target="_blank"
-            rel="noreferrer"
-          >
-            ↗
-          </a>
-        )}
       </div>
     </div>
   );

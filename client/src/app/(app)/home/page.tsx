@@ -16,10 +16,12 @@ import { ActivityList } from "@/components/ActivityList";
 import { ReceiveDialog } from "@/components/ReceiveDialog";
 import { SendDialog } from "@/components/SendDialog";
 import { TokenDetailDialog } from "@/components/TokenDetailDialog";
+import { TransactionDetailDialog } from "@/components/TransactionDetailDialog";
 import { EmptyTransactions, EmptyNFTs, EmptyTokens } from "@/components/empty";
+import { PendingAnimation } from "@/components/animations/PendingAnimation";
 import { useAuth } from "@/app/context/AuthContext";
 import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
-import type { TokenPosition } from "@/lib/api";
+import type { TokenPosition, TransactionItem } from "@/lib/api";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useTransactions } from "@/hooks/useTransactions";
 import { padTokensWithFallbacks } from "@/lib/tokenFallbacks";
@@ -78,6 +80,7 @@ export default function HomePage() {
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [selectedToken, setSelectedToken] = useState<TokenPosition | null>(null);
+  const [selectedTx, setSelectedTx] = useState<TransactionItem | null>(null);
   // ── Derived values ────────────────────────────────────────────────────────
   const totalUsd = portfolio.data?.totalUsd ?? null;
   const pct = portfolio.data?.percentChange24h ?? null;
@@ -270,7 +273,7 @@ export default function HomePage() {
                   <EmptyTransactions onCta={() => setShowSend(true)} />
                 )}
                 {!txHistory.loading && txHistory.data.length > 0 && (
-                  <ActivityList transactions={txHistory.data} />
+                  <ActivityList transactions={txHistory.data} onSelect={setSelectedTx} />
                 )}
               </div>
             )}
@@ -383,30 +386,33 @@ export default function HomePage() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <div className="pending">
+                  <div className="pending" onClick={() => setSelectedTx(pendingTx)} style={{ cursor: "pointer" }}>
                     <div className="ph">
                       <span className="pill watch"><span className="dot" />REVIEW</span>
                       <span className="when">{timeAgo(pendingTx.proposedAt)}</span>
                     </div>
-                    <div>
-                      <div className="who">
-                        {pendingTx.amount && pendingTx.tokenSymbol
-                          ? `Send ${pendingTx.amount} ${pendingTx.tokenSymbol}`
-                          : "Pending transaction"}
-                      </div>
-                      {pendingTx.to && (
-                        <div className="addr">{truncAddr(pendingTx.to)}</div>
-                      )}
-                      {(pendingTx.amount || pendingTx.valueUSD) && (
-                        <div className="amt">
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <PendingAnimation size={48} />
+                      <div>
+                        <div className="who">
                           {pendingTx.amount && pendingTx.tokenSymbol
-                            ? `−${pendingTx.amount} ${pendingTx.tokenSymbol}`
-                            : ""}
-                          {pendingTx.valueUSD
-                            ? ` · $${pendingTx.valueUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                            : ""}
+                            ? `Send ${pendingTx.amount} ${pendingTx.tokenSymbol}`
+                            : "Pending transaction"}
                         </div>
-                      )}
+                        {pendingTx.to && (
+                          <div className="addr">{truncAddr(pendingTx.to)}</div>
+                        )}
+                        {(pendingTx.amount || pendingTx.valueUSD) && (
+                          <div className="amt">
+                            {pendingTx.amount && pendingTx.tokenSymbol
+                              ? `−${pendingTx.amount} ${pendingTx.tokenSymbol}`
+                              : ""}
+                            {pendingTx.valueUSD
+                              ? ` · $${pendingTx.valueUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                              : ""}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <p className="reason">
                       <em>Sage:</em> This transaction needs your approval on TG. Communicate with the Sage on TG to approve or block the transaction.
@@ -526,6 +532,12 @@ export default function HomePage() {
         open={selectedToken !== null}
         onClose={() => setSelectedToken(null)}
         token={selectedToken}
+      />
+
+      <TransactionDetailDialog
+        open={selectedTx !== null}
+        onClose={() => setSelectedTx(null)}
+        tx={selectedTx}
       />
     </div>
   );
