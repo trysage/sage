@@ -62,6 +62,32 @@ function truncAddr(addr: string) {
   return addr.length > 16 ? `${addr.slice(0, 6)}…${addr.slice(-4)}` : addr;
 }
 
+function traceFromTx(tx: TransactionItem): { pill: "safe" | "watch" | "danger"; label: string; title: string; meta: string } {
+  const op = tx.operationType ?? "send";
+  const isTrade = op === "trade";
+  const title = isTrade && tx.tradeReceived
+    ? `Swap ${tx.tokenSymbol ?? ""} → ${tx.tradeReceived.symbol}`
+    : tx.amount && tx.tokenSymbol
+      ? `${op.charAt(0).toUpperCase() + op.slice(1)} ${tx.amount} ${tx.tokenSymbol}`
+      : op.charAt(0).toUpperCase() + op.slice(1);
+
+  const toStr = tx.to ? `→ ${truncAddr(tx.to)}` : "";
+  const usdStr = tx.valueUSD ? ` · $${tx.valueUSD.toFixed(2)}` : "";
+  const meta = [toStr, usdStr].filter(Boolean).join("") || "—";
+
+  const verdict = tx.riskVerdict;
+  if (verdict === "APPROVE" || tx.status === "executed") {
+    return { pill: "safe", label: "PASS", title, meta };
+  }
+  if (verdict === "BLOCK" || tx.status === "blocked") {
+    return { pill: "danger", label: "BLOCK", title, meta };
+  }
+  if (tx.status === "rejected") {
+    return { pill: "danger", label: "REJECTED", title, meta };
+  }
+  return { pill: "watch", label: "REVIEW", title, meta };
+}
+
 function formatHeroBalance(usd: number): { integer: string; decimal: string } {
   const [intPart, decPart = "00"] = usd.toFixed(2).split(".");
   return { integer: `$${parseInt(intPart).toLocaleString("en-US")}`, decimal: `.${decPart}` };
@@ -502,17 +528,37 @@ export default function HomePage() {
           animate="visible"
           transition={{ delayChildren: 0.4 }}
         >
-          {[
-            { ts: "00:14:02", pill: "safe"   as const, label: "PASS",  title: "Swap on Jupiter",    meta: "0.84 SOL → 132 USDC · within band" },
-            { ts: "00:11:48", pill: "safe"   as const, label: "PASS",  title: "Stake to Jito",      meta: "5 SOL · routine" },
-            { ts: "00:08:21", pill: "danger" as const, label: "BLOCK", title: "Drainer signature",  meta: "DRA1…nrZk · simulated −all SOL" },
-            { ts: "00:02:55", pill: "safe"   as const, label: "PASS",  title: "USDC to Coinbase",   meta: "120 USDC · seen 8× before" },
-            { ts: "yesterday",pill: "watch"  as const, label: "HELD",  title: "New site connected", meta: "jup.ag · read-only · approved by you" },
-          ].map((row) => (
-            <motion.div key={row.ts} variants={rowVariants}>
-              <TraceRow {...row} />
-            </motion.div>
-          ))}
+          {txHistory.data
+            .filter(tx =>
+              tx.source !== "zerion-only" ||
+              tx.riskVerdict != null ||
+              tx.inReview === true ||
+              tx.status === "blocked" ||
+              tx.status === "rejected"
+            )
+            .slice(0, 10)
+            .map(tx => ({
+              tx,
+              ts: timeAgo(tx.executedAt ?? tx.proposedAt),
+              ...traceFromTx(tx),
+            }))
+            .map(({ tx, ts, pill, label, title, meta }) => (
+              <motion.div key={tx.id} variants={rowVariants}>
+                <TraceRow ts={ts} pill={pill} label={label} title={title} meta={meta} onClick={() => setSelectedTx(tx)} />
+              </motion.div>
+            ))
+          }
+          {!txHistory.loading && txHistory.data.filter(tx =>
+            tx.source !== "zerion-only" ||
+            tx.riskVerdict != null ||
+            tx.inReview === true ||
+            tx.status === "blocked" ||
+            tx.status === "rejected"
+          ).length === 0 && (
+            <p style={{ fontSize: 12, color: "var(--ink-500)", textAlign: "center", margin: "12px 0" }}>
+              No screened transactions yet
+            </p>
+          )}
         </motion.div>
       </motion.aside>
 
