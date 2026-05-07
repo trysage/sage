@@ -1,16 +1,18 @@
-interface AgentIdProps {
-  label?: string;
-}
+"use client";
 
-export function AgentId({ label = "Watching" }: AgentIdProps) {
+import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
+
+export function AgentId() {
+  const { isScreeningActive, loading } = useScreeningStatus();
+  const inactive = !loading && !isScreeningActive;
+
   return (
-    <span className="agent-id">
+    <span className={`agent-id${inactive ? " inactive" : ""}`}>
       <span className="av">
-        {/* plain img — avoids Next.js Image inline-size override on small icons */}
         <img src="/sage-mark-mint.png" alt="Sage" />
       </span>
-      <span>{label}</span>
-      <span className="live" />
+      <span>Sage · {inactive ? "OFF" : "ON"}</span>
+      <span className={`live${inactive ? " inactive" : ""}`} />
     </span>
   );
 }

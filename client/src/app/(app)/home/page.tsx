@@ -329,7 +329,7 @@ export default function HomePage() {
         <div className="rail-head">
           <span className="title">
             <Image src="/sage-mark-mint.png" alt="Sage" width={18} height={18} />
-            Sage · live
+            Sage ·
           </span>
           <AnimatePresence mode="wait">
             {screeningLoading ? (
