@@ -604,6 +604,14 @@ body {
   background: rgba(229,82,79,.12);
 }
 .act-blocked-pill .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
+.act-rejected-pill {
+  align-self: flex-end;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--danger); padding: 2px 6px; border-radius: 999px;
+  background: rgba(229,82,79,.12);
+}
+.act-rejected-pill .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
 .act-link {
   font-family: var(--font-mono); font-size: 10px; color: var(--ink-500);
   text-decoration: none;
@@ -1690,6 +1698,7 @@ body {
 .txdlg-status-label.safe   { color: var(--mint-300); }
 .txdlg-status-label.watch  { color: var(--watch); }
 .txdlg-status-label.danger { color: var(--danger); }
+.txdlg-status-label.muted  { color: var(--danger); }
 .txdlg-blocked-ico {
   width: 80px; height: 80px; border-radius: 50%;
   background: rgba(229,82,79,.1);
@@ -2088,16 +2097,16 @@ body {
 /* A3 — SCANNING (radar) */
 .a-scan { position: relative; }
 .a-scan svg { width: 100%; height: 100%; overflow: visible; }
-.a-scan .radar-ring { fill: none; stroke: rgba(111,217,210,.22); stroke-width: 1; }
-.a-scan .radar-ring.dim { stroke: rgba(111,217,210,.12); stroke-dasharray: 2 3; }
-.a-scan .radar-axis { stroke: rgba(111,217,210,.18); stroke-width: 1; fill: none; }
-.a-scan .radar-sweep { transform-origin: 100px 100px; animation: radar-spin 3s linear infinite; }
-.a-scan .radar-center { fill: var(--cyan); }
-.a-scan .blip { fill: var(--cyan); opacity: 0; transform-origin: 100px 100px; animation: blip-flash 3s linear infinite; }
+.a-scan .radar-ring { fill: none; stroke: rgba(91,209,142,.22); stroke-width: 1; }
+.a-scan .radar-ring.dim { stroke: rgba(91,209,142,.12); stroke-dasharray: 2 3; }
+.a-scan .radar-axis { stroke: rgba(91,209,142,.18); stroke-width: 1; fill: none; }
+.a-scan .radar-sweep { transform-box: view-box; transform-origin: 50% 50%; animation: radar-spin 3s linear infinite; }
+.a-scan .radar-center { fill: var(--mint-400); }
+.a-scan .blip { fill: var(--mint-400); opacity: 0; transform-box: view-box; transform-origin: 50% 50%; animation: blip-flash 3s linear infinite; }
 .a-scan .blip.b1 { animation-delay: 0s; }
 .a-scan .blip.b2 { animation-delay: -1s; }
 .a-scan .blip.b3 { animation-delay: -2s; }
-.a-scan .blip-ring { fill: none; stroke: var(--cyan); stroke-width: 1; opacity: 0; transform-origin: 100px 100px; animation: blip-ring-anim 3s linear infinite; }
+.a-scan .blip-ring { fill: none; stroke: var(--mint-400); stroke-width: 1; opacity: 0; transform-box: view-box; transform-origin: 50% 50%; animation: blip-ring-anim 3s linear infinite; }
 .a-scan .blip-ring.b1 { animation-delay: 0s; }
 .a-scan .blip-ring.b2 { animation-delay: -1s; }
 .a-scan .blip-ring.b3 { animation-delay: -2s; }
@@ -2116,6 +2125,53 @@ body {
   2%  { opacity: .8; transform: scale(.6); }
   20% { opacity: 0; transform: scale(1.6); }
   100%{ opacity: 0; transform: scale(1.6); }
+}
+
+/* A4 — REJECTED (mirrors success, rose/red, draws X) */
+.a-reject { position: relative; overflow: hidden; }
+.a-reject svg { width: 100%; height: 100%; overflow: visible; }
+.a-reject .ring-bg { fill: none; stroke: rgba(229,82,79,.14); stroke-width: 2; }
+.a-reject .ring {
+  fill: none; stroke: var(--danger); stroke-width: 2.5; stroke-linecap: round;
+  stroke-dasharray: 314; stroke-dashoffset: 314;
+  transform: rotate(-90deg); transform-origin: 50% 50%;
+  animation: reject-ring 2.6s cubic-bezier(.22,.9,.35,1) infinite;
+}
+.a-reject .disc {
+  fill: var(--danger); transform-origin: 50% 50%;
+  animation: reject-disc 2.6s cubic-bezier(.34,1.56,.64,1) infinite;
+}
+.a-reject .x-stroke {
+  fill: none; stroke: #2A0808; stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 56; stroke-dashoffset: 56;
+  animation: reject-x 2.6s cubic-bezier(.65,0,.35,1) infinite;
+}
+.a-reject .x-stroke.b { animation-delay: .08s; }
+.a-reject .pulse {
+  fill: none; stroke: var(--danger); stroke-width: 1.5; opacity: 0;
+  transform-origin: 50% 50%;
+  animation: reject-pulse 2.6s ease-out infinite;
+}
+@keyframes reject-ring {
+  0%   { stroke-dashoffset: 314; }
+  35%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes reject-disc {
+  0%, 32%  { transform: scale(0); opacity: 0; }
+  44%      { transform: scale(1.08); opacity: 1; }
+  52%      { transform: scale(.96); }
+  100%     { transform: scale(1); opacity: 1; }
+}
+@keyframes reject-x {
+  0%, 50%  { stroke-dashoffset: 56; }
+  72%      { stroke-dashoffset: 0; }
+  100%     { stroke-dashoffset: 0; }
+}
+@keyframes reject-pulse {
+  0%, 42%  { transform: scale(.6); opacity: 0; }
+  50%      { opacity: .55; }
+  100%     { transform: scale(1.55); opacity: 0; }
 }
 
 /* ══════════════════════════════════════════════════════════════
