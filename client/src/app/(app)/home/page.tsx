@@ -17,6 +17,7 @@ import { ReceiveDialog } from "@/components/ReceiveDialog";
 import { SendDialog } from "@/components/SendDialog";
 import { TokenDetailDialog } from "@/components/TokenDetailDialog";
 import { TransactionDetailDialog } from "@/components/TransactionDetailDialog";
+import { AgentQuote } from "@/components/AgentQuote";
 import { EmptyTransactions, EmptyNFTs, EmptyTokens } from "@/components/empty";
 import { PendingAnimation } from "@/components/animations/PendingAnimation";
 import { useAuth } from "@/app/context/AuthContext";
@@ -24,6 +25,7 @@ import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
 import type { TokenPosition, TransactionItem } from "@/lib/api";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useRefreshAll } from "@/hooks/useRefreshAll";
 import { padTokensWithFallbacks } from "@/lib/tokenFallbacks";
 import { formatTokenAmount, formatUSD, formatPrice } from "@/lib/format";
 
@@ -100,6 +102,7 @@ export default function HomePage() {
   const { isScreeningActive, fullyActivated, loading: screeningLoading } = useScreeningStatus();
   const portfolio = usePortfolio();
   const txHistory = useTransactions();
+  const refreshAll = useRefreshAll(portfolio.refetch, txHistory.refetch);
   const pendingTx = txHistory.data.find(tx => tx.status === "pending" || tx.inReview);
 
   const [activeTab, setActiveTab] = useState<Tab>("assets");
@@ -373,17 +376,15 @@ export default function HomePage() {
 
         <AnimatePresence mode="wait">
           {isScreeningActive ? (
-            <motion.p
+            <motion.div
               key="quote-active"
-              className="rail-quote"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.25 }}
             >
-              "I review every signature so you don&#39;t have to.{" "}
-              <em>One needs you now.</em>"
-            </motion.p>
+              <AgentQuote hasPending={!!pendingTx} />
+            </motion.div>
           ) : (
             <motion.p
               key="quote-inactive"
@@ -529,13 +530,7 @@ export default function HomePage() {
           transition={{ delayChildren: 0.4 }}
         >
           {txHistory.data
-            .filter(tx =>
-              tx.source !== "zerion-only" ||
-              tx.riskVerdict != null ||
-              tx.inReview === true ||
-              tx.status === "blocked" ||
-              tx.status === "rejected"
-            )
+            .filter(tx => !tx.screeningDisabled)
             .slice(0, 10)
             .map(tx => ({
               tx,
@@ -548,13 +543,7 @@ export default function HomePage() {
               </motion.div>
             ))
           }
-          {!txHistory.loading && txHistory.data.filter(tx =>
-            tx.source !== "zerion-only" ||
-            tx.riskVerdict != null ||
-            tx.inReview === true ||
-            tx.status === "blocked" ||
-            tx.status === "rejected"
-          ).length === 0 && (
+          {!txHistory.loading && txHistory.data.filter(tx => !tx.screeningDisabled).length === 0 && (
             <p style={{ fontSize: 12, color: "var(--ink-500)", textAlign: "center", margin: "12px 0" }}>
               No screened transactions yet
             </p>
@@ -565,6 +554,7 @@ export default function HomePage() {
       <SendDialog
         open={showSend}
         onClose={() => setShowSend(false)}
+        onSuccess={refreshAll}
         tokens={portfolio.data?.tokens ?? displayTokens}
       />
 

@@ -63,6 +63,7 @@ export interface TransactionItem {
   txSignature: string | null;
   status: string;
   inReview?: boolean;
+  screeningDisabled?: boolean;
   riskVerdict?: "APPROVE" | "REVIEW" | "BLOCK" | null;
   source: "sage-only" | "zerion-only" | "both";
   direction?: "send" | "receive";

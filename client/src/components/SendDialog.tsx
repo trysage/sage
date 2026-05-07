@@ -101,10 +101,11 @@ function TxTokenIcon({ token }: { token: TokenPosition }) {
 interface SendDialogProps {
   open: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
   tokens: TokenPosition[];
 }
 
-export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
+export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps) {
   const router = useRouter();
   const { wallet, getSolanaWallet, identityToken } = useAuth();
   const { isScreeningActive, fullyActivated } = useScreeningStatus();
@@ -312,14 +313,17 @@ export function SendDialog({ open, onClose, tokens }: SendDialogProps) {
         const execResult = await executeProposal(queueResult.id, identityToken ?? undefined);
         setTxSig(execResult.signature ?? null);
         setPhase("success");
+        onSuccess?.();
       } else if (queueResult.autoApproved) {
         // AI approved and executed in one shot
         setTxSig(queueResult.signature ?? null);
         setPhase("success");
+        onSuccess?.();
       } else {
         // Sent to Telegram for manual review
         setProposedAt(new Date().toISOString());
         setPhase("reviewing");
+        onSuccess?.();
       }
     } catch (err) {
       setError(parseSendError(err));
