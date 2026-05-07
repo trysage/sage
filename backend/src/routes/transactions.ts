@@ -23,7 +23,7 @@ const PROPOSAL_DEFAULTS = {
   riskScore: null, riskVerdict: null, riskReasons: null,
   inReview: false, reviewReason: null, reviewedAt: null,
   rejected: false, rejectedAt: null, rejectReason: null,
-  amountUSD: null, screeningDisabled: false,
+  amountUSD: null, screeningDisabled: true,
 } as const;
 
 /** Pure Zerion-only item — on-chain tx with no matching proposal in DB */
