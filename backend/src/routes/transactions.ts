@@ -124,7 +124,9 @@ export function createTransactionsRouter(): IRouter {
         .map((z) => zerionOnlyToActivity(z, vaultAddress));
 
       const transactions = [...ourActivity, ...zerionOnlyActivity].sort(
-        (a, b) => new Date(b.proposedAt).getTime() - new Date(a.proposedAt).getTime()
+        (a, b) =>
+          new Date(b.executedAt ?? b.proposedAt).getTime() -
+          new Date(a.executedAt ?? a.proposedAt).getTime()
       );
 
       res.json({ transactions });
