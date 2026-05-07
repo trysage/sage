@@ -86,7 +86,12 @@ export function ActivityRow({ tx, formattedTime, onClick }: ActivityRowProps) {
             {isReceive ? "+" : "-"}{amountDisplay}
           </span>
         )}
-        {usdDisplay && <span className="act-usd">{usdDisplay}</span>}
+        {(tx.inReview || tx.status === "pending")
+          ? <span className="act-review-pill"><span className="dot" />Review</span>
+          : (tx.status === "blocked" || tx.riskVerdict === "BLOCK")
+          ? <span className="act-blocked-pill"><span className="dot" />Blocked</span>
+          : usdDisplay && <span className="act-usd">{usdDisplay}</span>
+        }
       </div>
     </div>
   );
