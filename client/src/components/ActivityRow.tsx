@@ -64,8 +64,14 @@ export function ActivityRow({ tx, formattedTime, onClick }: ActivityRowProps) {
 
   const usdDisplay = formatUSD(tx.valueUSD);
 
+  const isRejected = tx.status === "rejected";
+
   return (
-    <div className="act-row" onClick={onClick} style={onClick ? { cursor: "pointer" } : undefined}>
+    <div
+      className="act-row"
+      onClick={onClick}
+      style={{ ...(onClick ? { cursor: "pointer" } : {}), ...(isRejected ? { opacity: 0.45 } : {}) }}
+    >
       <div className="act-ico"><TokenAvatar iconUrl={tx.tokenIconUrl} symbol={tx.tokenSymbol} /></div>
 
       <div className="act-body">
@@ -90,6 +96,8 @@ export function ActivityRow({ tx, formattedTime, onClick }: ActivityRowProps) {
           ? <span className="act-review-pill"><span className="dot" />Review</span>
           : (tx.status === "blocked" || tx.riskVerdict === "BLOCK")
           ? <span className="act-blocked-pill"><span className="dot" />Blocked</span>
+          : (tx.status === "rejected")
+          ? <span className="act-rejected-pill"><span className="dot" />Rejected</span>
           : usdDisplay && <span className="act-usd">{usdDisplay}</span>
         }
       </div>

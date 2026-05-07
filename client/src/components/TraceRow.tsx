@@ -4,11 +4,12 @@ interface TraceRowProps {
   label: string;
   title: string;
   meta: string;
+  onClick?: () => void;
 }
 
-export function TraceRow({ ts, pill, label, title, meta }: TraceRowProps) {
+export function TraceRow({ ts, pill, label, title, meta, onClick }: TraceRowProps) {
   return (
-    <div className="trace-row">
+    <div className="trace-row" onClick={onClick} style={onClick ? { cursor: "pointer" } : undefined}>
       <div className="ts">{ts}</div>
       <div className="body">
         <div className="head">
