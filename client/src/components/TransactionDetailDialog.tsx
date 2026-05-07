@@ -6,6 +6,7 @@ import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Zap, Copy, Check, ShieldX 
 import { Dialog } from "./Dialog";
 import { PendingAnimation } from "./animations/PendingAnimation";
 import { SuccessAnimation } from "./animations/SuccessAnimation";
+import { RejectedAnimation } from "./animations/RejectedAnimation";
 import { formatUSD } from "@/lib/format";
 import type { TransactionItem } from "@/lib/api";
 
@@ -88,8 +89,9 @@ export function TransactionDetailDialog({ open, onClose, tx }: TransactionDetail
   const isTrade = op === "trade";
   const isReceive = dir === "receive";
   const isExecuted = tx?.status === "executed";
-  const isBlocked = tx?.status === "blocked" || tx?.riskVerdict === "BLOCK";
-  const isPending = !isExecuted && !isBlocked;
+  const isBlocked  = tx?.status === "blocked" || tx?.riskVerdict === "BLOCK";
+  const isRejected = tx?.status === "rejected";
+  const isPending  = !isExecuted && !isBlocked && !isRejected;
 
   let dirClass = isReceive ? "receive" : "send";
   if (isTrade) dirClass = "trade";
@@ -122,15 +124,16 @@ export function TransactionDetailDialog({ open, onClose, tx }: TransactionDetail
           >
             {/* Status animation — centered */}
             <div className="txdlg-anim">
-              {isExecuted && <SuccessAnimation size={80} loop={false} />}
+              {isExecuted  && <SuccessAnimation size={80} loop={false} />}
               {isPending   && <PendingAnimation size={80} />}
               {isBlocked   && (
                 <div className="txdlg-blocked-ico">
                   <ShieldX size={32} />
                 </div>
               )}
-              <span className={`txdlg-status-label ${isExecuted ? "safe" : isBlocked ? "danger" : "watch"}`}>
-                {isExecuted ? "Executed" : isBlocked ? "Blocked" : "Pending Review"}
+              {isRejected  && <RejectedAnimation size={80} />}
+              <span className={`txdlg-status-label ${isExecuted ? "safe" : isBlocked ? "danger" : isRejected ? "muted" : "watch"}`}>
+                {isExecuted ? "Executed" : isBlocked ? "Blocked" : isRejected ? "Rejected" : "Pending Review"}
               </span>
             </div>
 
@@ -190,12 +193,6 @@ export function TransactionDetailDialog({ open, onClose, tx }: TransactionDetail
               {tx.riskVerdict && (
                 <DetailRow label="Sage verdict">
                   <VerdictPill verdict={tx.riskVerdict} />
-                </DetailRow>
-              )}
-
-              {tx.proposalIndex != null && (
-                <DetailRow label="Proposal #">
-                  {String(tx.proposalIndex)}
                 </DetailRow>
               )}
 
