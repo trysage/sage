@@ -17,6 +17,11 @@ function loadServerKeypair(): Keypair {
  */
 export async function POST(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ") || !authHeader.slice(7)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { transaction } = await req.json();
     const server = loadServerKeypair();
 

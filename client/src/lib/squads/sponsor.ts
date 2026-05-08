@@ -29,7 +29,8 @@ async function buildAndSendSponsored(
   connection: Connection,
   solanaWallet: ConnectedStandardSolanaWallet,
   instructions: TransactionInstruction[],
-  lookupTableAccounts?: Parameters<TransactionMessage["compileToV0Message"]>[0]
+  lookupTableAccounts?: Parameters<TransactionMessage["compileToV0Message"]>[0],
+  token?: string
 ): Promise<string> {
   const serverPubkey = sponsorPubkey();
   const { blockhash } = await connection.getLatestBlockhash("confirmed");
@@ -47,9 +48,12 @@ async function buildAndSendSponsored(
   });
   const userSignedTx = VersionedTransaction.deserialize(signedTransaction);
 
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   const res = await fetch(`${API_URL}/sponsor/send`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({
       transaction: Buffer.from(userSignedTx.serialize()).toString("base64"),
     }),
@@ -99,7 +103,8 @@ export async function proposeTransactionSponsored(
   solanaWallet: ConnectedStandardSolanaWallet,
   multisigPda: PublicKey,
   innerInstructions: TransactionInstruction[],
-  memo?: string
+  memo?: string,
+  token?: string
 ): Promise<bigint> {
   const serverPubkey = sponsorPubkey();
   const member = new PublicKey(solanaWallet.address);
@@ -141,7 +146,7 @@ export async function proposeTransactionSponsored(
       transactionIndex,
       member,
     }),
-  ]);
+  ], undefined, token);
 
   return transactionIndex;
 }
@@ -180,14 +185,16 @@ export async function proposeAndExecuteSponsored(
   solanaWallet: ConnectedStandardSolanaWallet,
   multisigPda: PublicKey,
   innerInstructions: TransactionInstruction[],
-  memo?: string
+  memo?: string,
+  token?: string
 ): Promise<string> {
   const txIndex = await proposeTransactionSponsored(
     connection,
     solanaWallet,
     multisigPda,
     innerInstructions,
-    memo
+    memo,
+    token
   );
   return executeTransactionSponsored(connection, solanaWallet, multisigPda, txIndex);
 }
