@@ -84,6 +84,19 @@ export async function getTransactions(
   return res.json();
 }
 
+export async function getTransactionById(
+  id: string,
+  token?: string
+): Promise<TransactionItem> {
+  const res = await fetch(
+    `${API_URL}/transactions/${encodeURIComponent(id)}`,
+    { headers: authHeaders(token) }
+  );
+  if (!res.ok) throw new Error(`Transaction fetch failed: ${res.status}`);
+  const { transaction } = await res.json();
+  return { ...transaction, source: "sage-only" as const };
+}
+
 // ── Token detail ──────────────────────────────────────────────────────────────
 
 export type ChartPeriod = "day" | "week" | "month" | "year" | "max";

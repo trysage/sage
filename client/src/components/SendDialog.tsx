@@ -11,6 +11,7 @@ import {
 import { ChevronDown, ArrowUpRight, UserRound, X, Coins, MessageCircle } from "lucide-react";
 import { PendingAnimation } from "./animations/PendingAnimation";
 import { SuccessAnimation } from "./animations/SuccessAnimation";
+import { RejectedAnimation } from "./animations/RejectedAnimation";
 import { EmptyTokens } from "./empty";
 import { Orbital } from "./loaders/Orbital";
 import { Dialog } from "./Dialog";
@@ -20,10 +21,11 @@ import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
 import { proposeTransactionSponsored, loadSageAccount } from "@/lib/squads";
 import { postQueue, executeProposal } from "@/lib/api";
 import { useTokenAmountInput } from "@/hooks/useTokenAmountInput";
+import { useLiveProposal } from "@/hooks/useLiveProposal";
 import { formatTokenAmount, formatUSD, formatPrice } from "@/lib/format";
 import type { TokenPosition } from "@/lib/api";
 
-type Phase = "form" | "proposing" | "reviewing" | "success";
+type Phase = "form" | "proposing" | "reviewing" | "success" | "rejected";
 
 const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
 const BASE58_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
@@ -113,6 +115,18 @@ export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps
   const [phase, setPhase] = useState<Phase>("form");
   const [txSig, setTxSig] = useState<string | null>(null);
   const [proposedAt, setProposedAt] = useState<string | null>(null);
+  const [proposalId, setProposalId] = useState<string | null>(null);
+  const liveProposal = useLiveProposal(phase === "reviewing" ? proposalId : null);
+
+  useEffect(() => {
+    if (!liveProposal) return;
+    if (liveProposal.status === "executed") {
+      setTxSig(liveProposal.txSignature ?? null);
+      setPhase("success");
+    } else if (liveProposal.status === "rejected" || liveProposal.riskVerdict === "BLOCK") {
+      setPhase("rejected");
+    }
+  }, [liveProposal]);
   const [showTgRequiredModal, setShowTgRequiredModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -144,6 +158,7 @@ export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps
       const t = setTimeout(() => {
         setPhase("form");
         setTxSig(null);
+        setProposalId(null);
         setError(null);
         setRecipient("");
         setResolvedAddress(null);
@@ -308,6 +323,8 @@ export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps
         screeningDisabled: !isScreeningActive,
       }, identityToken ?? undefined);
 
+      setProposalId(queueResult.id);
+
       if (!isScreeningActive) {
         // Screening off — execute immediately
         const execResult = await executeProposal(queueResult.id, identityToken ?? undefined);
@@ -432,6 +449,33 @@ export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps
               </a>
             )}
             <button className="sdlg-submit" onClick={onClose}>Done</button>
+          </div>
+        )}
+
+        {/* ── Rejected state ── */}
+        {phase === "rejected" && sendingToken && (
+          <div className="sdlg-state">
+            <div className="sdlg-state-head">
+              <RejectedAnimation size={120} />
+              <p className="sdlg-state-label" style={{ color: "var(--danger)" }}>Transaction Blocked</p>
+              <p className="sdlg-state-sub">
+                {liveProposal?.rejectReason ?? "Your Sage agent blocked this transaction."}
+              </p>
+            </div>
+            <div className="sdlg-tx-card">
+              <div className="sdlg-tx-arrow"><ArrowUpRight size={20} /></div>
+              <TxTokenIcon token={sendingToken} />
+              <span className="sdlg-tx-amount">
+                {sendingAmount} {sendingToken.symbol}
+              </span>
+            </div>
+            <dl className="sdlg-dl">
+              <div className="sdlg-dl-row">
+                <dt>To</dt>
+                <dd title={sendingTo}>{truncate(sendingTo)}</dd>
+              </div>
+            </dl>
+            <button className="sdlg-submit" onClick={onClose}>Close</button>
           </div>
         )}
 

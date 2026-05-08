@@ -25,6 +25,7 @@ import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
 import type { TokenPosition, TransactionItem } from "@/lib/api";
 import { usePortfolio } from "@/hooks/usePortfolio";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useLiveProposal } from "@/hooks/useLiveProposal";
 import { useRefreshAll } from "@/hooks/useRefreshAll";
 import { padTokensWithFallbacks } from "@/lib/tokenFallbacks";
 import { formatTokenAmount, formatUSD, formatPrice } from "@/lib/format";
@@ -111,6 +112,9 @@ export default function HomePage() {
   const [selectedToken, setSelectedToken] = useState<TokenPosition | null>(null);
   const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
   const selectedTx = txHistory.data.find(tx => tx.id === selectedTxId) ?? null;
+  const isPendingTx = !selectedTx || selectedTx.status === "pending" || !!selectedTx.inReview;
+  const liveProposal = useLiveProposal(selectedTxId && isPendingTx ? selectedTxId : null);
+  const dialogTx = liveProposal ?? selectedTx;
   // ── Derived values ────────────────────────────────────────────────────────
   const totalUsd = portfolio.data?.totalUsd ?? null;
   const pct = portfolio.data?.percentChange24h ?? null;
@@ -414,7 +418,7 @@ export default function HomePage() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <div className="pending" onClick={() => setSelectedTxId(pendingTx?.id ?? null)} style={{ cursor: "pointer" }}>
+                  <div className="pending" onClick={() => setSelectedTxId(pendingTx.id)} style={{ cursor: "pointer" }}>
                     <div className="ph">
                       <span className="pill watch"><span className="dot" />REVIEW</span>
                       <span className="when">{timeAgo(pendingTx.proposedAt)}</span>
@@ -572,9 +576,9 @@ export default function HomePage() {
       />
 
       <TransactionDetailDialog
-        open={selectedTx !== null}
+        open={selectedTxId !== null}
         onClose={() => setSelectedTxId(null)}
-        tx={selectedTx}
+        tx={dialogTx}
       />
     </div>
   );
