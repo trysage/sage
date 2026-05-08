@@ -16,7 +16,7 @@ async function fetchJson(url: string): Promise<Record<string, unknown>> {
 async function checkAddressSecurity(address: string) {
   try {
     const data = await fetchJson(
-      `https://api.gopluslabs.io/api/v1/address_security/${address}?chain_id=${SOLANA_CHAIN}`
+      `https://api.gopluslabs.io/api/v1/address_security/${address}`
     );
     if (data.code !== 1) return { error: data.message };
 
@@ -51,32 +51,41 @@ async function checkAddressSecurity(address: string) {
 async function checkTokenSecurity(tokenAddress: string) {
   try {
     const data = await fetchJson(
-      `https://api.gopluslabs.io/api/v1/token_security/${SOLANA_CHAIN}?contract_addresses=${tokenAddress}`
+      `https://api.gopluslabs.io/api/v1/${SOLANA_CHAIN}/token_security?contract_addresses=${tokenAddress}`
     );
+
     if (data.code !== 1) return { error: data.message };
 
     const result = data.result as Record<string, Record<string, unknown>>;
     const token  = result[tokenAddress.toLowerCase()] ?? result[tokenAddress];
     if (!token) return { error: "Token not found in GoPlus database" };
 
-    const flags: string[] = [];
-    const info: Record<string, unknown> = {
-      name:         token.token_name    || "Unknown",
-      symbol:       token.token_symbol  || "Unknown",
-      totalSupply:  token.total_supply,
-      holderCount:  token.holder_count,
-      creatorAddress: token.creator_address,
+    const statusFrom = (field: unknown): string | null => {
+      if (typeof field === "object" && field !== null && "status" in field) {
+        const status = (field as { status?: unknown }).status;
+        return typeof status === "string" ? status : null;
+      }
+      return null;
     };
 
-    if (token.is_mintable === "1")           flags.push("Mintable (supply can increase)");
-    if (token.owner_change_balance === "1")  flags.push("Owner can change balances");
-    if (token.hidden_owner === "1")          flags.push("Hidden owner");
-    if (token.selfdestruct === "1")          flags.push("Has selfdestruct");
-    if (token.cannot_buy === "1")            flags.push("Cannot buy");
-    if (token.cannot_sell_all === "1")       flags.push("Cannot sell all");
-    if (token.is_blacklisted === "1")        flags.push("Has blacklist function");
-    if (token.is_airdrop_scam === "1")       flags.push("Airdrop scam");
-    if (token.lp_total_supply === "0")       flags.push("No liquidity");
+    const flags: string[] = [];
+    const metadata = (token.metadata ?? {}) as Record<string, unknown>;
+    const info: Record<string, unknown> = {
+      name:         metadata.name || "Unknown",
+      symbol:       metadata.symbol || "Unknown",
+      totalSupply:  token.total_supply,
+      holderCount:  token.holder_count,
+      trustedToken: token.trusted_token,
+    };
+
+    if (statusFrom(token.mintable) === "1")          flags.push("Mintable (supply can increase)");
+    if (statusFrom(token.freezable) === "1")         flags.push("Freezable by authority");
+    if (statusFrom(token.closable) === "1")          flags.push("Closable token account feature enabled");
+    if (statusFrom(token.metadata_mutable) === "1")  flags.push("Metadata is mutable");
+    if (Number(token.trusted_token) !== 1)           flags.push("Not marked as trusted token by GoPlus");
+    if (token.dex == null || (Array.isArray(token.dex) && token.dex.length === 0)) {
+      flags.push("No DEX liquidity pools found");
+    }
 
     return { info, flags, safe: flags.length === 0 };
   } catch (err) {
@@ -131,7 +140,7 @@ export function createAnalyzeRouter(): IRouter {
       }
 
       const toAddr     = proposal.to ?? "";
-      const tokenAddr  = (proposal.tokenAddress ?? "").toLowerCase();
+      const tokenAddr  = proposal.tokenAddress
       const isNativeSol = !tokenAddr || tokenAddr === "so11111111111111111111111111111111111111112";
 
       const profile = toAddr
