@@ -18,6 +18,7 @@ import { Dialog } from "./Dialog";
 import { TokenRow } from "./TokenRow";
 import { useAuth } from "@/app/context/AuthContext";
 import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
+import { useExplorer } from "@/app/context/ExplorerContext";
 import { proposeTransactionSponsored, loadSageAccount } from "@/lib/squads";
 import { postQueue, executeProposal } from "@/lib/api";
 import { useTokenAmountInput } from "@/hooks/useTokenAmountInput";
@@ -111,6 +112,7 @@ export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps
   const router = useRouter();
   const { wallet, getSolanaWallet, identityToken } = useAuth();
   const { isScreeningActive, fullyActivated } = useScreeningStatus();
+  const { txUrl } = useExplorer();
 
   const [phase, setPhase] = useState<Phase>("form");
   const [txSig, setTxSig] = useState<string | null>(null);
@@ -440,7 +442,7 @@ export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps
             </dl>
             {txSig && (
               <a
-                href={`https://explorer.solana.com/tx/${txSig}`}
+                href={txUrl(txSig)}
                 target="_blank"
                 rel="noreferrer"
                 className="sdlg-explorer-btn"
@@ -457,9 +459,9 @@ export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps
           <div className="sdlg-state">
             <div className="sdlg-state-head">
               <RejectedAnimation size={120} />
-              <p className="sdlg-state-label" style={{ color: "var(--danger)" }}>Transaction Blocked</p>
+              <p className="sdlg-state-label" style={{ color: "var(--danger)" }}>Transaction Rejected</p>
               <p className="sdlg-state-sub">
-                {liveProposal?.rejectReason ?? "Your Sage agent blocked this transaction."}
+                Your Sage agent rejected this transaction.
               </p>
             </div>
             <div className="sdlg-tx-card">

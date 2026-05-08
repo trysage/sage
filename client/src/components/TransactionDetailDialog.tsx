@@ -8,6 +8,7 @@ import { PendingAnimation } from "./animations/PendingAnimation";
 import { SuccessAnimation } from "./animations/SuccessAnimation";
 import { RejectedAnimation } from "./animations/RejectedAnimation";
 import { formatUSD } from "@/lib/format";
+import { useExplorer } from "@/app/context/ExplorerContext";
 import type { TransactionItem } from "@/lib/api";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -84,6 +85,7 @@ interface TransactionDetailDialogProps {
 }
 
 export function TransactionDetailDialog({ open, onClose, tx }: TransactionDetailDialogProps) {
+  const { txUrl } = useExplorer();
   const dir = tx?.direction ?? "send";
   const op = tx?.operationType ?? "send";
   const isTrade = op === "trade";
@@ -106,9 +108,7 @@ export function TransactionDetailDialog({ open, onClose, tx }: TransactionDetail
       : capitalize(op)
     : "";
 
-  const explorerHref = tx?.txSignature
-    ? `https://explorer.solana.com/tx/${tx.txSignature}`
-    : null;
+  const explorerHref = tx?.txSignature ? txUrl(tx.txSignature) : null;
 
   return (
     <Dialog open={open} onClose={onClose} title="Transaction">

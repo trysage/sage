@@ -3,15 +3,23 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLinkAccount, usePrivy } from "@privy-io/react-auth";
-import { ShieldCheck, ShieldOff, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { ShieldCheck, ShieldOff, Loader2, CheckCircle2, AlertCircle, Sun, Moon, Monitor, Globe } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { AgentId } from "@/components/AgentId";
 import { ActivationDialog } from "@/components/ActivationDialog";
 import { useAuth } from "@/app/context/AuthContext";
 import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
+import { useTheme, type ThemePreference } from "@/app/context/ThemeContext";
+import { useExplorer, EXPLORERS, type Explorer } from "@/app/context/ExplorerContext";
 import { patchStatus, upsertUser, getStatus } from "@/lib/api";
 
 const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? "https://t.me/sage_guard_bot";
+
+const THEME_OPTIONS: { id: ThemePreference; label: string; Icon: React.ElementType }[] = [
+  { id: "dark",   label: "Dark",   Icon: Moon },
+  { id: "light",  label: "Light",  Icon: Sun },
+  { id: "system", label: "System", Icon: Monitor },
+];
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -32,6 +40,8 @@ const staggerItem = {
 
 export default function SettingsPage() {
   const { vaultPda, identityToken, telegramUserId, privyUser } = useAuth();
+  const { preference: themePref, setPreference: setThemePref } = useTheme();
+  const { explorer, setExplorer } = useExplorer();
   const {
     screeningMode,
     botConnected,
@@ -53,7 +63,6 @@ export default function SettingsPage() {
   const prevFullyActivatedRef = useRef<boolean | null>(null);
   const { unlinkTelegram } = usePrivy();
 
-  // Extract TG account details for display
   const tgAccount = (privyUser?.linkedAccounts as unknown as Array<Record<string, unknown>> | undefined)
     ?.find((a) => a.type === "telegram");
   const tgUsername = tgAccount?.username as string | undefined;
@@ -81,10 +90,10 @@ export default function SettingsPage() {
   });
 
   const handleToggle = async () => {
-    // if (!fullyActivated) {
-    //   setActivationOpen(true);
-    //   return;
-    // }
+    if (!fullyActivated) {
+      setActivationOpen(true);
+      return;
+    }
     if (!vaultPda || !identityToken) return;
     setToggling(true);
     try {
@@ -134,8 +143,6 @@ export default function SettingsPage() {
 
   useEffect(() => () => stopPolling(), [stopPolling]);
 
-  // Auto-enable screening the moment the user completes both activation steps.
-  // Skip initial load so a deliberate off-state isn't overridden.
   useEffect(() => {
     if (loading || !vaultPda || !identityToken) return;
     if (prevFullyActivatedRef.current === null) {
@@ -175,16 +182,25 @@ export default function SettingsPage() {
       <div className="ambient" />
       <Sidebar />
 
-      <main className="main" style={{ paddingRight: 56 }}>
+      <main className="main set-main">
         <div className="main-top">
           <img src="/sage-mark-mint.png" alt="Sage" className="mobile-logo" />
           <AgentId />
         </div>
 
-        <div className="pf-eyebrow">
-          <span className="ix">Settings</span>
-          <span className="dash" />
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, type: "spring", bounce: 0.1 }}
+        >
+          <div className="pf-eyebrow">
+            <span className="ix">Settings</span>
+            <span className="dash" />
+          </div>
+          <header className="set-head">
+            <p>How Sage screens, alerts and looks. Changes apply instantly — and only to you.</p>
+          </header>
+        </motion.div>
 
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}>
@@ -195,79 +211,69 @@ export default function SettingsPage() {
             variants={staggerContainer}
             initial="hidden"
             animate="visible"
-            className="st-stack"
+            className="set-stack"
           >
-            {/* Sage Guard toggle card */}
-            <motion.div variants={staggerItem} className="st-card">
-              <div className="st-toggle-row">
-                <div className={`st-shield-ico${isScreeningActive ? " on" : ""}`}>
-                  {isScreeningActive
-                    ? <ShieldCheck size={20} />
-                    : <ShieldOff size={20} />}
+            {/* ── Agent settings ── */}
+            <motion.div variants={staggerItem} className="set-section">
+              <span className="lbl">Agent</span>
+              <span className="rule" />
+            </motion.div>
+
+            <motion.div
+              variants={staggerItem}
+              className={`set-card${isScreeningActive ? " elevated" : ""}`}
+            >
+              <div className="set-block">
+                <div className="set-ico">
+                  {isScreeningActive ? <ShieldCheck size={18} /> : <ShieldOff size={18} />}
                 </div>
-                <div className="st-meta">
-                  <div className="st-title-row">
-                    <span className="st-title">Sage Guard</span>
-                    <span className={`st-badge${isScreeningActive ? " on" : ""}`}>
-                      {isScreeningActive ? "Active" : "Inactive"}
+                <div className="set-text">
+                  <span className="set-title">
+                    Sage Guard
+                    <span className={`pill ${isScreeningActive ? "safe" : "watch"}`}>
+                      <span className="dot" />
+                      {isScreeningActive ? "ACTIVE" : "PAUSED"}
                     </span>
-                  </div>
-                  <span className="st-sub">
-                    {isScreeningActive
-                      ? "AI screening all transactions"
-                      : !fullyActivated
-                      ? "Setup required"
-                      : "Screening disabled"}
                   </span>
+                  <span className="set-sub">AI screening every signature before it leaves your wallet.</span>
                 </div>
                 <button
-                  className={`st-toggle${screeningMode ? " on" : ""}`}
+                  className={`toggle${screeningMode ? " on" : ""}`}
                   onClick={handleToggle}
                   disabled={toggling}
                   aria-label="Toggle screening"
-                >
-                  {toggling
-                    ? <Loader2 size={12} className="animate-spin" />
-                    : <span className="st-toggle-knob" />}
-                </button>
+                />
               </div>
 
-              {isScreeningActive && (
-                <>
-                  <div className="st-divider" />
-                  <button className="st-act-row" onClick={() => setActivationOpen(true)}>
-                    <div className={`st-act-ico${fullyActivated ? " green" : " amber"}`}>
-                      {fullyActivated
-                        ? <CheckCircle2 size={15} />
-                        : <AlertCircle size={15} />}
-                    </div>
-                    <div className="st-act-body">
-                      <span className="st-act-title">
-                        {fullyActivated ? "Activated" : "Setup required"}
-                      </span>
-                      <span className="st-act-sub">
-                        {fullyActivated
-                          ? `Notifications → ${tgDisplayName ?? "Telegram"}`
-                          : "Complete 2 steps to enable the agent"}
-                      </span>
-                    </div>
-                    <span className="st-act-btn">
-                      {fullyActivated ? "Manage" : "Activate"}
-                    </span>
-                  </button>
-                </>
-              )}
+              <div className="set-inset">
+                <div className={`set-inset-ico${fullyActivated ? "" : " amber"}`}>
+                  {fullyActivated ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                </div>
+                <div>
+                  <div className="set-inset-lbl">
+                    {fullyActivated ? "Telegram alerts" : "Setup required"}
+                  </div>
+                  <div className="set-inset-meta">
+                    {fullyActivated
+                      ? `${tgDisplayName ?? "Connected"} · notifications active`
+                      : "Link Telegram to enable the agent"}
+                  </div>
+                </div>
+                <button className="manage-btn" onClick={() => setActivationOpen(true)}>
+                  {fullyActivated ? "Manage" : "Activate"}
+                </button>
+              </div>
             </motion.div>
 
-            {/* Warning banner when screening disabled but setup complete */}
+            {/* Warning when screening is disabled but setup is complete */}
             <AnimatePresence>
               {fullyActivated && !screeningMode && (
                 <motion.div
                   key="warn"
-                  variants={staggerItem}
-                  initial="hidden"
-                  animate="visible"
-                  exit={{ opacity: 0, y: -8, transition: { duration: 0.2 } }}
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6, transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.25 }}
                   className="st-warn"
                 >
                   <AlertCircle size={13} style={{ flexShrink: 0, marginTop: 1 }} />
@@ -275,6 +281,64 @@ export default function SettingsPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* ── App settings ── */}
+            <motion.div variants={staggerItem} className="set-section">
+              <span className="lbl">App</span>
+              <span className="rule" />
+            </motion.div>
+
+            {/* ── Appearance ── */}
+            <motion.div variants={staggerItem} className="set-card">
+              <div className="set-block">
+                <div className="set-ico neutral">
+                  {themePref === "dark"   && <Moon size={17} />}
+                  {themePref === "light"  && <Sun size={17} />}
+                  {themePref === "system" && <Monitor size={17} />}
+                </div>
+                <div className="set-text">
+                  <span className="set-title">Appearance</span>
+                  <span className="set-sub">How Sage looks on your device.</span>
+                </div>
+                <div className="set-theme-btns">
+                  {THEME_OPTIONS.map(({ id, label, Icon }) => (
+                    <button
+                      key={id}
+                      className={`set-theme-btn${themePref === id ? " on" : ""}`}
+                      onClick={() => setThemePref(id)}
+                      title={label}
+                    >
+                      <Icon size={12} />
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* ── Block Explorer ── */}
+            <motion.div variants={staggerItem} className="set-card">
+              <div className="set-block">
+                <div className="set-ico neutral">
+                  <Globe size={17} />
+                </div>
+                <div className="set-text">
+                  <span className="set-title">Block explorer</span>
+                  <span className="set-sub">Where Sage opens transaction links.</span>
+                </div>
+                <div className="set-select-wrap">
+                  <select
+                    className="set-select"
+                    value={explorer}
+                    onChange={(e) => setExplorer(e.target.value as Explorer)}
+                  >
+                    {EXPLORERS.map((exp) => (
+                      <option key={exp.id} value={exp.id}>{exp.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </main>
@@ -296,116 +360,6 @@ export default function SettingsPage() {
         onCheckBotConnection={checkBotConnection}
         onUnlinkTelegram={handleUnlinkTelegram}
       />
-
-      <style>{`
-        .st-stack {
-          display: flex; flex-direction: column; gap: 16px;
-          max-width: 520px; padding-top: 24px;
-        }
-
-        /* Card */
-        .st-card {
-          background: rgba(255,255,255,.04);
-          border: 1px solid rgba(255,255,255,.07);
-          border-radius: var(--r-lg, 22px);
-          padding: 20px;
-          display: flex; flex-direction: column; gap: 16px;
-        }
-        .st-divider {
-          height: 1px; background: rgba(255,255,255,.06);
-          margin: 0 -4px;
-        }
-
-        /* Toggle row */
-        .st-toggle-row { display: flex; align-items: center; gap: 14px; }
-        .st-shield-ico {
-          width: 42px; height: 42px; border-radius: var(--r-md, 14px);
-          background: rgba(255,255,255,.05);
-          display: flex; align-items: center; justify-content: center;
-          color: var(--ink-300); flex-shrink: 0;
-          transition: background .25s, color .25s;
-        }
-        .st-shield-ico.on {
-          background: rgba(91,209,142,.12);
-          color: var(--mint-400);
-        }
-        .st-meta { flex: 1; min-width: 0; }
-        .st-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
-        .st-title { font-size: 14px; font-weight: 600; color: var(--ink-0); }
-        .st-badge {
-          font-size: 10px; font-weight: 600; letter-spacing: .04em;
-          padding: 2px 8px; border-radius: var(--r-pill);
-          background: rgba(255,255,255,.06); color: var(--ink-300);
-          text-transform: uppercase;
-          transition: background .25s, color .25s;
-        }
-        .st-badge.on { background: rgba(91,209,142,.14); color: var(--mint-400); }
-        .st-sub {
-          font-size: 12px; color: var(--ink-300); line-height: 1.4;
-        }
-
-        /* Toggle switch */
-        .st-toggle {
-          width: 44px; height: 24px; border-radius: var(--r-pill);
-          background: rgba(255,255,255,.1); border: none; cursor: pointer;
-          position: relative; flex-shrink: 0;
-          transition: background .25s;
-          display: flex; align-items: center; justify-content: center;
-        }
-        .st-toggle.on { background: var(--mint-400); }
-        .st-toggle-knob {
-          position: absolute; top: 3px; left: 3px;
-          width: 18px; height: 18px; border-radius: 50%;
-          background: var(--ink-900);
-          box-shadow: 0 1px 3px rgba(0,0,0,.4);
-          transition: transform .25s;
-        }
-        .st-toggle.on .st-toggle-knob { transform: translateX(20px); }
-
-        /* Activation row */
-        .st-act-row {
-          width: 100%; display: flex; align-items: center; gap: 12px;
-          padding: 12px 14px; border-radius: var(--r-md, 14px);
-          background: rgba(255,255,255,.03);
-          border: 1px solid rgba(255,255,255,.06);
-          cursor: pointer; text-align: left;
-          transition: background .15s, border-color .15s;
-        }
-        .st-act-row:hover {
-          background: rgba(91,209,142,.04);
-          border-color: rgba(91,209,142,.15);
-        }
-        .st-act-ico {
-          width: 30px; height: 30px; border-radius: var(--r-sm, 8px);
-          display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-        }
-        .st-act-ico.green { background: rgba(91,209,142,.12); color: var(--mint-400); }
-        .st-act-ico.amber { background: rgba(240,179,60,.1); color: var(--watch); }
-        .st-act-body { flex: 1; min-width: 0; }
-        .st-act-title {
-          font-size: 12.5px; font-weight: 600; color: var(--ink-0);
-          display: block; margin-bottom: 2px;
-        }
-        .st-act-sub {
-          font-size: 11px; color: var(--ink-300); display: block;
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .st-act-btn {
-          font-size: 11px; font-weight: 500;
-          padding: 4px 10px; border-radius: var(--r-sm, 8px);
-          background: rgba(91,209,142,.1); color: var(--mint-400);
-          flex-shrink: 0;
-        }
-
-        /* Warning banner */
-        .st-warn {
-          display: flex; align-items: flex-start; gap: 9px;
-          padding: 12px 14px; border-radius: var(--r-md, 14px);
-          background: rgba(240,179,60,.07);
-          border: 1px solid rgba(240,179,60,.12);
-          color: var(--watch); font-size: 12px; line-height: 1.55;
-        }
-      `}</style>
     </div>
   );
 }
