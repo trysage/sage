@@ -71,11 +71,15 @@ async function buildAndSendSponsored(
  * Persists multisigPda + vaultPda to localStorage.
  */
 export async function createSageAccountSponsored(
-  userPubkey: string
+  userPubkey: string,
+  token?: string
 ): Promise<{ multisigPda: PublicKey; vaultPda: PublicKey }> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+
   const res = await fetch(`${API_URL}/sponsor/create`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ userPubkey }),
   });
 

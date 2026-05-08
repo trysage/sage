@@ -150,13 +150,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!primarySolanaWallet || vaultPda || sageCreateFailed) return;
     if (hasAttemptedSageCreate.current) return;
     hasAttemptedSageCreate.current = true;
-    createSageAccountSponsored(primarySolanaWallet.address)
+    createSageAccountSponsored(primarySolanaWallet.address, identityToken ?? undefined)
       .then((info) => setVaultPda(info.vaultPda.toBase58()))
       .catch((e) => {
         console.error("Sage account creation failed:", e);
         setSageCreateFailed(true);
       });
-  }, [primarySolanaWallet, vaultPda, sageCreateFailed]);
+  }, [primarySolanaWallet, vaultPda, sageCreateFailed, identityToken]);
 
   // Sync user record to DB once per session after vault is known
   useEffect(() => {
