@@ -109,7 +109,8 @@ export default function HomePage() {
   const [showReceive, setShowReceive] = useState(false);
   const [showSend, setShowSend] = useState(false);
   const [selectedToken, setSelectedToken] = useState<TokenPosition | null>(null);
-  const [selectedTx, setSelectedTx] = useState<TransactionItem | null>(null);
+  const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
+  const selectedTx = txHistory.data.find(tx => tx.id === selectedTxId) ?? null;
   // ── Derived values ────────────────────────────────────────────────────────
   const totalUsd = portfolio.data?.totalUsd ?? null;
   const pct = portfolio.data?.percentChange24h ?? null;
@@ -302,7 +303,7 @@ export default function HomePage() {
                   <EmptyTransactions onCta={() => setShowSend(true)} />
                 )}
                 {!txHistory.loading && txHistory.data.length > 0 && (
-                  <ActivityList transactions={txHistory.data} onSelect={setSelectedTx} />
+                  <ActivityList transactions={txHistory.data} onSelect={(tx) => setSelectedTxId(tx.id)} />
                 )}
               </div>
             )}
@@ -413,7 +414,7 @@ export default function HomePage() {
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.25 }}
                 >
-                  <div className="pending" onClick={() => setSelectedTx(pendingTx)} style={{ cursor: "pointer" }}>
+                  <div className="pending" onClick={() => setSelectedTxId(pendingTx?.id ?? null)} style={{ cursor: "pointer" }}>
                     <div className="ph">
                       <span className="pill watch"><span className="dot" />REVIEW</span>
                       <span className="when">{timeAgo(pendingTx.proposedAt)}</span>
@@ -539,7 +540,7 @@ export default function HomePage() {
             }))
             .map(({ tx, ts, pill, label, title, meta }) => (
               <motion.div key={tx.id} variants={rowVariants}>
-                <TraceRow ts={ts} pill={pill} label={label} title={title} meta={meta} onClick={() => setSelectedTx(tx)} />
+                <TraceRow ts={ts} pill={pill} label={label} title={title} meta={meta} onClick={() => setSelectedTxId(tx.id)} />
               </motion.div>
             ))
           }
@@ -572,7 +573,7 @@ export default function HomePage() {
 
       <TransactionDetailDialog
         open={selectedTx !== null}
-        onClose={() => setSelectedTx(null)}
+        onClose={() => setSelectedTxId(null)}
         tx={selectedTx}
       />
     </div>

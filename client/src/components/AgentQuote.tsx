@@ -42,7 +42,7 @@ export function AgentQuote({ hasPending }: AgentQuoteProps) {
     return () => clearInterval(id);
   }, [pool.length]);
 
-  const msg = pool[index];
+  const msg = pool[index % pool.length];
 
   return (
     <AnimatePresence mode="wait">
