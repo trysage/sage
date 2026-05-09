@@ -882,32 +882,18 @@ body {
 .lo-btn:hover { color: #FF8A7E; border-color: rgba(255,138,126,.35); background: rgba(255,138,126,.04); }
 
 /* ── Settings screen ── */
-.set-main { padding-right: 56px; max-width: 960px; }
-
-.set-head {
-  margin-top: 16px; padding-bottom: 28px;
-  border-bottom: 1px solid rgba(255,255,255,.06);
-}
-.set-head h1 {
-  font-weight: 500; font-size: 38px; letter-spacing: -0.02em; line-height: 1.1;
-  margin: 0 0 10px; color: var(--ink-0);
-}
-.set-head h1 em { font-style: italic; color: var(--mint-300); font-weight: 400; }
-.set-head p { font-size: 15px; line-height: 1.55; color: var(--ink-200); margin: 0; max-width: 56ch; }
 
 .set-stack { display: flex; flex-direction: column; }
 
-.set-section {
-  display: flex; align-items: center; gap: 12px;
-  margin-top: 28px; margin-bottom: -6px;
-}
-.set-section .lbl {
+/* Dashed section divider inside the card stack */
+.set-divider {
+  margin-top: 28px; margin-bottom: -4px;
+  padding-top: 24px;
+  border-top: 1px dashed rgba(255,255,255,.08);
   font-family: var(--font-mono); font-size: 10px; letter-spacing: .22em;
-  text-transform: uppercase; color: var(--ink-500); white-space: nowrap;
+  text-transform: uppercase; color: var(--ink-500);
 }
-.set-section .rule { flex: 1; height: 1px; background: rgba(255,255,255,.06); }
-[data-theme="light"] .set-section .rule { background: rgba(20,24,26,.08); }
-[data-theme="light"] .set-section .lbl { color: var(--ink-300); }
+[data-theme="light"] .set-divider { border-top-color: rgba(20,24,26,.10); color: var(--ink-300); }
 
 /* Card */
 .set-card {
@@ -1067,10 +1053,6 @@ body {
 .manage-btn:hover { background: rgba(91,209,142,.10); border-color: rgba(91,209,142,.55); }
 
 /* ── Light theme overrides — settings ── */
-[data-theme="light"] .set-head { border-bottom-color: rgba(20,24,26,.08); }
-[data-theme="light"] .set-head h1 { color: var(--ink-900); }
-[data-theme="light"] .set-head h1 em { color: var(--mint-700); }
-[data-theme="light"] .set-head p { color: var(--ink-500); }
 [data-theme="light"] .set-card { background: var(--ink-50); border-color: rgba(20,24,26,.08); }
 [data-theme="light"] .set-card.elevated {
   background: linear-gradient(160deg, #EAFBF2 0%, #D9F4E5 100%);

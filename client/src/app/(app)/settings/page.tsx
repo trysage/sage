@@ -182,10 +182,13 @@ export default function SettingsPage() {
       <div className="ambient" />
       <Sidebar />
 
-      <main className="main set-main">
+      <main className="main" style={{ paddingRight: 56 }}>
         <div className="main-top">
           <img src="/sage-mark-mint.png" alt="Sage" className="mobile-logo" />
           <AgentId />
+          <div className="right">
+            <span className="sync-label">Settings</span>
+          </div>
         </div>
 
         <motion.div
@@ -197,9 +200,6 @@ export default function SettingsPage() {
             <span className="ix">Settings</span>
             <span className="dash" />
           </div>
-          <header className="set-head">
-            <p>How Sage screens, alerts and looks. Changes apply instantly — and only to you.</p>
-          </header>
         </motion.div>
 
         {loading ? (
@@ -213,12 +213,6 @@ export default function SettingsPage() {
             animate="visible"
             className="set-stack"
           >
-            {/* ── Agent settings ── */}
-            <motion.div variants={staggerItem} className="set-section">
-              <span className="lbl">Agent</span>
-              <span className="rule" />
-            </motion.div>
-
             <motion.div
               variants={staggerItem}
               className={`set-card${isScreeningActive ? " elevated" : ""}`}
@@ -283,9 +277,8 @@ export default function SettingsPage() {
             </AnimatePresence>
 
             {/* ── App settings ── */}
-            <motion.div variants={staggerItem} className="set-section">
-              <span className="lbl">App</span>
-              <span className="rule" />
+            <motion.div variants={staggerItem} className="set-divider">
+              <span>App</span>
             </motion.div>
 
             {/* ── Appearance ── */}
