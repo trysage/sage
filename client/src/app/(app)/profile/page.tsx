@@ -42,7 +42,12 @@ export default function ProfilePage() {
         {/* Portrait + identity fields */}
         <section className="pf-hero">
           <div className="pf-portrait">
-            <div className="pf-avatar">{initial}</div>
+            {user?.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={user.image} alt={user.name ?? "Profile"} className="pf-avatar pf-avatar-img" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="pf-avatar">{initial}</div>
+            )}
             <div className="pf-glyph">
               <Shield size={14} />
             </div>

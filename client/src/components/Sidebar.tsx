@@ -14,8 +14,8 @@ const navItems = [
   { href: "/home",     label: "Home",     Icon: Home },
   { href: "/activity", label: "Activity", Icon: List },
   { href: "/requests", label: "Requests", Icon: Bell, badge: 1 },
-  { href: "/profile",  label: "Profile", Icon: User },
   { href: "/settings", label: "Settings", Icon: Settings },
+  { href: "/profile",  label: "Profile", Icon: User },
 ];
 
 const THEME_CYCLE: ThemePreference[] = ["dark", "light", "system"];
@@ -131,7 +131,12 @@ export function Sidebar() {
               onKeyDown={(e) => e.key === "Enter" && setMenuOpen((v) => !v)}
             >
               <div className="sb-avatar">
-                {user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?"}
+                {user?.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={user.image} alt={user.name ?? "Profile"} className="sb-avatar-img" referrerPolicy="no-referrer" />
+                ) : (
+                  user?.name?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? "?"
+                )}
               </div>
               <div className="sb-w-meta">
                 <div className="sb-w-name">{user?.name ?? user?.email}</div>

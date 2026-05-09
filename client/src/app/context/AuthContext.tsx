@@ -17,6 +17,7 @@ import {
   useIdentityToken,
   useLoginWithOAuth,
   useLogout,
+  useOAuthTokens,
 } from "@privy-io/react-auth";
 import {
   useWallets as useSolanaWallets,
@@ -29,6 +30,7 @@ import {
 } from "@/lib/squads";
 
 const OAUTH_PENDING_KEY = "sage_oauth_pending";
+const PICTURE_CACHE_PREFIX = "sage_google_picture_";
 const RPC_URL =
   process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
 
@@ -77,6 +79,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { createWallet: createSolanaWallet } = useSolanaCreateWallet();
 
   const { identityToken } = useIdentityToken();
+
+  const [googlePictureUrl, setGooglePictureUrl] = useState<string | null>(null);
+
+  const fetchAndCacheGooglePicture = useCallback((accessToken: string) => {
+    fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((r) => r.json())
+      .then((data: { picture?: string; id?: string }) => {
+        if (data.picture) {
+          console.log("data.picture", data.picture);
+          setGooglePictureUrl(data.picture);
+          if (data.id) localStorage.setItem(`${PICTURE_CACHE_PREFIX}${data.id}`, data.picture);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useOAuthTokens({
+    onOAuthTokenGrant: ({ oAuthTokens }) => {
+      console.log("oAuthTokens", oAuthTokens);
+      if (oAuthTokens.provider !== "google" || !oAuthTokens.accessToken) return;
+      fetchAndCacheGooglePicture(oAuthTokens.accessToken);
+    },
+  });
 
   const hasAttemptedEvmCreate = useRef(false);
   const hasAttemptedSolanaCreate = useRef(false);
@@ -158,6 +185,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   }, [primarySolanaWallet, vaultPda, sageCreateFailed, identityToken]);
 
+  // Load cached Google profile picture from localStorage on session restore.
+  // onOAuthTokenGrant handles fresh logins and keeps the cache warm.
+  useEffect(() => {
+    if (!privyUser) return;
+    console.log("privyUser", privyUser);
+    const googleAccount = (privyUser.linkedAccounts as unknown as Array<Record<string, unknown>> | undefined)
+      ?.find((a) => a.type === "google_oauth");
+    const accountId = (googleAccount?.id ?? googleAccount?.subject) as string | undefined;
+    if (!accountId) return;
+    const cached = localStorage.getItem(`${PICTURE_CACHE_PREFIX}${accountId}`);
+    if (cached) setGooglePictureUrl(cached);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [privyUser?.id]);
+
   // Sync user record to DB once per session after vault is known
   useEffect(() => {
     if (!vaultPda || !identityToken || !primarySolanaWallet) return;
@@ -191,15 +232,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!privyUser) return null;
     const google = (
       privyUser as {
-        google?: { email?: string; name?: string; picture?: string };
+        google?: { email?: string; name?: string };
       }
     ).google;
     return {
       email: google?.email,
       name: google?.name,
-      image: google?.picture,
+      image: googlePictureUrl ?? undefined,
     };
-  }, [privyUser]);
+  }, [privyUser, googlePictureUrl]);
 
   const wallet: AuthWallet | null = useMemo(() => {
     if (!primarySolanaWallet?.address) return null;
@@ -234,8 +275,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasAttemptedSageCreate.current = false;
     hasSyncedUser.current = false;
     setSageCreateFailed(false);
+    const googleAccount = (privyUser?.linkedAccounts as unknown as Array<Record<string, unknown>> | undefined)
+      ?.find((a) => a.type === "google_oauth");
+    const accountId = (googleAccount?.id ?? googleAccount?.subject) as string | undefined;
+    if (accountId) localStorage.removeItem(`${PICTURE_CACHE_PREFIX}${accountId}`);
+    setGooglePictureUrl(null);
     await privyLogout();
-  }, [privyLogout]);
+  }, [privyLogout, privyUser]);
 
   const getSolanaWallet = useCallback(
     () => primarySolanaWallet,

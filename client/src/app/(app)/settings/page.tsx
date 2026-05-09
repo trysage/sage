@@ -281,17 +281,12 @@ export default function SettingsPage() {
               <span>App</span>
             </motion.div>
 
-            {/* ── Appearance ── */}
-            <motion.div variants={staggerItem} className="set-card">
-              <div className="set-block">
-                <div className="set-ico neutral">
-                  {themePref === "dark"   && <Moon size={17} />}
-                  {themePref === "light"  && <Sun size={17} />}
-                  {themePref === "system" && <Monitor size={17} />}
-                </div>
-                <div className="set-text">
-                  <span className="set-title">Appearance</span>
-                  <span className="set-sub">How Sage looks on your device.</span>
+            <motion.div variants={staggerItem} className="set-rows">
+              {/* Appearance */}
+              <div className="set-row">
+                <div className="set-row-label">
+                  <span className="set-row-key">Appearance</span>
+                  <span className="set-row-sub">Color scheme for this device</span>
                 </div>
                 <div className="set-theme-btns">
                   {THEME_OPTIONS.map(({ id, label, Icon }) => (
@@ -307,17 +302,12 @@ export default function SettingsPage() {
                   ))}
                 </div>
               </div>
-            </motion.div>
 
-            {/* ── Block Explorer ── */}
-            <motion.div variants={staggerItem} className="set-card">
-              <div className="set-block">
-                <div className="set-ico neutral">
-                  <Globe size={17} />
-                </div>
-                <div className="set-text">
-                  <span className="set-title">Block explorer</span>
-                  <span className="set-sub">Where Sage opens transaction links.</span>
+              {/* Block Explorer */}
+              <div className="set-row">
+                <div className="set-row-label">
+                  <span className="set-row-key">Block Explorer</span>
+                  <span className="set-row-sub">Where transaction links open</span>
                 </div>
                 <div className="set-select-wrap">
                   <select
