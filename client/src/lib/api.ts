@@ -251,6 +251,10 @@ export async function executeProposal(
     body: JSON.stringify({ proposalId }),
   });
   const data = await res.json();
-  if (!res.ok || data.error) throw new Error(data.error ?? `Execute failed: ${res.status}`);
+  if (!res.ok || data.error) {
+    const logs: string[] | undefined = data.logs;
+    const detail = logs?.length ? `\nLogs:\n${logs.join("\n")}` : "";
+    throw new Error((data.error ?? `Execute failed: ${res.status}`) + detail);
+  }
   return data;
 }

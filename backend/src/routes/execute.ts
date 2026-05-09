@@ -1,8 +1,10 @@
 import { Router, type Request, type Response, type IRouter } from "express";
 import {
+  ComputeBudgetProgram,
   Connection,
   Keypair,
   PublicKey,
+  SendTransactionError,
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
@@ -106,7 +108,11 @@ export function createExecuteRouter(): IRouter {
       const message = new TransactionMessage({
         payerKey: server.publicKey,
         recentBlockhash: blockhash,
-        instructions: [instruction],
+        instructions: [
+          ComputeBudgetProgram.requestHeapFrame({ bytes: 262144 }),
+          ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }),
+          instruction,
+        ],
       }).compileToV0Message(lookupTableAccounts);
 
       const tx = new VersionedTransaction(message);
@@ -168,8 +174,9 @@ export function createExecuteRouter(): IRouter {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      console.error("[execute]", message);
-      res.status(500).json({ error: message });
+      const logs = err instanceof SendTransactionError ? err.logs : undefined;
+      console.error("[execute]", message, logs);
+      res.status(500).json({ error: message, logs });
     }
   });
 

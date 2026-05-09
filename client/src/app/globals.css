@@ -2514,3 +2514,142 @@ body {
     border-top-color: rgba(20,24,26,.08);
   }
 }
+
+/* ── WalletConnect ── */
+.wc-panel { display: flex; flex-direction: column; gap: 12px; padding: 12px 0 4px; }
+
+.wc-not-ready {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 24px 0; color: var(--ink-400); font-size: 13px;
+}
+.wc-not-ready-sub { font-size: 11px; color: var(--ink-300); }
+
+.wc-pair-row { display: flex; gap: 8px; }
+.wc-uri-input {
+  flex: 1; background: var(--ink-800); border: 1px solid var(--ink-700);
+  border-radius: 10px; padding: 9px 13px;
+  font-size: 13px; color: var(--ink-0);
+  outline: none; transition: border-color 120ms;
+}
+.wc-uri-input::placeholder { color: var(--ink-400); }
+.wc-uri-input:focus { border-color: var(--mint-400); }
+.wc-pair-btn {
+  width: 38px; height: 38px; border-radius: 10px; border: none; cursor: pointer;
+  background: var(--mint-500); color: var(--ink-900);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 120ms; flex-shrink: 0;
+}
+.wc-pair-btn:disabled { opacity: .45; cursor: not-allowed; }
+.wc-pair-btn:not(:disabled):hover { background: var(--mint-400); }
+.wc-spinner-sm {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid transparent; border-top-color: var(--ink-900);
+  animation: spin 0.7s linear infinite;
+}
+.wc-pair-error { font-size: 11.5px; color: #f87171; }
+
+.wc-sessions-head {
+  display: flex; align-items: center; gap: 6px; padding-top: 4px;
+}
+.wc-sessions-title { font-size: 11.5px; font-weight: 600; color: var(--ink-300); text-transform: uppercase; letter-spacing: .06em; }
+.wc-sessions-count {
+  font-size: 10px; font-weight: 700; padding: 1px 6px;
+  background: var(--ink-700); color: var(--ink-300); border-radius: 999px;
+}
+
+.wc-empty {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 0; font-size: 12.5px; color: var(--ink-400);
+}
+
+.wc-sessions-list { display: flex; flex-direction: column; gap: 6px; }
+.wc-session-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--ink-800); border: 1px solid var(--ink-700);
+  border-radius: 10px; padding: 9px 12px;
+}
+.wc-session-icon {
+  width: 32px; height: 32px; border-radius: 8px; object-fit: cover;
+  background: var(--ink-700); flex-shrink: 0;
+}
+.wc-session-icon-ph {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ink-400);
+}
+.wc-session-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.wc-session-name { font-size: 13px; font-weight: 600; color: var(--ink-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wc-session-url { font-size: 11px; color: var(--ink-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wc-disconnect-btn {
+  width: 28px; height: 28px; border-radius: 7px; border: none; cursor: pointer;
+  background: none; color: var(--ink-400); display: inline-flex; align-items: center; justify-content: center;
+  transition: color 120ms, background 120ms; flex-shrink: 0;
+}
+.wc-disconnect-btn:hover { color: #f87171; background: rgba(248,113,113,.1); }
+
+/* WC dialog shared */
+.wc-prop-body { display: flex; flex-direction: column; gap: 16px; }
+
+.wc-dapp-id { display: flex; align-items: center; gap: 12px; }
+.wc-dapp-icon {
+  width: 48px; height: 48px; border-radius: 12px; object-fit: cover;
+  background: var(--ink-800); flex-shrink: 0;
+}
+.wc-dapp-icon-placeholder {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ink-400);
+}
+.wc-dapp-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wc-dapp-name { font-size: 15px; font-weight: 700; color: var(--ink-0); }
+.wc-dapp-url { font-size: 12px; color: var(--ink-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wc-dapp-desc { font-size: 11.5px; color: var(--ink-300); }
+
+.wc-guard-note {
+  display: flex; align-items: flex-start; gap: 8px;
+  background: rgba(91,209,142,.08); border: 1px solid rgba(91,209,142,.2);
+  border-radius: 10px; padding: 10px 12px;
+  font-size: 12.5px; color: var(--ink-200); line-height: 1.5;
+}
+.wc-guard-note svg { color: var(--mint-400); flex-shrink: 0; margin-top: 1px; }
+
+.wc-perms {
+  display: flex; flex-direction: column; gap: 5px;
+  background: var(--ink-800); border: 1px solid var(--ink-700);
+  border-radius: 10px; padding: 10px 12px;
+}
+.wc-perms-label { font-size: 11px; font-weight: 600; color: var(--ink-400); text-transform: uppercase; letter-spacing: .05em; }
+.wc-perms-row { display: flex; gap: 8px; align-items: baseline; }
+.wc-perms-key { font-size: 12px; color: var(--ink-300); min-width: 56px; }
+.wc-perms-val { font-size: 12px; color: var(--ink-200); }
+
+.wc-actions { display: flex; gap: 10px; padding-top: 4px; }
+.wc-btn-reject {
+  flex: 1; padding: 11px; border-radius: 12px; border: 1px solid var(--ink-700);
+  background: var(--ink-800); color: var(--ink-200);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: background 120ms;
+}
+.wc-btn-reject:hover { background: var(--ink-700); }
+.wc-btn-approve {
+  flex: 1; padding: 11px; border-radius: 12px; border: none;
+  background: var(--mint-500); color: var(--ink-900);
+  font-size: 13px; font-weight: 700; cursor: pointer; transition: background 120ms;
+}
+.wc-btn-approve:hover { background: var(--mint-400); }
+
+/* WC status states */
+.wc-status-body {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 12px 0 8px; text-align: center;
+}
+.wc-spinner {
+  color: var(--mint-400);
+  animation: spin 1s linear infinite;
+}
+.wc-icon-success { color: var(--mint-400); }
+.wc-icon-error { color: #f87171; }
+.wc-status-label { font-size: 15px; font-weight: 700; color: var(--ink-0); }
+.wc-status-sub { font-size: 12.5px; color: var(--ink-300); max-width: 280px; line-height: 1.5; }
+.wc-error-msg { color: #f87171; }
+
+.wc-sig { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+.wc-sig-label { font-size: 11px; color: var(--ink-400); text-transform: uppercase; letter-spacing: .05em; }
+.wc-sig-val { font-size: 12px; color: var(--ink-200); }

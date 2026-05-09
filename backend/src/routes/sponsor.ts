@@ -4,6 +4,7 @@ import {
   Connection,
   Keypair,
   PublicKey,
+  SendTransactionError,
   SystemProgram,
   TransactionMessage,
   VersionedTransaction,
@@ -164,6 +165,16 @@ export function createSponsorRouter(): IRouter {
       const server = loadSponsorKeypair();
       const connection = getConnection();
 
+      // Fail fast if the sponsor wallet is critically low on SOL
+      const sponsorBalance = await connection.getBalance(server.publicKey);
+      const MIN_SPONSOR_BALANCE = 0.05 * 1e9; // 0.05 SOL
+      if (sponsorBalance < MIN_SPONSOR_BALANCE) {
+        res.status(503).json({
+          error: `Sponsor wallet low on SOL (${(sponsorBalance / 1e9).toFixed(4)} SOL). Please contact support.`,
+        });
+        return;
+      }
+
       const txBytes = Buffer.from(transaction, "base64");
       const tx = VersionedTransaction.deserialize(txBytes);
 
@@ -184,8 +195,10 @@ export function createSponsorRouter(): IRouter {
 
       res.json({ signature: sig });
     } catch (err) {
-      console.error("[sponsor/send]", err);
-      res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+      const message = err instanceof Error ? err.message : String(err);
+      const logs = err instanceof SendTransactionError ? err.logs : undefined;
+      console.error("[sponsor/send]", message, logs);
+      res.status(500).json({ error: message, logs });
     }
   });
 

@@ -304,7 +304,7 @@ export function SendDialog({ open, onClose, onSuccess, tokens }: SendDialogProps
       }
 
       // 1. Propose + approve on-chain (user signs via Privy)
-      const txIndex = await proposeTransactionSponsored(connection, solanaWallet, multisigPda, instructions, memo, identityToken ?? undefined);
+      const txIndex = await proposeTransactionSponsored(connection, solanaWallet, multisigPda, instructions, undefined, memo, identityToken ?? undefined);
 
       // 2. Register with backend queue for risk screening
       const amountUSD = selectedToken?.price && amountNum > 0
