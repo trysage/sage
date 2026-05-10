@@ -12,6 +12,7 @@ import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
 import { useTheme, type ThemePreference } from "@/app/context/ThemeContext";
 import { useExplorer, EXPLORERS, type Explorer } from "@/app/context/ExplorerContext";
 import { patchStatus, upsertUser, getStatus } from "@/lib/api";
+import { useEnableCancel } from "@/hooks/useAppSettings";
 
 const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? "https://t.me/sage_guard_bot";
 
@@ -54,6 +55,7 @@ export default function SettingsPage() {
     setTelegramLinked,
   } = useScreeningStatus();
 
+  const [cancelEnabled, setCancelEnabled] = useEnableCancel();
   const [toggling, setToggling] = useState(false);
   const [linkingTelegram, setLinkingTelegram] = useState(false);
   const [botActivationInitiated, setBotActivationInitiated] = useState(false);
@@ -320,6 +322,19 @@ export default function SettingsPage() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              {/* Enable Cancel */}
+              <div className="set-row">
+                <div className="set-row-label">
+                  <span className="set-row-key">Enable Cancel</span>
+                  <span className="set-row-sub">Show cancel button on pending and rejected transactions</span>
+                </div>
+                <button
+                  className={`toggle${cancelEnabled ? " on" : ""}`}
+                  onClick={() => setCancelEnabled(!cancelEnabled)}
+                  aria-label="Toggle cancel"
+                />
               </div>
             </motion.div>
           </motion.div>

@@ -16,7 +16,9 @@ export function formatTokenAmount(
   if (n >= 1) return n.toLocaleString("en-US", { maximumFractionDigits: 4, minimumFractionDigits: 0 });
   if (n >= 0.01) return n.toFixed(4).replace(/\.?0+$/, "") || "0";
   if (n >= 0.0001) return n.toFixed(6).replace(/\.?0+$/, "") || "0";
-  return n.toPrecision(4);
+  const p = n.toPrecision(4);
+  if (/[eE]/.test(p)) return p;
+  return p.replace(/\.?0+$/, "") || "0";
 }
 
 /**

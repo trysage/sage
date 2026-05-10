@@ -71,7 +71,7 @@ function traceFromTx(tx: TransactionItem): { pill: "safe" | "watch" | "danger"; 
   const title = isTrade && tx.tradeReceived
     ? `Swap ${tx.tokenSymbol ?? ""} → ${tx.tradeReceived.symbol}`
     : tx.amount && tx.tokenSymbol
-      ? `${op.charAt(0).toUpperCase() + op.slice(1)} ${tx.amount} ${tx.tokenSymbol}`
+      ? `${op.charAt(0).toUpperCase() + op.slice(1)} ${formatTokenAmount(tx.amount, { raw: true })} ${tx.tokenSymbol}`
       : op.charAt(0).toUpperCase() + op.slice(1);
 
   const toStr = tx.to ? `→ ${truncAddr(tx.to)}` : "";
@@ -281,7 +281,7 @@ export default function HomePage() {
                           name={token.name}
                           symbol={token.symbol}
                           iconUrl={token.iconUrl}
-                          amount={`${formatTokenAmount(token.balance)} ${token.symbol}`}
+                          amount={`${formatTokenAmount(token.balance, { raw: true })} ${token.symbol}`}
                           price={token.price > 0 ? formatPrice(token.price) : "—"}
                           value={formatUSD(token.usdValue) ?? "—"}
                           percentChange1d={token.pricePercentChange1d}
@@ -428,21 +428,17 @@ export default function HomePage() {
                       <div>
                         <div className="who">
                           {pendingTx.amount && pendingTx.tokenSymbol
-                            ? `Send ${pendingTx.amount} ${pendingTx.tokenSymbol}`
+                            ? `Send ${formatTokenAmount(pendingTx.amount, { raw: true })} ${pendingTx.tokenSymbol}`
                             : "Pending transaction"}
                         </div>
                         {pendingTx.to && (
                           <div className="addr">{truncAddr(pendingTx.to)}</div>
                         )}
-                        {(pendingTx.amount || pendingTx.valueUSD) && (
-                          <div className="amt">
-                            {pendingTx.amount && pendingTx.tokenSymbol
-                              ? `−${pendingTx.amount} ${pendingTx.tokenSymbol}`
-                              : ""}
-                            {pendingTx.valueUSD
-                              ? ` · $${pendingTx.valueUSD.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                              : ""}
-                          </div>
+                        {(pendingTx.amount && pendingTx.tokenSymbol && pendingTx.valueUSD) && (
+                          <span className="amt">
+                            {pendingTx.amount && pendingTx.tokenSymbol ? `${formatTokenAmount(pendingTx.amount, { raw: true })} ${pendingTx.tokenSymbol}` : ""}
+                            {formatUSD(pendingTx.valueUSD)}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -579,6 +575,7 @@ export default function HomePage() {
         open={selectedTxId !== null}
         onClose={() => setSelectedTxId(null)}
         tx={dialogTx}
+        onCancelSuccess={() => { setSelectedTxId(null); txHistory.refetch(); }}
       />
     </div>
   );

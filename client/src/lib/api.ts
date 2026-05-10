@@ -239,6 +239,34 @@ export async function postQueue(payload: QueuePayload, token?: string): Promise<
   return data;
 }
 
+// ── Transaction mutations ─────────────────────────────────────────────────────
+
+export async function patchTransaction(
+  id: string,
+  action: "review" | "reject" | "executed",
+  reason?: string,
+  token?: string
+): Promise<void> {
+  const res = await fetch(`${API_URL}/transactions/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: authHeaders(token),
+    body: JSON.stringify({ action, reason }),
+  });
+  if (!res.ok) throw new Error(`Transaction patch failed: ${res.status}`);
+}
+
+export async function closeProposalAccounts(
+  multisigPda: string,
+  transactionIndex: number,
+  token?: string
+): Promise<void> {
+  await fetch(`${API_URL}/sponsor/close`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({ multisigPda, transactionIndex: String(transactionIndex) }),
+  });
+}
+
 // ── Execute ───────────────────────────────────────────────────────────────────
 
 export async function executeProposal(

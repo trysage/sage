@@ -181,6 +181,26 @@ export async function executeTransactionSponsored(
 }
 
 /**
+ * Cancel an Approved proposal (sponsored — server pays fees, user signs as member).
+ * Moves on-chain state to Cancelled so vaultTransactionAccountsClose can reclaim rent.
+ */
+export async function cancelProposalSponsored(
+  connection: Connection,
+  solanaWallet: ConnectedStandardSolanaWallet,
+  multisigPda: PublicKey,
+  transactionIndex: bigint,
+  token?: string
+): Promise<string> {
+  const member = new PublicKey(solanaWallet.address);
+  const ix = multisig.instructions.proposalCancel({
+    multisigPda,
+    transactionIndex,
+    member,
+  });
+  return buildAndSendSponsored(connection, solanaWallet, [ix], undefined, token);
+}
+
+/**
  * Propose + execute in sequence (sponsored). Triggers 2 Privy signing prompts.
  * Returns the execute transaction signature.
  */

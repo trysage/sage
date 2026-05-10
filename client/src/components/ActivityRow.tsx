@@ -1,5 +1,5 @@
 import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Zap } from "lucide-react";
-import { formatUSD } from "@/lib/format";
+import { formatTokenAmount, formatUSD } from "@/lib/format";
 import type { TransactionItem } from "@/lib/api";
 
 function truncate(addr: string | null): string {
@@ -59,7 +59,7 @@ export function ActivityRow({ tx, formattedTime, onClick }: ActivityRowProps) {
   const ts = tx.executedAt ?? tx.proposedAt;
 
   const amountDisplay = tx.amount && symbol
-    ? `${tx.amount} ${symbol}`
+    ? `${formatTokenAmount(tx.amount, { raw: true })} ${symbol}`
     : tx.amount ?? "";
 
   const usdDisplay = formatUSD(tx.valueUSD);

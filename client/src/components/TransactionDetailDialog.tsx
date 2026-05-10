@@ -1,15 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Connection, PublicKey } from "@solana/web3.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Zap, Copy, Check, ShieldX } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Zap, Copy, Check, ShieldX, XCircle } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { PendingAnimation } from "./animations/PendingAnimation";
 import { SuccessAnimation } from "./animations/SuccessAnimation";
 import { RejectedAnimation } from "./animations/RejectedAnimation";
-import { formatUSD } from "@/lib/format";
+import { InlineSpinner } from "./loaders/InlineSpinner";
+import { formatTokenAmount, formatUSD } from "@/lib/format";
 import { useExplorer } from "@/app/context/ExplorerContext";
+import { useAuth } from "@/app/context/AuthContext";
+import { cancelProposalSponsored } from "@/lib/squads";
+import { patchTransaction, closeProposalAccounts } from "@/lib/api";
+import { useEnableCancel } from "@/hooks/useAppSettings";
 import type { TransactionItem } from "@/lib/api";
+
+const RPC_URL = process.env.NEXT_PUBLIC_SOLANA_RPC || "https://api.mainnet-beta.solana.com";
+
+type CancelState = "idle" | "cancelling" | "error";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -82,10 +92,60 @@ interface TransactionDetailDialogProps {
   open: boolean;
   onClose: () => void;
   tx: TransactionItem | null;
+  onCancelSuccess?: () => void;
 }
 
-export function TransactionDetailDialog({ open, onClose, tx }: TransactionDetailDialogProps) {
+export function TransactionDetailDialog({ open, onClose, tx, onCancelSuccess }: TransactionDetailDialogProps) {
   const { txUrl } = useExplorer();
+  const { getSolanaWallet, identityToken } = useAuth();
+  const [cancelEnabled] = useEnableCancel();
+  const [cancelState, setCancelState] = useState<CancelState>("idle");
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCancelState("idle");
+    setCancelError(null);
+  }, [tx?.id]);
+
+  const canCancel =
+    cancelEnabled &&
+    tx != null &&
+    (tx.inReview || tx.status === "pending" || tx.status === "rejected") &&
+    tx.multisigAddress != null &&
+    tx.multisigAddress !== "" &&
+    tx.proposalIndex != null;
+
+  async function handleCancel() {
+    if (!tx || !canCancel) return;
+    const solanaWallet = getSolanaWallet();
+    if (!solanaWallet) { setCancelError("Wallet not connected"); return; }
+
+    setCancelState("cancelling");
+    setCancelError(null);
+    try {
+      const connection = new Connection(RPC_URL, "confirmed");
+      await cancelProposalSponsored(
+        connection,
+        solanaWallet,
+        new PublicKey(tx.multisigAddress!),
+        BigInt(tx.proposalIndex!),
+        identityToken ?? undefined
+      );
+      if (tx.status !== "rejected") {
+        await patchTransaction(tx.id, "reject", "Cancelled by owner", identityToken ?? undefined);
+      }
+      // fire-and-forget rent reclaim
+      closeProposalAccounts(tx.multisigAddress!, tx.proposalIndex!, identityToken ?? undefined)
+        .catch((e) => console.warn("[close] rent reclaim failed:", e));
+      onCancelSuccess?.();
+      onClose();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setCancelError(msg.length > 120 ? msg.slice(0, 120) + "…" : msg);
+      setCancelState("error");
+    }
+  }
+
   const dir = tx?.direction ?? "send";
   const op = tx?.operationType ?? "send";
   const isTrade = op === "trade";
@@ -153,7 +213,7 @@ export function TransactionDetailDialog({ open, onClose, tx }: TransactionDetail
                 <div className="txdlg-amount-row">
                   {tx.amount && tx.tokenSymbol && (
                     <span className={`txdlg-amount ${isReceive ? "in" : ""}`}>
-                      {isReceive ? "+" : "−"}{tx.amount} {tx.tokenSymbol}
+                      {isReceive ? "+" : "−"}{formatTokenAmount(tx.amount, { raw: true })} {tx.tokenSymbol}
                     </span>
                   )}
                   {tx.valueUSD != null && (
@@ -214,6 +274,24 @@ export function TransactionDetailDialog({ open, onClose, tx }: TransactionDetail
               >
                 View on Explorer <ArrowUpRight size={13} />
               </a>
+            )}
+
+            {/* Cancel button — only for in-review proposals the user can cancel */}
+            {canCancel && (
+              <div style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="txdlg-cancel-btn"
+                  onClick={handleCancel}
+                  disabled={cancelState === "cancelling"}
+                >
+                  {cancelState === "cancelling" ? <InlineSpinner /> : <XCircle size={14} />}
+                  {cancelState === "cancelling" ? "Cancelling…" : "Cancel Transaction"}
+                </button>
+                {cancelState === "error" && cancelError && (
+                  <p className="txdlg-cancel-err">{cancelError}</p>
+                )}
+              </div>
             )}
           </motion.div>
         )}

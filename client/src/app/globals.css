@@ -2052,6 +2052,17 @@ body {
 }
 .txdlg-explorer:hover { background: rgba(255,255,255,.07); color: var(--ink-0); }
 
+.txdlg-cancel-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; padding: 11px 0; border-radius: 12px;
+  background: rgba(255,80,80,.06); border: 1px solid rgba(255,80,80,.18);
+  color: var(--danger); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.txdlg-cancel-btn:hover:not(:disabled) { background: rgba(255,80,80,.12); border-color: rgba(255,80,80,.3); }
+.txdlg-cancel-btn:disabled { opacity: .5; cursor: not-allowed; }
+.txdlg-cancel-err { margin: 8px 0 0; font-size: 11.5px; color: var(--danger); text-align: center; line-height: 1.5; }
+
 /* ── Send Dialog ── */
 
 /* Shared state screens (sending / success) */

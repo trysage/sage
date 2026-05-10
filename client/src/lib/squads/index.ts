@@ -4,6 +4,7 @@ export {
   proposeTransaction,
   executeTransaction,
   proposeAndExecute,
+  cancelProposal,
   type SageAccountInfo,
 } from "./account";
 
@@ -12,4 +13,5 @@ export {
   proposeTransactionSponsored,
   executeTransactionSponsored,
   proposeAndExecuteSponsored,
+  cancelProposalSponsored,
 } from "./sponsor";

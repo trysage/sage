@@ -267,6 +267,26 @@ export async function executeTransaction(
 }
 
 /**
+ * Cancel an Approved proposal. Moves on-chain state to Cancelled (terminal),
+ * enabling vaultTransactionAccountsClose to reclaim rent afterward.
+ * Requires the member to have Vote permission.
+ */
+export async function cancelProposal(
+  connection: Connection,
+  solanaWallet: ConnectedStandardSolanaWallet,
+  multisigPda: PublicKey,
+  transactionIndex: bigint
+): Promise<string> {
+  const member = new PublicKey(solanaWallet.address);
+  const ix = multisig.instructions.proposalCancel({
+    multisigPda,
+    transactionIndex,
+    member,
+  });
+  return buildAndSend(connection, solanaWallet, [ix]);
+}
+
+/**
  * Propose + execute in sequence for a 1-of-1 multisig.
  * Triggers 2 Privy signing prompts (1 for propose, 1 for execute).
  * Returns the execute transaction signature.
