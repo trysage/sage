@@ -1,4 +1,5 @@
 import s from './FAQ.module.css'
+import Reveal from './Reveal'
 
 const ITEMS = [
   {
@@ -28,7 +29,7 @@ const ITEMS = [
   },
   {
     num: 'Q.04',
-    q: "How does Sage know what’s safe for me?",
+    q: "How does Sage know what's safe for me?",
     a: 'Sage builds a behavioral profile from your transaction history — amounts, recipients, timing and token patterns. Over time it gets more precise to you specifically, not just general risk signals.',
   },
   {
@@ -47,7 +48,7 @@ export default function FAQ() {
   return (
     <section className={s.section} id="faq">
       <div className={s.container}>
-        <div className={s.sectionHead}>
+        <Reveal className={s.sectionHead}>
           <div>
             <span className={s.sectionIndex}>02 — Frequently asked</span>
             <h2 className={s.h2}>
@@ -58,15 +59,15 @@ export default function FAQ() {
             No legal hedging. No &ldquo;may,&rdquo; no &ldquo;could,&rdquo; no asterisks. If we
             don&apos;t know something, we say so.
           </p>
-        </div>
+        </Reveal>
 
         <div className={s.list}>
-          {ITEMS.map((item) => (
-            <div key={item.num} className={s.item}>
+          {ITEMS.map((item, i) => (
+            <Reveal key={item.num} className={s.item} delay={i * 60}>
               <span className={s.num}>{item.num}</span>
               <h3 className={s.q}>{item.q}</h3>
               <p className={s.a}>{item.a}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>

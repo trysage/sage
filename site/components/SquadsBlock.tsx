@@ -1,12 +1,13 @@
 import Image from 'next/image'
 import s from './SquadsBlock.module.css'
+import Reveal from './Reveal'
 
 export default function SquadsBlock() {
   return (
     <section className={s.section}>
       <div className={s.container}>
         <div className={s.block}>
-          <div>
+          <Reveal>
             <span className={s.eyebrow}>Built on Squads Protocol</span>
             <h2 className={s.h2}>
               Two signatures.<br />
@@ -22,9 +23,9 @@ export default function SquadsBlock() {
               <span className={s.tag}>2-of-2</span>
               <span className={s.tag}>Solana Native</span>
             </div>
-          </div>
+          </Reveal>
 
-          <div className={s.diagram}>
+          <Reveal className={s.diagram} delay={150}>
             <div className={s.diagramLabel}>Transaction · 0.84 SOL → JUP</div>
 
             <div className={`${s.sdRow} ${s.you}`}>
@@ -57,7 +58,7 @@ export default function SquadsBlock() {
               <div className={s.sdResultLabel}>RESULT</div>
               <div className={s.sdResultValue}>Both agree. Transaction executes.</div>
             </div>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>
