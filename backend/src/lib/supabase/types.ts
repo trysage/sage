@@ -159,6 +159,24 @@ export interface DailyStatsRow {
   approved_volume: string;
 }
 
+export interface AddressThreatIntelRow {
+  address: string;
+  chain: string;
+  label: string;
+  threat_types: string[];
+  risk_score: number;
+  incident_name: string | null;
+  incident_date: string | null;
+  amount_usd: string | null;
+  description: string | null;
+  source_urls: string[];
+  related_addresses: string[];
+  tags: string[];
+  reported_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface BehavioralEventRow {
   id: string;
   vault_address: string;

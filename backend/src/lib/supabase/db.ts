@@ -11,6 +11,7 @@ import type {
   TokenPatternRow,
   DailyStatsRow,
   BehavioralEventRow,
+  AddressThreatIntelRow,
 } from "./types.js";
 import type { MultisigProposal, ProposalStatus, PatternsFile } from "../../types.js";
 
@@ -674,4 +675,16 @@ async function _updateRecipientProfile(
     first_seen: existing?.first_seen ?? now.toISOString(),
     last_seen: now.toISOString(),
   });
+}
+
+// ── Sage threat intelligence ──────────────────────────────────────────────────
+
+export async function getThreatIntel(address: string): Promise<AddressThreatIntelRow | null> {
+  const { data, error } = await supabase
+    .from("address_threat_intel")
+    .select("*")
+    .eq("address", address)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
 }

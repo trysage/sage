@@ -29,6 +29,7 @@ export {
   incrementDailyStatsReview,
   getCurrentVelocity,
   incrementVelocityWindow,
+  getThreatIntel,
 } from "./db.js";
 
 export type {
@@ -39,4 +40,5 @@ export type {
   UserRuleRow,
   RecipientProfileRow,
   BehavioralEventRow,
+  AddressThreatIntelRow,
 } from "./types.js";

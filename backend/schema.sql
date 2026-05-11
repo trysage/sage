@@ -199,6 +199,30 @@ CREATE TABLE IF NOT EXISTS behavioral_events (
 CREATE INDEX IF NOT EXISTS behavioral_events_vault ON behavioral_events (vault_address);
 CREATE INDEX IF NOT EXISTS behavioral_events_created ON behavioral_events (vault_address, created_at DESC);
 
+-- ── Sage threat intelligence ──────────────────────────────────────────────────
+-- Internal threat intel database for known malicious / high-risk addresses.
+
+CREATE TABLE IF NOT EXISTS address_threat_intel (
+  address           TEXT PRIMARY KEY,                -- Solana base58 or EVM hex address
+  chain             TEXT NOT NULL DEFAULT 'solana',  -- solana | ethereum | bitcoin | …
+  label             TEXT NOT NULL,                   -- Human-readable attacker label
+  threat_types      TEXT[] NOT NULL DEFAULT '{}',    -- exploit | hack | bridge_abuse | phishing | mixer | sanctions …
+  risk_score        INT NOT NULL DEFAULT 100
+                      CHECK (risk_score BETWEEN 0 AND 100),
+  incident_name     TEXT,
+  incident_date     DATE,
+  amount_usd        TEXT,                            -- Estimated USD value involved
+  description       TEXT,
+  source_urls       TEXT[] NOT NULL DEFAULT '{}',
+  related_addresses TEXT[] NOT NULL DEFAULT '{}',    -- Cross-chain linked addresses
+  tags              TEXT[] NOT NULL DEFAULT '{}',
+  reported_by       TEXT NOT NULL DEFAULT 'sage',
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS address_threat_intel_chain ON address_threat_intel (chain);
+
 -- ── Proposal risk + lifecycle fields ─────────────────────────────────────────
 -- Extend multisig_proposals with risk scoring and review workflow.
 

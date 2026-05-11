@@ -3,6 +3,7 @@ import {
   getProposal,
   getLastInReviewProposal,
   getRecipientProfile,
+  getThreatIntel,
 } from "../lib/supabase/index.js";
 
 const SOLANA_CHAIN = "solana";
@@ -93,6 +94,28 @@ async function checkTokenSecurity(tokenAddress: string) {
   }
 }
 
+async function checkSageThreatIntel(address: string) {
+  try {
+    const record = await getThreatIntel(address);
+    if (!record) return { known: false };
+    return {
+      known:            true,
+      label:            record.label,
+      threatTypes:      record.threat_types,
+      riskScore:        record.risk_score,
+      incidentName:     record.incident_name,
+      incidentDate:     record.incident_date,
+      amountUsd:        record.amount_usd,
+      description:      record.description,
+      relatedAddresses: record.related_addresses,
+      tags:             record.tags,
+      sourceUrls:       record.source_urls,
+    };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 async function checkRugcheck(mintAddress: string) {
   try {
     const res = await fetch(`https://api.rugcheck.xyz/v1/tokens/${mintAddress}/report/summary`);
@@ -147,16 +170,24 @@ export function createAnalyzeRouter(): IRouter {
         ? await getRecipientProfile(toAddr.toLowerCase(), proposal.vaultAddress)
         : null;
 
-      const [addressSecurity, tokenSecurity, rugcheck] = await Promise.all([
+      const [addressSecurity, tokenSecurity, rugcheck, sageThreatIntel] = await Promise.all([
         toAddr ? checkAddressSecurity(toAddr) : Promise.resolve(null),
         tokenAddr && !isNativeSol ? checkTokenSecurity(tokenAddr) : Promise.resolve(isNativeSol ? { nativeSol: true } : null),
-        tokenAddr && !isNativeSol ? checkRugcheck(tokenAddr)     : Promise.resolve(null),
+        tokenAddr && !isNativeSol ? checkRugcheck(tokenAddr)      : Promise.resolve(null),
+        toAddr ? checkSageThreatIntel(toAddr)                     : Promise.resolve(null),
       ]);
 
       const allFlags: string[] = [];
       const addrFlags = (addressSecurity as { flags?: string[] } | null)?.flags;
       if (addrFlags) allFlags.push(...addrFlags);
       if (!profile)  allFlags.push("Unknown recipient (not in patterns)");
+
+      const intel = sageThreatIntel as { known?: boolean; label?: string; threatTypes?: string[]; incidentName?: string } | null;
+      if (intel?.known) {
+        allFlags.push(`Sage threat intel: ${intel.label}`);
+        if (intel.incidentName) allFlags.push(`Linked incident: ${intel.incidentName}`);
+        if (intel.threatTypes?.length) allFlags.push(`Threat types: ${intel.threatTypes.join(", ")}`);
+      }
 
       res.json({
         proposalId: id,
@@ -175,6 +206,7 @@ export function createAnalyzeRouter(): IRouter {
         addressSecurity,
         tokenSecurity,
         rugcheck,
+        sageThreatIntel,
         totalFlags: allFlags.length,
         allFlags,
         safe: allFlags.length === 0,
