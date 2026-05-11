@@ -161,8 +161,8 @@ export function createQueueRouter(): IRouter {
       ]).catch((e) => console.error("recordProposalOutcome failed:", e));
 
       const reviewButtons = [
-        [{ text: `✅ approve ${proposal.id}` }, { text: `❌ reject ${proposal.id}` }],
-        [{ text: `🔎 deep-analyze ${proposal.id}` }],
+        [{ text: `✅ approve` }, { text: `❌ reject` }],
+        [{ text: `🔎 deep-analyze` }],
       ];
 
       const emoji  = risk.verdict === "REVIEW" ? "🔍" : "🚫";
