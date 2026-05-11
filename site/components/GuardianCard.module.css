@@ -169,6 +169,31 @@
   padding: 12px 14px;
 }
 
+.txLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.txIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.txIcon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .txWho {
   font-family: var(--font-sans);
   font-weight: 600;

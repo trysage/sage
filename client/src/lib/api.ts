@@ -65,6 +65,10 @@ export interface TransactionItem {
   inReview?: boolean;
   screeningDisabled?: boolean;
   riskVerdict?: "APPROVE" | "REVIEW" | "BLOCK" | null;
+  riskScore?: number | null;
+  riskReasons?: string[] | null;
+  reviewReason?: string | null;
+  rejectReason?: string | null;
   source: "sage-only" | "zerion-only" | "both";
   direction?: "send" | "receive";
   operationType?: string;

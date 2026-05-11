@@ -18,7 +18,7 @@ export default function ClosingCTA() {
         </Reveal>
 
         <Reveal className={s.ctaRow} delay={200}>
-          <a className={`${s.btn} ${s.btnPrimary} ${s.btnLg}`} href="#">
+          <a className={`${s.btn} ${s.btnPrimary} ${s.btnLg}`} href="https://app.heysage.me">
             Try Sage →
           </a>
           <a className={`${s.btn} ${s.btnGhost} ${s.btnLg}`} href="#">

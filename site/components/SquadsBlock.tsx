@@ -1,6 +1,6 @@
-import Image from 'next/image'
 import s from './SquadsBlock.module.css'
 import Reveal from './Reveal'
+import SquadsDiagram from './SquadsDiagram'
 
 export default function SquadsBlock() {
   return (
@@ -10,7 +10,7 @@ export default function SquadsBlock() {
           <Reveal>
             <span className={s.eyebrow}>Built on Squads Protocol</span>
             <h2 className={s.h2}>
-              Two signatures.<br />
+              Two approvers.<br />
               One of them is <em>Sage.</em>
             </h2>
             <p className={s.body}>
@@ -25,39 +25,8 @@ export default function SquadsBlock() {
             </div>
           </Reveal>
 
-          <Reveal className={s.diagram} delay={150}>
-            <div className={s.diagramLabel}>Transaction · 0.84 SOL → JUP</div>
-
-            <div className={`${s.sdRow} ${s.you}`}>
-              <div className={s.avatar}>Y</div>
-              <div>
-                <div className={s.who}>You</div>
-                <div className={s.role}>PRIMARY SIGNER</div>
-              </div>
-              <span className={s.sig}>◆ SIGNED</span>
-            </div>
-
-            <div className={s.sdAnd}>
-              <span className={s.sdLine} />
-              <span>AND</span>
-              <span className={s.sdLine} />
-            </div>
-
-            <div className={`${s.sdRow} ${s.sage}`}>
-              <div className={`${s.avatar} ${s.avatarSage}`}>
-                <Image src="/assets/sage-mark-mint.png" alt="Sage" width={44} height={44} />
-              </div>
-              <div>
-                <div className={s.who}>Sage</div>
-                <div className={s.role}>CO-SIGNER · AI</div>
-              </div>
-              <span className={s.sig}>◆ SIGNED</span>
-            </div>
-
-            <div className={s.sdResult}>
-              <div className={s.sdResultLabel}>RESULT</div>
-              <div className={s.sdResultValue}>Both agree. Transaction executes.</div>
-            </div>
+          <Reveal delay={150}>
+            <SquadsDiagram />
           </Reveal>
         </div>
       </div>

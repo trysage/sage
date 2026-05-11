@@ -83,7 +83,6 @@ export function Sidebar() {
           >
             <Icon size={16} />
             <span>{label}</span>
-            {badge != null && <span className="sb-badge">{badge}</span>}
           </Link>
         ))}
       </nav>

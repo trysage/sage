@@ -1,7 +1,17 @@
 'use client'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import s from './GuardianCard.module.css'
+
+function ContractIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E5524F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6M9 17h6M9 9h2" />
+    </svg>
+  )
+}
 
 // ── Phase state machine ──────────────────────────────────────────────────────
 const PHASES = [
@@ -29,7 +39,7 @@ const DURATIONS: Record<Phase, number> = {
 
 // ── Scenarios ────────────────────────────────────────────────────────────────
 interface Scenario {
-  tx: { who: string; addr: string; amount: string; sub: string }
+  tx: { who: string; addr: string; amount: string; sub: string; icon?: ReactNode }
   checks: Array<{ label: string; result: 'pass' | 'warn' | 'fail' }>
   verdict: 'safe' | 'danger'
   action: string
@@ -37,7 +47,7 @@ interface Scenario {
 
 const SCENARIOS: Scenario[] = [
   {
-    tx: { who: 'Jupiter Aggregator', addr: 'JUP4...vMSx', amount: '−0.84 SOL', sub: 'SOL → USDC swap' },
+    tx: { who: 'Jupiter Aggregator', addr: 'JUP4...vMSx', amount: '−0.84 SOL', sub: 'SOL → USDC swap', icon: <Image src="/jup.png" alt="" width={28} height={28} /> },
     checks: [
       { label: 'Checking onchain behaviour',  result: 'pass' },
       { label: 'Tracking tokens & addresses', result: 'pass' },
@@ -47,7 +57,7 @@ const SCENARIOS: Scenario[] = [
     action: 'SIGNED · 14ms',
   },
   {
-    tx: { who: 'Suspect contract', addr: 'DRA1...nrZk', amount: '−ALL SOL', sub: 'drain attempt' },
+    tx: { who: 'Unknown contract', addr: 'DRA1...nrZk', amount: '−50 SOL', sub: 'drain attempt', icon: <ContractIcon /> },
     checks: [
       { label: 'Checking onchain behaviour',  result: 'pass' },
       { label: 'Tracking tokens & addresses', result: 'warn' },
@@ -140,9 +150,14 @@ export default function GuardianCard() {
 
       {/* ── Transaction card ── */}
       <div className={`${s.txCard} ${txVisible ? s.txCardIn : ''}`}>
-        <div>
-          <div className={s.txWho}>{sc.tx.who}</div>
-          <div className={s.txAddr}>{sc.tx.addr}</div>
+        <div className={s.txLeft}>
+          {sc.tx.icon && (
+            <span className={s.txIcon}>{sc.tx.icon}</span>
+          )}
+          <div>
+            <div className={s.txWho}>{sc.tx.who}</div>
+            <div className={s.txAddr}>{sc.tx.addr}</div>
+          </div>
         </div>
         <div className={s.txRight}>
           <div className={s.txAmount}>{sc.tx.amount}</div>

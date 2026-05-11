@@ -29,7 +29,7 @@ export default function Hero() {
             </p>
 
             <div className={s.ctaRow}>
-              <a className={`${s.btn} ${s.btnPrimary} ${s.btnLg}`} href="#">
+              <a className={`${s.btn} ${s.btnPrimary} ${s.btnLg}`} href="https://app.heysage.me">
               Try Sage →
               </a>
               <a className={`${s.btn} ${s.btnGhost} ${s.btnLg}`} href="#how">
@@ -45,8 +45,8 @@ export default function Hero() {
         {/* Stats bar */}
         <div className={s.stats}>
           <div className={s.statItem}>
-            <div className={s.statNum}>2<em>/</em>2</div>
-            <div className={s.statLbl}>Multisig</div>
+            <div className={s.statNum}>10<em>+</em></div>
+            <div className={s.statLbl}>Security Tools</div>
           </div>
           <div className={s.statItem}>
             <div className={s.statNum}>24<em>/</em>7</div>
@@ -58,7 +58,7 @@ export default function Hero() {
           </div>
           <div className={s.statItem}>
             <div className={s.statNum}>
-              <Image src="/assets/squads-logo-white.svg" alt="Squads" width={120} height={32} style={{ objectFit: 'contain' }} />
+              <Image src="/assets/squads-logo-white.svg" alt="Squads" width={160} height={42} style={{ objectFit: 'contain' }} />
             </div>
             <div className={s.statLbl}>Powered</div>
           </div>

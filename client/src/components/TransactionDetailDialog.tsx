@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Zap, Copy, Check, ShieldX, XCircle } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Zap, Copy, Check, ShieldX, XCircle, ChevronDown } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { PendingAnimation } from "./animations/PendingAnimation";
 import { SuccessAnimation } from "./animations/SuccessAnimation";
@@ -102,9 +102,12 @@ export function TransactionDetailDialog({ open, onClose, tx, onCancelSuccess }: 
   const [cancelState, setCancelState] = useState<CancelState>("idle");
   const [cancelError, setCancelError] = useState<string | null>(null);
 
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+
   useEffect(() => {
     setCancelState("idle");
     setCancelError(null);
+    setAnalysisOpen(false);
   }, [tx?.id]);
 
   const canCancel =
@@ -263,6 +266,68 @@ export function TransactionDetailDialog({ open, onClose, tx, onCancelSuccess }: 
                 </DetailRow>
               )}
             </div>
+
+            {/* Analysis — expandable, initially closed */}
+            {(tx.riskVerdict || tx.riskScore != null || (tx.riskReasons && tx.riskReasons.length > 0) || tx.reviewReason || tx.rejectReason) && (
+              <div className="txdlg-analysis">
+                <button
+                  type="button"
+                  className="txdlg-analysis-toggle"
+                  onClick={() => setAnalysisOpen((v) => !v)}
+                  aria-expanded={analysisOpen}
+                >
+                  <span>View analysis</span>
+                  <ChevronDown size={14} className={`txdlg-analysis-chev ${analysisOpen ? "open" : ""}`} />
+                </button>
+                {analysisOpen && (
+                  <div className="txdlg-analysis-body">
+                    {tx.riskScore != null && (
+                      <div className="txdlg-analysis-score">
+                        <div className="txdlg-analysis-score-head">
+                          <span className="txdlg-analysis-score-label">Risk score</span>
+                          <span className={`txdlg-analysis-score-val ${
+                            tx.riskScore >= 70 ? "danger" : tx.riskScore >= 40 ? "watch" : "safe"
+                          }`}>{tx.riskScore}<em>/100</em></span>
+                        </div>
+                        <div className="txdlg-analysis-bar">
+                          <span
+                            className={`txdlg-analysis-bar-fill ${
+                              tx.riskScore >= 70 ? "danger" : tx.riskScore >= 40 ? "watch" : "safe"
+                            }`}
+                            style={{ width: `${Math.min(100, Math.max(0, tx.riskScore))}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {tx.reviewReason && (
+                      <div className="txdlg-analysis-block">
+                        <span className="txdlg-analysis-block-label">Message</span>
+                        <p className="txdlg-analysis-msg">{tx.reviewReason}</p>
+                      </div>
+                    )}
+
+                    {tx.rejectReason && (
+                      <div className="txdlg-analysis-block">
+                        <span className="txdlg-analysis-block-label">Rejection reason</span>
+                        <p className="txdlg-analysis-msg danger">{tx.rejectReason}</p>
+                      </div>
+                    )}
+
+                    {tx.riskReasons && tx.riskReasons.length > 0 && (
+                      <div className="txdlg-analysis-block">
+                        <span className="txdlg-analysis-block-label">Signals</span>
+                        <ul className="txdlg-analysis-reasons">
+                          {tx.riskReasons.map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Explorer link */}
             {explorerHref && (
