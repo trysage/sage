@@ -14,7 +14,7 @@ import { useExplorer, EXPLORERS, type Explorer } from "@/app/context/ExplorerCon
 import { patchStatus, upsertUser, getStatus } from "@/lib/api";
 import { useEnableCancel } from "@/hooks/useAppSettings";
 
-const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? "https://t.me/sage_guard_bot";
+const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? "https://t.me/heysageme_bot";
 
 const THEME_OPTIONS: { id: ThemePreference; label: string; Icon: React.ElementType }[] = [
   { id: "dark",   label: "Dark",   Icon: Moon },

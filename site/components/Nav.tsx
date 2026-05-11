@@ -15,7 +15,7 @@ export default function Nav() {
           <a href="#how">How It Works</a>
           <a href="#manifesto">Manifesto</a>
           <a href="#faq">FAQ</a>
-          <a className={s.btnPrimary} href="#">
+          <a className={s.btnPrimary} href="https://app.heysage.me">
             Launch App →
           </a>
         </nav>

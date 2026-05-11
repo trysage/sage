@@ -2,8 +2,6 @@ import Image from 'next/image'
 import s from './ClosingCTA.module.css'
 import Reveal from './Reveal'
 
-const PARTNERS = ['GoPlus', 'Solana', 'NanoBot']
-
 export default function ClosingCTA() {
   return (
     <section className={s.section} id="manifesto">
@@ -27,17 +25,11 @@ export default function ClosingCTA() {
         </Reveal>
 
         <Reveal className={s.partners} delay={300}>
-          <span className={s.partnersLabel}>Trusted by · built with</span>
+          <span className={s.partnersLabel}>Built with</span>
           <div className={s.marks}>
-            <Image src="/assets/squads-logo-white.svg" alt="Squads" width={90} height={24} style={{ objectFit: 'contain', opacity: 0.7 }} />
-            {PARTNERS.map((p) => (
-              <span
-                key={p}
-                className={`${s.partnerMark} ${p === 'NanoBot' ? s.mono : ''}`}
-              >
-                {p}
-              </span>
-            ))}
+            <Image src="/assets/squads-logo-white.svg" alt="Squads" width={110} height={28} className={s.partnerLogo} />
+            <Image src="/solana-logo.svg" alt="Solana" width={120} height={24} className={`${s.partnerLogo} ${s.solanaLogo}`} />
+            <Image src="/nanobot_logo.webp" alt="NanoBot" width={120} height={28} className={s.partnerLogo} />
           </div>
         </Reveal>
       </div>

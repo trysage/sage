@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Dialog } from "./Dialog";
 
-const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? "https://t.me/sage_guard_bot";
+const BOT_URL = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL ?? "https://t.me/heysageme_bot";
 const BOT_HANDLE = "@" + BOT_URL.replace(/^https?:\/\/t\.me\//, "");
 
 type StepState = "idle" | "running" | "done";

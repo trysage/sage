@@ -5,8 +5,8 @@ const NAV_LINKS = [
   { href: '#how',       label: 'How It Works' },
   { href: '#manifesto', label: 'Manifesto' },
   { href: '#faq',       label: 'FAQ' },
-  { href: '#',          label: 'Twitter' },
-  { href: '#',          label: 'GitHub' },
+  { href: 'https://x.com/heysageme', target: '_blank', label: 'Twitter' },
+  { href: 'https://github.com/heysageme/sage', target: '_blank', label: 'GitHub' },
 ]
 
 export default function Footer() {
@@ -21,12 +21,12 @@ export default function Footer() {
         </div>
         <nav className={s.nav}>
           {NAV_LINKS.map((link) => (
-            <a key={link.label} href={link.href}>
+            <a key={link.label} href={link.href} target={link.target}>
               {link.label}
             </a>
           ))}
         </nav>
-        <span className={s.meta}>© 2026 · trysage.xyz · Solana</span>
+        <span className={s.meta}>© 2026 · Sage</span>
       </div>
     </footer>
   )
