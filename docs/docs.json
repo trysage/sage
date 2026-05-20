@@ -1,0 +1,132 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Sage",
+  "colors": {
+    "primary": "#3FBE76",
+    "light": "#7CDFA5",
+    "dark": "#2A9D5E"
+  },
+  "favicon": "/favicon.png",
+  "logo": {
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/heysageme/sage"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Launch App",
+      "href": "https://app.heysage.me"
+    }
+  },
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Try Now",
+          "href": "https://app.heysage.me",
+          "icon": "rocket-launch"
+        },
+        {
+          "anchor": "Brand Kit",
+          "href": "https://heysage.me/brandkit",
+          "icon": "palette"
+        },
+        {
+          "anchor": "Community",
+          "href": "https://x.com/heysageme",
+          "icon": "x-twitter"
+        }
+      ]
+    },
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "quickstart"]
+          },
+          {
+            "group": "Sage App",
+            "pages": [
+              "app/overview",
+              "app/screening",
+              "app/sending",
+              "app/rules",
+              "app/telegram"
+            ]
+          },
+          {
+            "group": "Technology",
+            "pages": [
+              "technology/overview",
+              "technology/architecture",
+              "technology/risk-scoring",
+              "technology/agent",
+              "technology/onchain"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api/introduction"
+            ]
+          },
+          {
+            "group": "Sponsor",
+            "pages": [
+              "api/sponsor-create",
+              "api/sponsor-send"
+            ]
+          },
+          {
+            "group": "Queue & Execute",
+            "pages": [
+              "api/queue-transaction",
+              "api/execute-transaction",
+              "api/get-transactions"
+            ]
+          },
+          {
+            "group": "Analysis",
+            "pages": [
+              "api/analyze",
+              "api/events"
+            ]
+          },
+          {
+            "group": "Policy",
+            "pages": [
+              "api/status",
+              "api/rules"
+            ]
+          },
+          {
+            "group": "Portfolio",
+            "pages": [
+              "api/get-portfolio"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/heysageme",
+      "github": "https://github.com/heysageme/sage"
+    }
+  }
+}
