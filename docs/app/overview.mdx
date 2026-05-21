@@ -1,0 +1,49 @@
+---
+title: Overview
+description: What you can do with the Sage app.
+---
+
+Sage is a Solana smart wallet built on a Squads V4 multisig vault, with an AI co-signer screening every outgoing transfer. You sign in, see your vault portfolio, and send — every transaction passes through the same screening pipeline before it executes.
+
+<CardGroup cols="2">
+  <Card title="Screening" icon="shield-check" iconType="duotone" href="/app/screening">
+    AI-powered proposal screening that learns your vault's patterns and protects it automatically.
+  </Card>
+  <Card title="Sending" icon="paper-plane" iconType="duotone" href="/app/sending">
+    Gasless, fee-sponsored transfers — propose, screen, and execute without holding SOL.
+  </Card>
+  <Card title="Policy Rules" icon="sliders" iconType="duotone" href="/app/rules">
+    Hard limits and allow/block lists that override the behavioral score.
+  </Card>
+  <Card title="Telegram Agent" icon="robot" iconType="duotone" href="/app/telegram">
+    Approve, reject, and deep-analyze proposals — and ask questions — right from Telegram.
+  </Card>
+</CardGroup>
+
+## The Vault
+
+When you first sign in with Privy, Sage deploys a Squads V4 multisig for you. The vault has two members:
+
+| Member | Permission | Role |
+|--------|-----------|------|
+| **You** (embedded wallet) | `all` | Propose, vote, execute |
+| **Sage** (server keypair) | `Execute` | Co-sign and broadcast approved transfers |
+
+The multisig threshold is `1` — your proposal plus Sage's execution is all it takes. Sage never *initiates* a transfer; it only screens what you propose and executes what passes.
+
+<Note>
+  The vault address is derived deterministically from your wallet, so logging in from a new device resolves the same vault — no migration, no re-deploy.
+</Note>
+
+## Screening Modes
+
+| Mode | Behavior |
+|------|----------|
+| **ON** | Full pipeline — APPROVE / REVIEW / BLOCK on every transfer |
+| **OFF** | Plain multisig — proposals are queued and executed without scoring |
+
+Toggle anytime from Telegram (`screening on` / `screening off`) or the app settings.
+
+## Gasless & Sponsored
+
+Every transaction on Sage is fee-sponsored. The server signs as fee payer and pays all account rent (multisig creation, vault transaction, proposal accounts) — so you never need SOL to create a vault or send a transfer. Rent from completed proposals is automatically reclaimed back to the server.

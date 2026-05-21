@@ -1,0 +1,139 @@
+---
+title: Quickstart
+description: Get Sage running locally — client, server, and agent — in minutes.
+---
+
+## Prerequisites
+
+| Tool | Version |
+|------|---------|
+| Node.js | 20+ |
+| pnpm | 10+ |
+| Nanobot CLI | latest |
+
+You'll also need accounts for:
+
+- [Privy](https://privy.io) — embedded Solana wallet + auth
+- [Supabase](https://supabase.com) — patterns, rules, events, and audit storage
+- A Solana RPC URL (Helius, Triton, QuickNode, or `https://api.devnet.solana.com`)
+- A Telegram bot token — for review notifications
+- [Zerion](https://zerion.io) — portfolio data
+
+## Install
+
+This is a pnpm workspace. Run from the root:
+
+```bash
+git clone https://github.com/heysageme/sage
+cd sage
+pnpm install
+```
+
+## Configure Environment
+
+<Tabs>
+  <Tab title="Client">
+    Create `client/.env.local`:
+
+    ```env
+    NEXT_PUBLIC_API_URL=http://localhost:3001
+    NEXT_PUBLIC_SPONSOR_PUBKEY=<server keypair public address>
+    NEXT_PUBLIC_PRIVY_APP_ID=<from privy dashboard>
+    NEXT_PUBLIC_SOLANA_RPC_URL=<your rpc url>
+    ```
+  </Tab>
+  <Tab title="Server">
+    Create `backend/.env`:
+
+    ```env
+    SUPABASE_URL=https://your-project-ref.supabase.co
+    SUPABASE_SERVICE_ROLE_KEY=
+    PRIVY_APP_ID=
+    PRIVY_JWT_VERIFICATION_KEY=        # full JWK JSON from the Privy dashboard
+    ZERION_API_KEY=
+    AGENT_SECRET=                      # shared bearer token for agent + server-to-server
+    SPONSOR_SECRET_KEY=                # JSON byte array — the server's Solana keypair
+    SOLANA_RPC_URL=
+    TELEGRAM_BOT_TOKEN=
+    TELEGRAM_WEBHOOK_SECRET=           # optional
+    PORT=3001
+    ```
+  </Tab>
+</Tabs>
+
+See `backend/.env.example` for the full template. Apply the Supabase schema once before first run:
+
+```bash
+psql "$SUPABASE_DB_URL" -f backend/schema.sql
+```
+
+<Note>
+  `SPONSOR_SECRET_KEY` is the server's Solana keypair as a JSON byte array. It fee-pays every transaction and is added to each vault as a member with `Execute` permission. `NEXT_PUBLIC_SPONSOR_PUBKEY` on the client must be its public address.
+</Note>
+
+## Run Locally
+
+<Steps>
+  <Step title="Start the server">
+    ```bash
+    pnpm dev:server
+    # → http://localhost:3001
+    ```
+  </Step>
+  <Step title="Start the client">
+    ```bash
+    pnpm dev:client
+    # → http://localhost:3000
+    ```
+  </Step>
+  <Step title="Link the Sage skill into Nanobot">
+    ```bash
+    mkdir -p ~/.nanobot/workspace/skills
+    ln -sf "$(pwd)/agents" ~/.nanobot/workspace/skills/sage
+
+    # Restart the gateway and verify detection
+    nanobot gateway restart
+    nanobot skills check
+    ```
+  </Step>
+</Steps>
+
+## Verify It Works
+
+1. Visit `http://localhost:3000`
+2. Sign in with Privy → an embedded Solana wallet is created
+3. A Squads multisig + vault is deployed for you (server-sponsored — no SOL needed)
+4. Fund the vault address, then go to **Send** → enter a recipient and amount
+5. Confirm → the transfer is sponsored, the proposal is registered with `POST /queue`, and the risk engine scores it
+6. **APPROVE**: the server co-signs and executes; the tx signature appears in the UI and Telegram
+7. **REVIEW / BLOCK**: check Telegram for the ✅ / ❌ / 🔎 message
+
+## Run the Tests
+
+The Squads SDK helpers in `src/` are covered by a Mocha suite:
+
+```bash
+pnpm test                                                    # all suites (needs a local validator)
+pnpm test:reference                                          # the canonical 2-of-2 agentic co-signer flow
+RPC_URL=https://api.devnet.solana.com pnpm test:reference    # against devnet
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Vault not deploying">
+    Confirm `SPONSOR_SECRET_KEY` decodes to a valid keypair and the sponsor account holds enough SOL to pay rent. Check `SOLANA_RPC_URL` is reachable.
+  </Accordion>
+  <Accordion title="Proposal stuck without a verdict">
+    The risk engine needs the Supabase schema applied. Check server logs for `getPatternsForSafe` errors and confirm `SUPABASE_SERVICE_ROLE_KEY` is set.
+  </Accordion>
+  <Accordion title="No Telegram notification">
+    Verify `TELEGRAM_BOT_TOKEN` is set, the bot has been started in your chat, and the vault has a `telegram_chat_id` (connect it from the app or `/start` the bot).
+  </Accordion>
+  <Accordion title="Balance not showing">
+    Portfolio data requires a valid `ZERION_API_KEY` in `backend/.env`.
+  </Accordion>
+  <Accordion title="Agent commands not responding">
+    Run `nanobot skills check` to confirm the Sage skill is detected and `AGENT_SECRET` matches the value in `backend/.env`.
+  </Accordion>
+</AccordionGroup>

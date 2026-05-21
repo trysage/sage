@@ -1,0 +1,59 @@
+---
+title: Policy Rules
+description: Hard limits and allow/block lists that shape the risk score.
+---
+
+Behavioral learning handles the gray areas; policy rules handle the absolutes. Rules let you encode hard constraints that adjust the risk score directly — block a recipient outright, cap a single transfer, or restrict trading hours — regardless of what the vault has learned.
+
+## Global Limits
+
+Every vault has a set of limits applied on every proposal. Update them from Telegram (`update limits`) or `PATCH /status`.
+
+| Limit | Default | Effect when exceeded |
+|-------|---------|----------------------|
+| `maxSingleTx` | 5,000 | +30 risk |
+| `maxHourlyVolume` | 10,000 | +15 risk |
+| `maxDailyVolume` | 20,000 | +20 risk |
+| `maxWeeklyVolume` | 50,000 | +10 risk |
+| `maxDailyTxCount` | 20 | +15 risk |
+| `allowedHoursUTC` | — | +20 if outside |
+| `allowedDaysUTC` | — | +20 if outside |
+| `unknownRecipientAction` | `review` | `approve` / `review` (+40) / `block` (+70) |
+| `riskThresholdApprove` | 40 | APPROVE below this |
+| `riskThresholdBlock` | 70 | BLOCK at or above this |
+| `learningEnabled` | `true` | Whether patterns update after execution |
+
+## Custom Rules
+
+Beyond global limits, you can define named rules evaluated on every proposal. Each rule has a type, conditions, an action, and a priority.
+
+| Rule type | What it matches |
+|-----------|-----------------|
+| `amount_limit` | Amount above a max (optionally for a specific token) |
+| `recipient_block` | A specific recipient address |
+| `recipient_whitelist` | A specific trusted recipient address |
+| `time_restriction` | Specific hours / days of week (UTC) |
+| `token_restriction` | A specific token address |
+| `velocity_limit` | Reserved for velocity-based conditions |
+| `custom` | Reserved for bespoke logic |
+
+Each rule's `action` is `approve`, `review`, or `block`, and it contributes a `riskScoreDelta` to the score when triggered.
+
+### Example: block large transfers
+
+```json
+{
+  "vault": "VAULT_ADDRESS",
+  "name": "Block large transfers",
+  "ruleType": "amount_limit",
+  "conditions": { "maxAmount": "1000" },
+  "action": "block",
+  "priority": 10
+}
+```
+
+Manage rules from Telegram (`list rules`, `create rule`, `update rule`, `delete rule`) or directly via the [Rules API](/api/rules).
+
+<Note>
+  Rules and behavioral factors stack. A trusted recipient subtracts risk; a triggered block rule adds 70+. The final score (clamped 0–100) is mapped to APPROVE / REVIEW / BLOCK by your configured thresholds.
+</Note>

@@ -1,0 +1,51 @@
+---
+title: Telegram Agent
+description: Approve, reject, analyze, and configure your vault from Telegram.
+---
+
+Sage's conversational layer lives in Telegram. When a proposal needs your attention, the bot messages you; you respond with a tap or a command. Behind the scenes, a [Nanobot](https://github.com/nanobot-ai/nanobot) skill pack routes your messages to the Sage API.
+
+The agent is **conversational only** — every deterministic decision (scoring, thresholds, execution) lives on the server. The agent calls endpoints and reports the actual result.
+
+## Connecting the Bot
+
+Open the Sage bot in Telegram and send `/start`. The bot pings the server (`POST /bot-ping`), which links your chat to your vault. Once connected, screening notifications and your replies flow through.
+
+## Notification Buttons
+
+A REVIEW or BLOCK message includes three buttons:
+
+| Button | Action |
+|--------|--------|
+| ✅ approve | Co-sign and execute the proposal, then update the message with the tx signature |
+| ❌ reject | Mark the proposal rejected and update the message |
+| 🔎 deep-analyze | Run live GoPlus + Rugcheck + threat-intel analysis and report findings |
+
+## Commands
+
+You can also type commands. A bare command (no proposal ID) resolves to the latest in-review proposal for your vault.
+
+| Command | Action |
+|---------|--------|
+| `approve [PROPOSAL_ID]` | Co-sign, execute, and confirm with the on-chain signature |
+| `reject [PROPOSAL_ID]` | Reject the proposal |
+| `analyze [PROPOSAL_ID]` | Run deep security analysis on demand |
+| `check pending` | List in-review proposals awaiting a decision |
+| `get status` | Screening mode, bot connection, and learned patterns |
+| `screening on` / `screening off` | Toggle screening for the vault |
+| `update limits` | Change policy limits (single-tx, daily/hourly/weekly volume, thresholds, …) |
+| `list rules` / `create rule` / `update rule` / `delete rule` | Manage custom policy rules |
+
+## Ad-Hoc Security Questions
+
+The agent also has access to **security tools over MCP** — GoPlus address and token intelligence, Rugcheck, and sanctioned-address lookups. You can ask things like:
+
+- "Is this address safe?"
+- "Why was proposal X flagged?"
+- "What's the Rugcheck score for this token?"
+
+and get a deep report inline, even outside the context of a pending proposal.
+
+<Note>
+  Every agent request to the Sage API carries `Authorization: Bearer $AGENT_SECRET`. The agent never fabricates results — it runs the call, waits for the response, and reports the actual outcome.
+</Note>

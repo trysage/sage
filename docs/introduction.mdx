@@ -1,0 +1,59 @@
+---
+title: Introduction
+description: An AI co-signer and onchain security agent for Squads Protocol V4 multisigs on Solana.
+---
+
+Sage is an autonomous second signer on your [Squads Protocol V4](https://squads.so) multisig vault. It learns how your vault transacts — amounts, recipients, tokens, timing — and screens every pending proposal against that behavioral profile, your policy rules, and external security data before anything lands on-chain.
+
+Safe transactions auto-execute. Borderline ones are surfaced over Telegram for one-tap review. Clearly malicious ones are blocked.
+
+<CardGroup cols="2">
+  <Card title="Sage App" icon="shield-check" iconType="duotone" href="/app/overview">
+    Sign in, see your vault portfolio, and send gasless transfers screened on every action.
+  </Card>
+  <Card title="Technology" icon="microchip" iconType="duotone" href="/technology/overview">
+    Deep dive into the architecture — Squads V4, sponsored transactions, the risk engine, and the Nanobot agent.
+  </Card>
+  <Card title="Quickstart" icon="rocket-launch" iconType="duotone" href="/quickstart">
+    Run Sage locally — client, server, and agent — in minutes.
+  </Card>
+  <Card title="API Reference" icon="code" iconType="duotone" href="/api/introduction">
+    Integrate with the Sage server API for sponsoring, queuing, screening, and execution.
+  </Card>
+</CardGroup>
+
+## Why Sage?
+
+Multisigs solve key management, but they don't tell you *whether a proposal is safe to sign*. A co-signer who blindly approves is just a slower single signer. Once a malicious proposal reaches quorum, the funds are gone.
+
+- A drained recipient, a fat-fingered amount, or a freshly-minted honeypot token all look identical to a wallet
+- n-of-m signers approve based on trust, not analysis — there is no screening layer between *propose* and *execute*
+- Agentic wallets need a co-signer that can reason about risk, not just hold a key
+
+Sage is that co-signer. It holds a member key on your Squads vault with `Execute` permission and refuses to push anything through that fails its checks.
+
+## How It Works
+
+Sage adds an AI co-signer to your Squads vault. Every proposal is scored 0–100 against the vault's learned behavior, your policy rules, and live security feeds before it executes.
+
+| Score | Verdict | Action |
+|-------|---------|--------|
+| < 40 | **APPROVE** | Server co-signs and executes the vault transaction immediately |
+| 40–70 | **REVIEW** | Deep analysis + Telegram message with ✅ / ❌ / 🔎 buttons |
+| ≥ 70 | **BLOCK** | Marked for review with an urgent Telegram alert |
+
+Thresholds are configurable per vault.
+
+## Built On
+
+| Layer | Technology |
+|-------|-----------|
+| Chain | Solana |
+| Multisig | [Squads Protocol V4](https://squads.so) |
+| Auth + wallet | [Privy](https://privy.io) embedded Solana wallets |
+| Security feeds | [GoPlus](https://gopluslabs.io), [Rugcheck](https://rugcheck.xyz), [Zerion](https://zerion.io) |
+| Agent | [Nanobot](https://github.com/nanobot-ai/nanobot) skill pack over Telegram |
+
+<Note>
+  Sage is fee-sponsored end to end — the server pays rent and fees, so the user never needs SOL to create a vault or send a transfer.
+</Note>

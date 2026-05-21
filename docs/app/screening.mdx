@@ -1,0 +1,71 @@
+---
+title: Screening
+description: How AI proposal screening works from the vault owner's perspective.
+---
+
+Every transfer you propose is scored 0–100 against your vault's behavioral profile, your policy rules, and external security data before anything executes. The result is one of three verdicts.
+
+## The Three Verdicts
+
+<CardGroup cols="3">
+  <Card title="APPROVE" icon="circle-check" iconType="duotone">
+    **Score < 40**
+
+    The proposal matches the vault's normal behavior. Sage co-signs and executes immediately — no action needed from you.
+  </Card>
+  <Card title="REVIEW" icon="circle-question" iconType="duotone">
+    **Score 40–70**
+
+    Something looks unusual. You'll get a Telegram message with the full risk analysis and ✅ approve / ❌ reject / 🔎 deep-analyze buttons.
+  </Card>
+  <Card title="BLOCK" icon="circle-xmark" iconType="duotone">
+    **Score ≥ 70**
+
+    The proposal is held for review with an urgent Telegram alert explaining why. It never executes without your explicit approval.
+  </Card>
+</CardGroup>
+
+Thresholds default to APPROVE < 40 and BLOCK ≥ 70, and are configurable per vault.
+
+## What Gets Scored
+
+The vault's profile is built from its past transactions. Each new proposal is checked against:
+
+- **Recipient** — is this address known, trusted, suspicious, or blocked?
+- **Amount** — is it within the typical range for this recipient (avg + standard deviation)?
+- **Velocity** — would it exceed hourly, daily, or weekly volume, or the daily transaction count?
+- **Timing** — is it happening during the vault's allowed hours and days?
+- **Token** — has the vault used this token before?
+- **Policy rules** — does it trip any rule you've configured?
+
+See [Risk Scoring](/technology/risk-scoring) for the full factor table.
+
+## Deep Analysis on REVIEW
+
+For REVIEW and BLOCK proposals, Sage can run live security checks before you decide:
+
+- **GoPlus address security** — cybercrime, phishing, sanctions, money laundering, darkweb, and mixer flags on the recipient
+- **GoPlus token security** — mintable, freezable, mutable metadata, missing liquidity, and trust status for the token
+- **Rugcheck** — token risk score and risk list (non-native SPL tokens)
+- **Sage threat intel** — known incident addresses curated by Sage
+- **Behavioral history** — whether the recipient is known and its transaction count and average amount
+
+Tap 🔎 **deep-analyze** in Telegram (or ask the agent "is this safe?") to get the full report inline.
+
+## Responding via Telegram
+
+When a proposal is in review, the Telegram message shows:
+
+- Transfer details (amount, token, recipient)
+- Risk score and reasons
+- ✅ approve · ❌ reject · 🔎 deep-analyze buttons
+
+Tap **approve** and Sage co-signs and executes; tap **reject** and it's marked rejected. See [Telegram Agent](/app/telegram) for the full command set.
+
+## Learning Over Time
+
+After every executed transfer, Sage records the pattern — the recipient's running average and standard deviation, typical hours, token familiarity, and velocity counters. Recipients you pay regularly become "known," amounts normalize, and screening grows more accurate with fewer false REVIEW alerts. Learning can be toggled per vault.
+
+## Auditability
+
+Every risk score, verdict, and reason is stored on the proposal record, and every decision (auto-approved, sent for review, blocked, executed, rejected) is appended to an event log. See [Behavioral Event Log](/api/events).

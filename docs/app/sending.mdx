@@ -1,0 +1,46 @@
+---
+title: Sending
+description: How gasless, fee-sponsored transfers flow through Sage.
+---
+
+Sending from Sage proposes a Squads vault transaction, screens it, and — if it passes — executes it, all without you ever holding SOL for fees or rent.
+
+## How a Transfer Flows
+
+<Steps>
+  <Step title="You propose a transfer">
+    In the app, pick a token, enter a recipient and amount, and confirm. The client builds a `vaultTransactionCreate + proposalCreate + proposalApprove` and you sign as a member via Privy.
+  </Step>
+  <Step title="The server sponsors it">
+    The signed transaction is sent to the server, which adds its signature as fee payer and broadcasts it. You pay nothing — the server covers fees and account rent.
+  </Step>
+  <Step title="The proposal is registered">
+    The client calls `POST /queue` with the transfer details. The risk engine scores it against the vault's behavioral profile and policy rules.
+  </Step>
+  <Step title="Screening decides">
+    - **APPROVE** → the server self-calls `/execute`, co-signs `vaultTransactionExecute` with its `Execute` permission, and broadcasts. The signature shows up in the UI and Telegram.
+    - **REVIEW / BLOCK** → the proposal is marked `in_review` and a Telegram message with action buttons is sent.
+  </Step>
+  <Step title="Rent is reclaimed">
+    Once executed, Sage closes the vault transaction and proposal accounts, returning their rent to the server.
+  </Step>
+</Steps>
+
+## Why It's Gasless
+
+Sage is added to every vault as a member with `Execute` permission and acts as the fee payer on every transaction:
+
+- **Vault creation** — `multisigCreateV2` is paid and signed by the server
+- **Proposing** — the user signs as a member, but the server pays the fee via `/sponsor/send`
+- **Executing** — the server signs `vaultTransactionExecute` as both the executing member and fee payer
+- **Cleanup** — `vaultTransactionAccountsClose` reclaims rent permissionlessly
+
+You only ever need the assets you want to send — never SOL for gas.
+
+## Receiving
+
+Your vault has a Solana address (the Squads vault PDA) that receives SOL and SPL tokens like any other wallet. Incoming transfers are not screened — screening applies only to outgoing proposals. Balances and history are shown in the app via [Zerion](https://zerion.io).
+
+<Tip>
+  The first transfer to a brand-new recipient will usually score as REVIEW (unknown recipient). Approve it once and the recipient is recorded; future transfers in your normal range will auto-approve.
+</Tip>
