@@ -1,0 +1,86 @@
+---
+title: Risk Scoring
+description: How every proposal is scored 0–100 against learned behavior and policy.
+---
+
+## Overview
+
+When a proposal hits `POST /queue`, the server runs `analyzeRisk()` instantly against the vault's behavioral profile and policy rules. It is deterministic and synchronous — no LLM, no async roundtrip. The agent only acts after the verdict is determined.
+
+The function accumulates a score from independent factors, clamps it to 0–100, and maps it to a verdict.
+
+## Scoring Factors
+
+| Factor | Score delta |
+|--------|-------------|
+| Unknown recipient — policy: `block` | +70 |
+| Unknown recipient — policy: `review` | +40 |
+| Recipient explicitly blocked | +100 |
+| Recipient flagged suspicious | +30 |
+| Recipient trusted | −15 |
+| Amount above recipient avg + 3σ | +25 |
+| Amount > 3× recipient average | +15 |
+| Recipient not typically paid at this hour | +10 |
+| Time slot explicitly blocked | +30 |
+| Outside allowed hours (UTC) | +20 |
+| Outside allowed days (UTC) | +20 |
+| Exceeds single-tx limit | +30 |
+| Would exceed daily volume | +20 |
+| Would exceed hourly volume | +15 |
+| Would exceed weekly volume | +10 |
+| Daily tx count limit reached | +15 |
+| Token never used before | +10 |
+| High rejection rate today (>50%, ≥3 tx) | +10 |
+| Custom rule triggered | rule's `riskScoreDelta` |
+
+## Verdict Thresholds
+
+| Score | Verdict | What happens |
+|-------|---------|--------------|
+| **< `riskThresholdApprove`** (default 40) | APPROVE | Server self-calls `/execute`, co-signs `vaultTransactionExecute`, broadcasts, and notifies Telegram. Patterns updated. |
+| **between thresholds** | REVIEW | Marked `in_review`; Telegram message with ✅ / ❌ / 🔎 buttons. |
+| **≥ `riskThresholdBlock`** (default 70) | BLOCK | Marked `in_review` with an urgent Telegram alert. Never executes without explicit approval. |
+
+Both thresholds are configurable per vault via `PATCH /status`.
+
+## Custom Rules
+
+User-defined rules are evaluated alongside the built-in factors. Each rule has a type, conditions, and a `riskScoreDelta` added when it matches:
+
+| Rule type | Matches |
+|-----------|---------|
+| `amount_limit` | Amount above a max (optionally scoped to a token) |
+| `recipient_block` / `recipient_whitelist` | A specific recipient address |
+| `time_restriction` | Specific hours / days (UTC) |
+| `token_restriction` | A specific token address |
+| `velocity_limit` / `custom` | Reserved |
+
+See [Policy Rules](/app/rules) and the [Rules API](/api/rules).
+
+## Deep Analysis
+
+REVIEW and BLOCK proposals can be escalated to live security checks via `GET /analyze/:id`:
+
+- **GoPlus address security** — cybercrime, phishing, sanctions, money laundering, darkweb, mixer, blacklist flags
+- **GoPlus token security** — mintable, freezable, mutable metadata, missing DEX liquidity, trust status
+- **Rugcheck** — token risk score and risk list (non-native SPL tokens)
+- **Sage threat intel** — curated known-incident addresses with labels and linked incidents
+- **Behavioral history** — recipient known/unknown, transaction count, average amount
+
+The response aggregates every flag into `allFlags` and a single `safe` boolean.
+
+## Learned Patterns
+
+Patterns live in Supabase and update after every executed transfer (when learning is enabled):
+
+- Recipient profiles — running average, standard deviation, typical hours, trust level
+- Time-of-day / day-of-week activity windows
+- Token familiarity
+- Per-tx, hourly, daily, and weekly velocity counters
+- Daily statistics (tx count, rejection rate)
+
+The profile improves continuously — no manual configuration needed.
+
+## Auditability
+
+Risk scores, verdicts, and reasons are stored on each proposal, and every outcome is appended to the event log. Every decision is traceable. See [Behavioral Event Log](/api/events).

@@ -1,0 +1,114 @@
+---
+title: Architecture
+description: System overview, component breakdown, and data flow.
+---
+
+## Components
+
+| Component | Role |
+|-----------|------|
+| `client/` | Next.js 15 dapp — Privy auth, vault portfolio, send/receive, queue, settings |
+| `backend/` | Express API — sponsor, queue, risk engine, execute, analyze, rules, Telegram glue |
+| `agents/` | Nanobot skill pack — conversational layer over the Sage API, MCP security tools |
+| `src/` | Squads V4 SDK wrappers — `createMultisig`, PDA derivation, on-chain state |
+| `site/` | Marketing site + brand kit |
+
+```mermaid
+flowchart TD
+    U[User Browser] -->|Privy login + embedded Solana wallet| C[Client :3000]
+    C -->|sponsored propose + approve\nuser signs as member| S[Server :3001]
+    C -->|POST /queue| S
+    S -->|analyzeRisk inline| R{Risk Verdict}
+    R -->|< 40 APPROVE| EX[Server /execute]
+    EX -->|vaultTransactionExecute\nserver signs w/ Execute| SQ[Squads V4 / Solana]
+    R -->|40-70 REVIEW\n>= 70 BLOCK| TG[Telegram]
+    TG <-->|buttons: ✅ ❌ 🔎| OC[Agent / Nanobot]
+    OC -->|curl /execute /analyze /rules\nBearer AGENT_SECRET| S
+    OC -->|MCP| SEC[GoPlus · Rugcheck · threat intel]
+    S -->|patterns, rules, events, audit| DB[(Supabase)]
+    S -->|portfolio, history| Z[Zerion]
+    SQ -->|signature| C
+```
+
+## Client
+
+- **Next.js 15** App Router, React 18, TypeScript, Tailwind CSS, Framer Motion
+- **Privy** for auth + an embedded Solana wallet
+- Deploys a Squads V4 multisig per user (member = user's wallet with `all`; co-signer = server with `Execute`)
+- Builds `vaultTransactionCreate + proposalCreate + proposalApprove`, the user signs as a member, then the server sponsors the fee
+- Registers the proposal with `POST /queue`
+- **Portfolio** via Zerion (live balances, prices, history)
+
+## Server
+
+- **Express** with TypeScript, backed by **Supabase**
+- Runs `analyzeRisk()` inline on every `/queue` request — no async roundtrip, no LLM
+- Holds the sponsor keypair: fee payer, rent collector, and the `Execute` member on every vault
+- Self-calls `/execute` on APPROVE; brokers Telegram on REVIEW / BLOCK
+- Calls GoPlus, Rugcheck, and Zerion for deep analysis and portfolio data
+
+## Agent
+
+- **Nanobot skill pack** — conversational layer, authenticated with `AGENT_SECRET`
+- Routes Telegram messages and button taps to the Sage API
+- Has access to **security tools over MCP** (GoPlus, Rugcheck, sanctioned-address lookups) for ad-hoc analysis
+- Owns no deterministic logic — it calls endpoints and reports the actual result
+
+## Data Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+    participant SQ as Squads V4
+    participant DB as Supabase
+    participant TG as Telegram
+    participant OC as Agent
+
+    C->>S: POST /sponsor/send (user-signed propose+approve)
+    S->>SQ: broadcast (server = fee payer)
+    C->>S: POST /queue {to, amount, token, proposalIndex}
+    S->>S: analyzeRisk() → score + verdict
+    S->>DB: store risk score, verdict, reasons
+    alt APPROVE (< 40)
+        S->>S: self-call POST /execute
+        S->>SQ: vaultTransactionExecute (server signs w/ Execute)
+        SQ-->>C: signature
+        S->>DB: update patterns + event log
+        S->>TG: auto-approved + signature
+        S->>SQ: vaultTransactionAccountsClose (reclaim rent)
+    else REVIEW / BLOCK
+        S->>DB: mark in_review
+        S->>TG: report + [✅ ❌ 🔎]
+        TG->>OC: button tap
+        OC->>S: POST /execute or PATCH /transactions/:id
+        S->>SQ: execute (if approved)
+        OC->>S: POST /notify-resolve (update message)
+    end
+```
+
+## Persistence
+
+All state lives in **Supabase** (Postgres). Key tables:
+
+| Concern | Stored |
+|---------|--------|
+| Proposals | Risk score, verdict, reasons, status, signature, in-review/rejected flags |
+| Patterns | Recipient profiles, time patterns, token familiarity, velocity counters, global limits |
+| Rules | Per-vault custom policy rules |
+| Events | Append-only behavioral event log (auto-approved, sent-for-review, blocked, executed, rejected) |
+| Threat intel | Curated known-malicious address records |
+| Users | Vault ↔ signer ↔ Telegram chat mapping |
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Chain | Solana |
+| Multisig | Squads Protocol V4 (`@sqds/multisig`) |
+| Frontend | Next.js 15, React 18, TypeScript, Tailwind CSS, Framer Motion |
+| Auth + wallet | Privy (embedded Solana wallets + JWT verification) |
+| Backend | Express, TypeScript, Supabase, PM2 (production) |
+| Security feeds | GoPlus, Rugcheck, Sage threat intel |
+| Portfolio | Zerion |
+| AI Agent | Nanobot skill pack + MCP security tools, over Telegram |

@@ -1,0 +1,30 @@
+---
+title: Overview
+description: Technical overview of how Sage is built.
+---
+
+Sage is built on independently runnable components that work together: a fee-sponsoring + execution layer, an instant deterministic scoring layer, and a conversational AI agent layer — all anchored on a Squads V4 multisig.
+
+<CardGroup cols="2">
+  <Card title="Architecture" icon="diagram-project" iconType="duotone" href="/technology/architecture">
+    System overview, component breakdown, and data flow diagrams.
+  </Card>
+  <Card title="Risk Scoring" icon="gauge-high" iconType="duotone" href="/technology/risk-scoring">
+    How proposals are scored 0–100 against behavioral patterns and policy rules.
+  </Card>
+  <Card title="Agent" icon="robot" iconType="duotone" href="/technology/agent">
+    The Nanobot skill pack — commands, lifecycle, MCP security tools, and Telegram glue.
+  </Card>
+  <Card title="On-Chain" icon="link" iconType="duotone" href="/technology/onchain">
+    Squads V4 program, multisig layout, PDAs, and the sponsored transaction model.
+  </Card>
+</CardGroup>
+
+## Design Principles
+
+- **No LLM on the hot path** — risk scoring is deterministic and instant. The agent only steps in after a verdict is reached, for communication and ad-hoc analysis.
+- **Squads V4 is the foundation** — battle-tested multisig infrastructure. Sage adds intelligence on top without replacing key management.
+- **The server owns the second key** — Sage holds a member key with `Execute` permission. No approved transfer executes without it, making it genuinely agentic.
+- **Sponsored end to end** — the server is the fee payer and rent collector for every transaction, so users never need SOL.
+- **Continuous learning** — behavioral patterns are recorded after every executed transfer; the profile improves automatically.
+- **Conversational, not authoritative** — the agent calls endpoints and reports results; it never makes the deterministic decision itself.

@@ -1,0 +1,102 @@
+---
+title: Agent
+description: The Nanobot skill pack — commands, lifecycle, MCP security tools, and Telegram glue.
+---
+
+## Overview
+
+The Sage agent is a [Nanobot](https://github.com/nanobot-ai/nanobot) skill pack. It's the only component that talks to the user — over Telegram — and it routes every message and button tap to the Sage API. The server handles deterministic screening and execution; the agent handles everything conversational.
+
+Its role is intentionally narrow: **call endpoints, report the actual result, never fabricate.**
+
+## Setup
+
+<Steps>
+  <Step title="Link the skill into Nanobot's workspace">
+    ```bash
+    mkdir -p ~/.nanobot/workspace/skills
+    ln -sf "$(pwd)/agents" ~/.nanobot/workspace/skills/sage
+    ```
+  </Step>
+  <Step title="Restart the Nanobot gateway">
+    ```bash
+    nanobot gateway restart
+    ```
+  </Step>
+  <Step title="Verify detection">
+    ```bash
+    nanobot skills check
+    ```
+  </Step>
+</Steps>
+
+Nanobot loads the skill from `agents/SKILL.md` and begins responding to Telegram commands.
+
+## Authentication
+
+Every request to the Sage API carries the shared agent secret:
+
+```
+Authorization: Bearer $AGENT_SECRET
+```
+
+The same secret authorizes server-to-server calls (e.g. the queue handler self-calling `/execute`).
+
+## Owner Commands
+
+Bare commands (no proposal ID) resolve to the latest in-review proposal for the vault.
+
+| Command | Endpoint | Action |
+|---------|----------|--------|
+| `approve [id]` | `POST /execute` | Co-sign, execute, then `POST /notify-resolve` with the signature |
+| `reject [id]` | `PATCH /transactions/:id` (or `/latest`) | Mark rejected, then update the Telegram message |
+| `mark for review [id]` | `PATCH /transactions/:id` | Flag a proposal for manual review |
+| `check pending` | `GET /transactions?vaultAddress=` | List in-review proposals |
+| `get status` | `GET /status?vault=` | Screening mode, bot connection, patterns |
+| `screening on` / `off` | `PATCH /status` | Toggle screening |
+| `update limits` | `PATCH /status` | Change policy limits and thresholds |
+
+## Analysis Commands
+
+| Command | Endpoint | Action |
+|---------|----------|--------|
+| `quick risk score [id]` | `GET /transactions/:id` | Stored score, verdict, reasons |
+| `deep analyze [id]` | `GET /analyze/:id` (or `/latest`) | Live GoPlus + Rugcheck + threat-intel report |
+| `behavioral event log` | `GET /events?vault=` | Recent event history |
+
+## Rules Commands
+
+| Command | Endpoint |
+|---------|----------|
+| `list rules` | `GET /rules?vault=` |
+| `create rule` | `POST /rules` |
+| `update rule` | `PATCH /rules/:id` |
+| `delete rule` | `DELETE /rules/:id` |
+
+## MCP Security Tools
+
+Beyond the Sage API, the agent has access to **security tools over MCP** — GoPlus address & token intelligence, Rugcheck, and sanctioned-address lookups. This lets the owner ask open-ended questions ("is this address safe?", "why was this flagged?") and get a deep report inline, even outside a pending proposal.
+
+## Proposal Lifecycle
+
+```
+active → in_review → executed
+                   → rejected
+```
+
+| Status | Description |
+|--------|-------------|
+| `active` | Queued and risk-screened, not yet executed |
+| `in_review` | Flagged (REVIEW or BLOCK), awaiting the owner's decision |
+| `executed` | Co-signed and confirmed on-chain |
+| `rejected` | Rejected by the owner |
+
+## Environment Variables
+
+```env
+AGENT_SECRET=   # shared bearer token; must match the server's AGENT_SECRET
+```
+
+<Note>
+  The agent is conversational only. Scoring, thresholds, and execution all live on the server — the agent runs the call, waits for the response, and reports the real outcome.
+</Note>

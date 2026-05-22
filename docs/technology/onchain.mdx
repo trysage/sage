@@ -1,0 +1,80 @@
+---
+title: On-Chain
+description: Squads V4 program, multisig layout, PDAs, and the sponsored transaction model.
+---
+
+Sage builds entirely on [Squads Protocol V4](https://squads.so), the audited multisig program for Solana. Sage adds no custom on-chain program of its own — it composes the Squads instructions and supplies the second signer.
+
+## Program
+
+| Item | Value |
+|------|-------|
+| Program | Squads Protocol V4 |
+| Program ID | `SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf` |
+| SDK | [`@sqds/multisig`](https://www.npmjs.com/package/@sqds/multisig) |
+| Networks | Solana Mainnet-beta, Devnet (`RPC_URL` / `SOLANA_RPC_URL`) |
+| Commitment | `confirmed` |
+
+## Multisig Layout
+
+Each user gets one Squads multisig with two members and a threshold of 1:
+
+| Member | Permissions | Role |
+|--------|-------------|------|
+| User (Privy embedded wallet) | `Initiate`, `Vote`, `Execute` (`Permissions.all()`) | Proposes and votes |
+| Sage (server keypair) | `Execute` only | Co-signs and broadcasts approved transfers |
+
+The server is added as a member at creation but holds only `Execute` — it can never *initiate* a transfer, only push through what the user has proposed and what passed screening.
+
+## Deterministic Vaults
+
+The vault address is derived deterministically per user, so a login from any device resolves the same vault:
+
+```ts
+// createKey is HMAC-SHA256(sponsorSecret, "sage_multisig_v1:" + userPubkey)
+const createKey = deriveCreateKey(userPubkey);
+const [multisigPda] = multisig.getMultisigPda({ createKey: createKey.publicKey });
+const [vaultPda]    = multisig.getVaultPda({ multisigPda, index: 0 });
+```
+
+If the multisig already exists on-chain, `/sponsor/create` returns the existing PDAs instead of re-creating.
+
+## PDAs
+
+| PDA | Derived from | Purpose |
+|-----|-------------|---------|
+| Multisig | `createKey` | The multisig config account |
+| Vault | `multisigPda`, `index` | The treasury that holds and sends funds |
+| Transaction | `multisigPda`, `transactionIndex` | A proposed `vaultTransaction` |
+| Proposal | `multisigPda`, `transactionIndex` | Vote-tracking account for a transaction |
+| Program config | — | Resolves the Squads treasury (rent destination) |
+
+## Sponsored Transaction Model
+
+Sage is the fee payer and rent collector for the full lifecycle. The user never needs SOL.
+
+| Step | Instruction | Signers / payer |
+|------|------------|-----------------|
+| Create vault | `multisigCreateV2` | Server (fee payer) + `createKey` |
+| Propose | `vaultTransactionCreate` + `proposalCreate` + `proposalApprove` | User signs as member; server pays via `/sponsor/send` |
+| Execute | `vaultTransactionExecute` | Server signs as executing member **and** fee payer |
+| Reclaim rent | `vaultTransactionAccountsClose` | Server (permissionless; rent → `rentCollector`) |
+
+The multisig is created with `rentCollector = server`, so rent from completed proposals returns to the sponsor.
+
+## SDK Wrappers
+
+The `src/` package wraps the Squads SDK for tests and reuse:
+
+| Function | What it does |
+|----------|-------------|
+| `createMultisig(params)` | Creates a multisig with members and threshold |
+| `getMultisigState(connection, multisigPda)` | Fetches on-chain multisig state |
+| `getProposalState(connection, multisigPda, transactionIndex)` | Fetches a proposal account |
+| `deriveVaultPda(multisigPda, index)` | Derives the vault PDA |
+
+The canonical end-to-end agentic co-signer flow is covered in `tests/reference/transfer-flow.test.ts`.
+
+<Note>
+  Always verify the Squads program ID against the [official Squads documentation](https://docs.squads.so) before deploying to mainnet.
+</Note>
