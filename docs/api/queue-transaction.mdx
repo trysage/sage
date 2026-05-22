@@ -1,0 +1,77 @@
+---
+title: Queue Transaction
+description: Register a proposal for risk scoring and routing.
+---
+
+## POST /queue
+
+Stores a proposed transfer, runs `analyzeRisk()` inline against the vault's patterns and policy, and routes it by verdict:
+
+- **APPROVE (< 40)** — server self-calls `/execute`, broadcasts, and notifies Telegram; returns `autoApproved: true` and the `signature`
+- **REVIEW (40–70)** — marks `in_review`, sends a Telegram message with ✅ / ❌ / 🔎 buttons
+- **BLOCK (≥ 70)** — marks `in_review`, sends an urgent Telegram alert
+
+If `screeningDisabled` is set, the proposal is stored and returned without scoring.
+
+## Request
+
+```json
+{
+  "multisigAddress": "…",
+  "vaultAddress": "…",
+  "proposalIndex": 7,
+  "to": "…recipient address",
+  "amount": "0.5",
+  "amountUSD": "82.10",
+  "tokenSymbol": "SOL",
+  "tokenAddress": "so111…",
+  "tokenIconUrl": "https://…",
+  "proposedBy": "…",
+  "screeningDisabled": false
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `multisigAddress` | `string` | Yes | Multisig config account |
+| `vaultAddress` | `string` | Yes | Vault (treasury) address |
+| `to` | `string` | Yes | Recipient address |
+| `amount` | `string` | Yes | Human-readable amount |
+| `proposalIndex` | `number` | No | On-chain `transactionIndex` (needed for execution) |
+| `amountUSD` | `string` | No | USD value, used for scoring when present |
+| `tokenSymbol` | `string` | No | Token symbol for display |
+| `tokenAddress` | `string` | No | Token mint (omit / native mint for SOL) |
+| `tokenIconUrl` | `string` | No | Token icon URL for display |
+| `proposedBy` | `string` | No | Proposer address |
+| `screeningDisabled` | `boolean` | No | Skip risk analysis and queue only |
+
+## Response
+
+```json
+{
+  "success": true,
+  "id": "uuid-of-proposal",
+  "risk": {
+    "riskScore": 15,
+    "verdict": "APPROVE",
+    "reasons": ["Recipient is trusted", "…"],
+    "triggeredRules": []
+  },
+  "autoApproved": true,
+  "signature": "…"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `id` | The stored proposal ID |
+| `risk.riskScore` | Risk score (0–100) |
+| `risk.verdict` | `APPROVE`, `REVIEW`, or `BLOCK` |
+| `risk.reasons` | Human-readable scoring reasons |
+| `risk.triggeredRules` | IDs of any custom rules that fired |
+| `autoApproved` | Present and `true` on APPROVE |
+| `signature` | On-chain signature (present only if auto-approved and executed) |
+
+<Note>
+  If risk analysis fails (e.g. patterns can't be loaded), the proposal is still stored and the response includes `riskError` instead of `risk`.
+</Note>

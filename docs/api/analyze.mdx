@@ -1,0 +1,56 @@
+---
+title: Deep Analysis
+description: Live security analysis for a proposal — GoPlus, Rugcheck, and threat intel.
+---
+
+## GET /analyze/:id
+
+Runs live security checks on a proposal's recipient and token and aggregates every flag. Use `latest` as the id with `?vaultAddress=` to target the most recent in-review proposal. Typically takes 5–15s.
+
+```bash
+curl -s -H "Authorization: Bearer $AGENT_SECRET" \
+  "https://api.trysage.xyz/analyze/PROPOSAL_ID"
+
+# latest in-review for a vault
+curl -s -H "Authorization: Bearer $AGENT_SECRET" \
+  "https://api.trysage.xyz/analyze/latest?vaultAddress=VAULT_ADDRESS"
+```
+
+## What It Checks
+
+| Source | Field | Detail |
+|--------|-------|--------|
+| GoPlus address security | `addressSecurity` | Cybercrime, phishing, sanctions, money laundering, darkweb, mixer, blacklist, fake KYC, malicious contracts |
+| GoPlus token security | `tokenSecurity` | Mintable, freezable, closable, mutable metadata, missing DEX liquidity, trust status (native SOL is skipped) |
+| Rugcheck | `rugcheck` | Token risk `score`, `risks`, `rating` (non-native SPL tokens) |
+| Sage threat intel | `sageThreatIntel` | Curated known-incident addresses — label, threat types, linked incident |
+| Behavioral history | `recipient` | `known`, `totalTxCount`, `avgAmount` |
+
+## Response
+
+```json
+{
+  "proposalId": "…",
+  "to": "…",
+  "amount": "0.5",
+  "token": "SOL",
+  "recipient": { "known": false },
+  "addressSecurity": { "safe": true, "flags": [], "dataSource": "GoPlus" },
+  "tokenSecurity": { "nativeSol": true },
+  "rugcheck": null,
+  "sageThreatIntel": { "known": false },
+  "totalFlags": 1,
+  "allFlags": ["Unknown recipient (not in patterns)"],
+  "safe": false
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `allFlags` | Aggregated list of every red flag found across all sources |
+| `totalFlags` | Count of `allFlags` |
+| `safe` | `true` only when no flags were raised |
+
+<Tip>
+  Present `allFlags` prominently. When `safe: true` and `totalFlags: 0`, reassure the owner the proposal is clean.
+</Tip>

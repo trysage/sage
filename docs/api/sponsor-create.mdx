@@ -1,0 +1,42 @@
+---
+title: Create Vault
+description: Create or resolve a user's Squads multisig and vault — server-paid.
+---
+
+## POST /sponsor/create
+
+Derives a deterministic multisig + vault for the user and creates it on-chain if it doesn't already exist. The server pays all rent and fees — no SOL required from the user. If the multisig already exists (e.g. the user cleared storage or logged in on a new device), the existing PDAs are returned without re-creating.
+
+The multisig is created with two members: the user (`Permissions.all()`) and the server (`Permission.Execute`), threshold `1`, and `rentCollector` set to the server.
+
+## Request
+
+```json
+{
+  "userPubkey": "9xQe…base58 Solana address"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `userPubkey` | `string` | Yes | The user's Solana wallet public key |
+
+## Response
+
+```json
+{
+  "multisigPda": "…",
+  "vaultPda": "…",
+  "signature": "…"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `multisigPda` | The multisig config account address |
+| `vaultPda` | The vault address (treasury) — fund and receive here |
+| `signature` | Creation tx signature (omitted if the multisig already existed) |
+
+<Note>
+  The vault address is derived deterministically from `userPubkey`, so this endpoint is idempotent — calling it again returns the same PDAs.
+</Note>

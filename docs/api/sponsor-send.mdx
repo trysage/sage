@@ -1,0 +1,48 @@
+---
+title: Sponsor & Send
+description: Add the server fee-payer signature to a user-signed transaction and broadcast it.
+---
+
+## POST /sponsor/send
+
+Receives a base64-encoded, user-signed `VersionedTransaction`, adds the server's signature as fee payer, and broadcasts it. The transaction must already carry all required non-server signatures (e.g. the user's member signature on `vaultTransactionCreate + proposalCreate + proposalApprove`).
+
+## Request
+
+```json
+{
+  "transaction": "<base64-encoded VersionedTransaction>"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `transaction` | `string` | Yes | Base64 of the user-signed `VersionedTransaction` |
+
+## Response
+
+```json
+{
+  "signature": "…"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `signature` | The confirmed on-chain transaction signature |
+
+## Related: POST /sponsor/close
+
+Reclaims rent from a completed proposal's vault transaction and proposal accounts back to the multisig's `rentCollector` (the server). Permissionless on-chain — no user signature required. Called automatically by `/execute` after a successful execution.
+
+```json
+{
+  "multisigPda": "…",
+  "transactionIndex": "7"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `multisigPda` | `string` | Yes | The multisig config account address |
+| `transactionIndex` | `string` | Yes | The transaction index to close |

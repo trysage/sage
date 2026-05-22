@@ -1,0 +1,57 @@
+---
+title: Execute Transaction
+description: The server co-signs and broadcasts an approved vault transaction.
+---
+
+## POST /execute
+
+The server — which holds `Execute` permission on the multisig — builds, signs, and broadcasts `vaultTransactionExecute` autonomously. No client wallet signature is required, because `/sponsor/create` adds the server keypair as a member with `Permission.Execute`. After a successful execution, the server updates patterns, appends to the event log, and fires `/sponsor/close` to reclaim rent.
+
+There are three ways to identify the transaction to execute:
+
+1. **Raw on-chain params** — `multisigPda` + `transactionIndex` (used by the client right after proposing)
+2. **By proposal** — `proposalId`
+3. **Latest in-review** — `vaultAddress` (resolves the most recent in-review proposal)
+
+## Request
+
+```json
+{ "proposalId": "uuid-of-proposal" }
+```
+
+or
+
+```json
+{ "vaultAddress": "…" }
+```
+
+or
+
+```json
+{ "multisigPda": "…", "transactionIndex": "7" }
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `proposalId` | `string` | Stored proposal ID |
+| `vaultAddress` | `string` | Vault address — resolves the latest in-review proposal |
+| `multisigPda` | `string` | Multisig config account (with `transactionIndex`) |
+| `transactionIndex` | `string` | On-chain transaction index (with `multisigPda`) |
+
+## Response
+
+```json
+{
+  "status": "executed",
+  "proposalId": "uuid-of-proposal",
+  "signature": "…"
+}
+```
+
+| `status` | Meaning |
+|----------|---------|
+| `executed` | Co-signed and confirmed; `signature` present |
+| `already_executed` | Was already executed; returns the prior `signature` |
+| `already_rejected` | Proposal was rejected; nothing to do |
+
+On failure the body includes an `error` string.

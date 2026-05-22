@@ -1,0 +1,59 @@
+---
+title: Status & Limits
+description: Read and update screening mode, Telegram config, and policy limits.
+---
+
+## GET /status
+
+Returns the vault's screening mode, Telegram connection, and learned behavioral patterns.
+
+```bash
+curl -s -H "Authorization: Bearer $AGENT_SECRET" \
+  "https://api.trysage.xyz/status?vault=VAULT_ADDRESS"
+```
+
+| Query param | Required | Description |
+|-------------|----------|-------------|
+| `vault` | Yes | Vault address |
+
+Returns: `screeningMode`, `lastCheck`, `telegramChatId`, `botConnected`, `patterns`.
+
+## PATCH /status
+
+Update screening mode, Telegram config, and policy limits — any combination of fields. Requires `vault`.
+
+```json
+{
+  "vault": "VAULT_ADDRESS",
+  "screeningMode": true,
+  "maxSingleTx": "5000",
+  "maxDailyVolume": "20000",
+  "maxHourlyVolume": "10000",
+  "maxWeeklyVolume": "50000",
+  "maxDailyTxCount": 20,
+  "riskThresholdApprove": 40,
+  "riskThresholdBlock": 70,
+  "unknownRecipientAction": "review",
+  "learningEnabled": true
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `vault` | `string` | **Required.** Vault address |
+| `screeningMode` | `boolean` | Toggle screening on/off |
+| `telegramChatId` | `string` | Linked Telegram chat |
+| `botConnected` | `boolean` | Bot connection flag |
+| `maxSingleTx` | `string` | Single-transfer cap |
+| `maxHourlyVolume` | `string` | Hourly volume cap |
+| `maxDailyVolume` | `string` | Daily volume cap |
+| `maxWeeklyVolume` | `string` | Weekly volume cap |
+| `maxDailyTxCount` | `number` | Daily transaction count cap |
+| `allowedHoursUTC` | `number[]` | Allowed hours (0–23, UTC) |
+| `allowedDaysUTC` | `number[]` | Allowed days (0–6, UTC) |
+| `unknownRecipientAction` | `string` | `approve`, `review`, or `block` |
+| `riskThresholdApprove` | `number` | APPROVE below this (0–100) |
+| `riskThresholdBlock` | `number` | BLOCK at or above this (0–100) |
+| `learningEnabled` | `boolean` | Whether patterns update after execution |
+
+Returns the updated `screeningMode`, `telegramChatId`, `botConnected`, and the full `limits` object.

@@ -1,0 +1,68 @@
+---
+title: Rules
+description: Create, list, update, and delete custom policy rules.
+---
+
+Custom rules are evaluated on every proposal alongside the built-in scoring factors. Each rule adds its `riskScoreDelta` to the score when its conditions match. See [Policy Rules](/app/rules) for concepts.
+
+## GET /rules
+
+Returns all active rules for a vault, sorted by priority.
+
+```bash
+curl -s -H "Authorization: Bearer $AGENT_SECRET" \
+  "https://api.trysage.xyz/rules?vault=VAULT_ADDRESS"
+```
+
+## POST /rules
+
+Create a rule.
+
+```json
+{
+  "vault": "VAULT_ADDRESS",
+  "name": "Block large transfers",
+  "ruleType": "amount_limit",
+  "conditions": { "maxAmount": "1000" },
+  "action": "block",
+  "riskScoreDelta": 70,
+  "priority": 10,
+  "description": "optional"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `vault` | `string` | Yes | Vault address |
+| `name` | `string` | Yes | Rule name |
+| `ruleType` | `string` | Yes | See valid types below |
+| `conditions` | `object` | Yes | Type-specific match conditions |
+| `action` | `string` | Yes | `approve`, `review`, or `block` |
+| `riskScoreDelta` | `number` | No | Score added when triggered (default 0) |
+| `priority` | `number` | No | Lower runs first (default 100) |
+| `description` | `string` | No | Notes |
+
+**Valid `ruleType`:** `amount_limit`, `recipient_block`, `recipient_whitelist`, `time_restriction`, `velocity_limit`, `token_restriction`, `custom`
+
+**Valid `action`:** `approve`, `review`, `block`
+
+## PATCH /rules/:id
+
+Update any mutable field on a rule — `name`, `description`, `ruleType`, `conditions`, `action`, `riskScoreDelta`, `priority`, or `isActive`.
+
+```bash
+curl -s -X PATCH https://api.trysage.xyz/rules/RULE_ID \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $AGENT_SECRET" \
+  -d '{"isActive": false}'
+```
+
+## DELETE /rules/:id
+
+Soft-deletes a rule (sets `is_active = false`).
+
+```bash
+curl -s -X DELETE \
+  -H "Authorization: Bearer $AGENT_SECRET" \
+  https://api.trysage.xyz/rules/RULE_ID
+```

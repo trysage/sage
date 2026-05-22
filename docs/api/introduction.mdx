@@ -1,0 +1,55 @@
+---
+title: Introduction
+description: The Sage server API for sponsoring, queuing, screening, and execution.
+---
+
+The Sage server exposes a REST API used by the client and the agent to manage the full proposal lifecycle — from sponsored creation and risk scoring to autonomous execution, deep analysis, and policy configuration.
+
+## Base URL
+
+| Environment | URL |
+|-------------|-----|
+| Local | `http://localhost:3001` |
+| Production | `https://api.trysage.xyz` |
+
+## Authentication
+
+Routes are guarded by a single `auth` middleware that accepts **either**:
+
+- **Agent / server-to-server** — `Authorization: Bearer $AGENT_SECRET` (the shared secret)
+- **End user** — `Authorization: Bearer <privy-jwt>` (verified against the Privy app)
+
+```
+Authorization: Bearer $AGENT_SECRET
+```
+
+A few read endpoints (`/portfolio`, `/tokens`, `/events`) are public; the rest require a bearer token.
+
+## Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `POST` | `/sponsor/create` | ✓ | Create (or resolve) the user's multisig + vault, server-paid |
+| `POST` | `/sponsor/send` | ✓ | Add the server fee-payer signature and broadcast a user-signed tx |
+| `POST` | `/sponsor/close` | ✓ | Reclaim rent from completed proposal accounts |
+| `POST` | `/queue` | ✓ | Register a proposal, run risk analysis, return the verdict |
+| `POST` | `/execute` | ✓ | Server co-signs and broadcasts `vaultTransactionExecute` |
+| `GET` | `/transactions` | ✓ | List proposals for a vault |
+| `GET` | `/transactions/:id` | ✓ | Fetch one proposal (score, verdict, status) |
+| `PATCH` | `/transactions/:id` | ✓ | Reject or mark a proposal for review |
+| `GET` | `/analyze/:id` | ✓ | Deep security analysis (GoPlus, Rugcheck, threat intel) |
+| `GET` | `/status` | ✓ | Screening mode, Telegram config, learned patterns |
+| `PATCH` | `/status` | ✓ | Update screening mode and policy limits |
+| `GET` | `/rules` | ✓ | List custom policy rules |
+| `POST` `PATCH` `DELETE` | `/rules/:id` | ✓ | Manage custom policy rules |
+| `GET` | `/portfolio` | — | Live portfolio via Zerion |
+| `GET` | `/tokens` | — | Token metadata |
+| `GET` | `/events` | — | Behavioral event log |
+| `POST` | `/notify-resolve` | ✓ | Update a Telegram notification after approve/reject |
+| `POST` | `/bot-ping` | — | Link a Telegram chat to a vault on `/start` |
+| `POST` | `/telegram-webhook` | — | Telegram message webhook |
+| `GET` | `/health` | — | Health check |
+
+<Note>
+  The server self-calls `/execute` and `/sponsor/close` over `localhost` using `AGENT_SECRET`, so the same secret powers both the agent and internal server-to-server flows.
+</Note>

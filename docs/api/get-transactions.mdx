@@ -1,0 +1,47 @@
+---
+title: Transactions
+description: List, fetch, reject, or flag proposals.
+---
+
+## GET /transactions
+
+Lists proposals for a vault. Filter client-side for in-review items where `inReview === true` and `status` is neither `executed` nor `rejected`.
+
+```bash
+curl -s -H "Authorization: Bearer $AGENT_SECRET" \
+  "https://api.trysage.xyz/transactions?vaultAddress=VAULT_ADDRESS"
+```
+
+| Query param | Required | Description |
+|-------------|----------|-------------|
+| `vaultAddress` | Yes | Vault address to list proposals for |
+
+## GET /transactions/:id
+
+Fetch a single proposal, including its stored risk verdict.
+
+Returns: `riskScore`, `riskVerdict`, `riskReasons`, `inReview`, `status`, `txSignature`, and transfer details.
+
+## PATCH /transactions/:id
+
+Reject a proposal or flag it for manual review. Use `latest` as the id with a `vaultAddress` to target the most recent in-review proposal.
+
+### Reject
+
+```json
+{ "action": "reject", "reason": "Rejected by owner" }
+```
+
+### Mark for review
+
+```json
+{ "action": "review", "reason": "Flagged for manual review" }
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `action` | `string` | Yes | `reject` or `review` |
+| `reason` | `string` | No | Human-readable reason recorded on the proposal |
+| `vaultAddress` | `string` | When id=`latest` | Resolves the latest in-review proposal |
+
+After a reject, call [`POST /notify-resolve`](/api/introduction) to update the Telegram message.

@@ -1,0 +1,27 @@
+---
+title: Portfolio
+description: Live vault balances, tokens, and history via Zerion.
+---
+
+## GET /portfolio
+
+Returns live portfolio data for a vault — token balances, prices, and value — sourced from [Zerion](https://zerion.io). This is a public read endpoint (no bearer token required), used by the client to render the dashboard.
+
+```bash
+curl -s "https://api.trysage.xyz/portfolio?vault=VAULT_ADDRESS"
+```
+
+| Query param | Required | Description |
+|-------------|----------|-------------|
+| `vault` | Yes | Vault (treasury) address |
+
+## Related read endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /tokens` | Token metadata (symbol, name, icon, decimals) |
+| `GET /events?vault=` | Behavioral [event log](/api/events) |
+
+<Note>
+  Portfolio data requires a valid `ZERION_API_KEY` in the server environment. Incoming transfers are reflected here but are never screened — screening applies only to outgoing proposals.
+</Note>

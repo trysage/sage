@@ -1,0 +1,34 @@
+---
+title: Behavioral Event Log
+description: The append-only audit log of every proposal outcome.
+---
+
+## GET /events
+
+Returns the behavioral event history for a vault — an append-only record of every decision the pipeline made. Useful for auditing and for the agent to summarize recent activity.
+
+```bash
+curl -s -H "Authorization: Bearer $AGENT_SECRET" \
+  "https://api.trysage.xyz/events?vault=VAULT_ADDRESS&limit=50"
+```
+
+| Query param | Required | Description |
+|-------------|----------|-------------|
+| `vault` | Yes | Vault address |
+| `limit` | No | Max events to return |
+
+## Event Types
+
+| Outcome | Recorded when |
+|---------|---------------|
+| `auto_approved` | Proposal scored below the approve threshold |
+| `sent_for_review` | Proposal scored in the REVIEW band |
+| `auto_blocked` | Proposal scored at or above the block threshold |
+| `executed` | Proposal co-signed and confirmed on-chain |
+| `rejected` | Proposal rejected by the owner |
+
+Each event carries the proposal reference plus the `riskScore`, `riskVerdict`, `riskReasons`, and any `triggeredRules` captured at decision time — so every score and reason stays traceable after the fact.
+
+<Note>
+  `/events` is a public read endpoint. Pair it with [`/transactions`](/api/get-transactions) for full proposal detail.
+</Note>
