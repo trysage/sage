@@ -76,6 +76,15 @@
         ]
       },
       {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "2026",
+            "pages": ["changelog/2026-05-29"]
+          }
+        ]
+      },
+      {
         "tab": "API",
         "groups": [
           {
