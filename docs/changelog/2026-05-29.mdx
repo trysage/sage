@@ -1,0 +1,41 @@
+---
+title: "Week of May 29, 2026"
+description: "Risk analysis in transaction details, address threat intelligence, cancel-proposal flow, WalletConnect, and live polling."
+---
+
+## New features
+
+**Risk analysis in transaction details**
+Open any transaction in your activity feed to see the full risk breakdown — score, signals, and the verdict reasoning that drove APPROVE, REVIEW, or BLOCK. Learn more in [Screening](/app/screening) and [Risk scoring](/technology/risk-scoring).
+
+**Address threat intelligence**
+A new table surfaces flagged counterparties and known-malicious addresses so you can spot risky destinations before approving. See [Risk scoring](/technology/risk-scoring) for how the signals feed verdicts.
+
+**Cancel a pending proposal**
+You can now cancel a queued proposal directly from the app. The cancellation runs as a sponsored transaction, so it costs you no gas. See [Sending](/app/sending).
+
+**WalletConnect support**
+Connect any WalletConnect-compatible wallet to Sage in addition to existing options. See the [Quickstart](/quickstart) to get started.
+
+**Live proposal polling**
+The home page and send flow now refresh in the background, so proposal status, verdicts, and activity update without a manual refresh.
+
+## Updates
+
+**Per-user blockchain explorer**
+The Send and Transaction Detail dialogs now respect your preferred block explorer when linking out to transactions and addresses.
+
+**Settings: profile image and cleaner layout**
+Settings now supports a profile image and uses a tighter row layout that groups account, screening, and policy controls more clearly.
+
+**Clearer proposal action buttons**
+Action buttons on queued proposals were simplified to make approve, reject, and cancel easier to scan at a glance.
+
+**Updated Telegram bot handle and Launch App link**
+The site now points to the current Telegram bot and a working "Launch App" button. See [Telegram](/app/telegram).
+
+## Bug fixes
+
+- Fixed an issue where some Solana token security lookups returned missing fields.
+- Activity feed now sorts transactions by execution time, falling back to proposal time when not yet executed.
+- Zerion-only transactions are no longer surfaced in the screened feed.
