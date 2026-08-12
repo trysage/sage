@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ExplorerProvider } from "./context/ExplorerContext";
 import { ScreeningStatusProvider } from "./context/ScreeningStatusContext";
+import { WalletConnectProvider } from "./context/WalletConnectContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -12,7 +13,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ExplorerProvider>
         <PrivyProvider>
           <AuthProvider>
-            <ScreeningStatusProvider>{children}</ScreeningStatusProvider>
+            <ScreeningStatusProvider>
+              <WalletConnectProvider>
+                {children}
+              </WalletConnectProvider>
+            </ScreeningStatusProvider>
           </AuthProvider>
         </PrivyProvider>
       </ExplorerProvider>

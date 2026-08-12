@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLinkAccount, usePrivy } from "@privy-io/react-auth";
-import { ShieldCheck, ShieldOff, Loader2, CheckCircle2, AlertCircle, Sun, Moon, Monitor, Globe } from "lucide-react";
+import { ShieldCheck, ShieldOff, Loader2, CheckCircle2, AlertCircle, Sun, Moon, Monitor, Globe, Plug } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { AgentId } from "@/components/AgentId";
 import { ActivationDialog } from "@/components/ActivationDialog";
 import { useAuth } from "@/app/context/AuthContext";
 import { useScreeningStatus } from "@/app/context/ScreeningStatusContext";
+import { WalletConnectPanel } from "@/components/WalletConnectPanel";
 import { useTheme, type ThemePreference } from "@/app/context/ThemeContext";
 import { useExplorer, EXPLORERS, type Explorer } from "@/app/context/ExplorerContext";
 import { patchStatus, upsertUser, getStatus } from "@/lib/api";
@@ -277,6 +278,24 @@ export default function SettingsPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* ── WalletConnect ── */}
+            <motion.div variants={staggerItem} className="set-divider">
+              <span>DApps</span>
+            </motion.div>
+
+            <motion.div variants={staggerItem} className="set-card">
+              <div className="set-block">
+                <div className="set-ico"><Plug size={18} /></div>
+                <div className="set-text">
+                  <span className="set-title">WalletConnect</span>
+                  <span className="set-sub">Connect Solana DApps to your Sage vault. Transactions are screened before execution.</span>
+                </div>
+              </div>
+              <div style={{ padding: "0 0 4px" }}>
+                <WalletConnectPanel />
+              </div>
+            </motion.div>
 
             {/* ── App settings ── */}
             <motion.div variants={staggerItem} className="set-divider">

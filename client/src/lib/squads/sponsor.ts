@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  AddressLookupTableAccount,
+  ComputeBudgetProgram,
   Connection,
   PublicKey,
   TransactionInstruction,
@@ -60,7 +62,11 @@ async function buildAndSendSponsored(
   });
 
   const data = await res.json();
-  if (!res.ok || data.error) throw new Error(data.error ?? "Sponsor send failed");
+  if (!res.ok || data.error) {
+    const logs: string[] | undefined = data.logs;
+    const detail = logs?.length ? `\nLogs:\n${logs.join("\n")}` : "";
+    throw new Error((data.error ?? "Sponsor send failed") + detail);
+  }
   return data.signature as string;
 }
 
@@ -107,9 +113,11 @@ export async function proposeTransactionSponsored(
   solanaWallet: ConnectedStandardSolanaWallet,
   multisigPda: PublicKey,
   innerInstructions: TransactionInstruction[],
+  addressLookupTableAccounts?: AddressLookupTableAccount[],
   memo?: string,
   token?: string
 ): Promise<bigint> {
+  console.log("proposeTransactionSponsored", innerInstructions);
   const serverPubkey = sponsorPubkey();
   const member = new PublicKey(solanaWallet.address);
   const [vaultPda] = multisig.getVaultPda({ multisigPda, index: 0 });
@@ -128,7 +136,12 @@ export async function proposeTransactionSponsored(
     instructions: innerInstructions,
   });
 
+  // Tx 1: vaultTransactionCreate — potentially large when wrapping complex
+  // inner transactions (e.g. multi-hop Jupiter swaps). Isolated so it fits
+  // within the 1232-byte Solana transaction size limit.
   await buildAndSendSponsored(connection, solanaWallet, [
+    ComputeBudgetProgram.requestHeapFrame({ bytes: 262144 }),
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 600_000 }),
     multisig.instructions.vaultTransactionCreate({
       multisigPda,
       transactionIndex,
@@ -137,8 +150,13 @@ export async function proposeTransactionSponsored(
       vaultIndex: 0,
       ephemeralSigners: 0,
       transactionMessage: innerMessage,
+      addressLookupTableAccounts,
       memo,
     }),
+  ], undefined, token);
+
+  // Tx 2: proposalCreate + proposalApprove — lightweight, always fits.
+  await buildAndSendSponsored(connection, solanaWallet, [
     multisig.instructions.proposalCreate({
       multisigPda,
       creator: member,
@@ -217,6 +235,7 @@ export async function proposeAndExecuteSponsored(
     solanaWallet,
     multisigPda,
     innerInstructions,
+    undefined,
     memo,
     token
   );
